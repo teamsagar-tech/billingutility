@@ -1,4 +1,4 @@
-# Task List: Customer Billing Message SaaS Platform
+# Task List: Customer Billing Message Utility SaaS Platform
 
 ## Status Legend
 - [x] Completed
@@ -7,55 +7,56 @@
 
 ---
 
-## Phase 1: Architectural Audit & Brain Setup (COMPLETED)
-- [x] **Technical Audit**: Detailed review of `/Users/ratan/Developer/billintegration/digital-invoice-system` (`backend-api`, `web-receipt`, `print-agent`, `docker-compose.yml`).
-- [x] **RetailNodeV2 Cross-Audit**: Reviewed `/Users/ratan/Downloads/RetailNodeV2` architecture, CTO rules, WABA integrations (`waba.mpocket.in`), and database schema standards.
-- [x] **Domain & IP Configuration**: Documented production domain `bill.retailnode.in` and server IP `95.135.166.109`.
-- [x] **CTO Rules & Brain Setup**:
-  - [x] Created master `.agents/AGENTS.md` (CTO Lead Enterprise SaaS Architect rules).
-  - [x] Created `.agents/SCHEMA_DICTIONARY.md`.
-  - [x] Created `.agents/rules/git-sync.md`.
-  - [x] Created `.agents/rules/cto-standards.md`.
-  - [x] Created `.agents/skills/deployment/SKILL.md` (Targeting `95.135.166.109` / `bill.retailnode.in`).
-  - [x] Created `.agents/skills/billing-messaging/SKILL.md` (WABA & SMS dispatch protocols).
-  - [x] Created `.agents/skills/page-creation/SKILL.md` & `.agents/skills/form-accessibility/SKILL.md`.
-  - [x] Created `.agents/scripts/save_transcript.py` & `.agents/hooks.json`.
-- [x] **Chat History & Artifact Preservation**:
-  - [x] Preserved active conversation transcript `2ccf087c-9b59-49d3-b5c8-f4393c93c30f.jsonl` into `.agents/conversations/`.
-  - [x] Preserved historical invoice audit transcript `8cfc030c-b5c9-47b2-8b65-41b5cafc7d82.jsonl` into `.agents/conversations/`.
-  - [x] Created `.agents/plans/architecture_plan.md`, `task.md`, and `walkthrough.md`.
+## Phase 1: Architectural Audit, Brain & Standards Setup (COMPLETED)
+- [x] **Technical Audit**: Audited `digital-invoice-system` (`backend-api`, `web-receipt`, `print-agent`, `docker-compose.yml`).
+- [x] **ERP vs. Billing Utility Definition**: Clarified that RetailNode is ERP, while this platform is the high-performance Billing & Customer Messaging Utility SaaS.
+- [x] **Dual Panel Architecture**: Formulated User/Merchant Admin Panel (`/dashboard`) and SaaS SuperAdmin Panel (`/saas-admin`).
+- [x] **Domain & IP Setup**: Targeted production domain `bill.retailnode.in` and server IP `95.135.166.109`.
+- [x] **CTO Rules & Brain Synchronization**:
+  - [x] Updated master `.agents/AGENTS.md`.
+  - [x] Updated `.agents/SCHEMA_DICTIONARY.md` (superadmin role, global_configs, tenant quotas).
+  - [x] Updated `.agents/rules/cto-standards.md` & `.agents/rules/git-sync.md`.
+  - [x] Created skills: `billing-messaging`, `deployment`, `page-creation`, `form-accessibility`.
+  - [x] Configured `save_transcript.py` and `hooks.json`.
+  - [x] Synced transcripts to `.agents/conversations/`.
+  - [x] Created `architecture_plan.md`, `task.md`, and `walkthrough.md`.
 
 ---
 
-## Phase 2: Core Billing Messaging Engine Implementation
+## Phase 2: Database Schema & Core Messaging Engine
 - [ ] **Database Migration (`setupDb.js`)**:
-  - [ ] Add `billing_messages` table to log all outbound message dispatches, message IDs, and delivery statuses.
-  - [ ] Add `waba_provider` and `waba_template_name` columns to `tenants` table.
+  - [ ] Add `billing_messages` table (invoice_id, recipient, gateway, message_id, status, error_reason).
+  - [ ] Add `global_configs` table for platform SuperAdmin settings.
+  - [ ] Add `plan_tier`, `message_quota`, and `messages_used` to `tenants` table.
+  - [ ] Support `role: 'superadmin'` in `users` table.
 - [ ] **Dual WABA Gateway Service (`services/wabaService.js`)**:
-  - [ ] Implement `sendBillingWhatsAppMessage(recipientPhone, templateParams, tenantConfig)`.
-  - [ ] Support Provider 1: `waba_custom` (`https://waba.mpocket.in/messages`).
-  - [ ] Support Provider 2: `waba_graph` (`https://graph.facebook.com/v20.0/{phone_id}/messages`).
-  - [ ] SMS fallback connector interface.
-- [ ] **Controller Refactoring (`invoiceController.js`)**:
-  - [ ] Replace hardcoded `localhost:3000` URLs with dynamic `process.env.APP_URL || 'https://bill.retailnode.in'`.
-  - [ ] Wrap invoice upload + customer CRM upsert + loyalty calculation in a MySQL transaction (`START TRANSACTION` ... `COMMIT`).
-  - [ ] Dispatch billing message via `wabaService` and persist audit entry into `billing_messages`.
-- [ ] **Webhook Controller (`routes/webhookRoutes.js`)**:
-  - [ ] Handle WABA incoming delivery status callbacks (`sent`, `delivered`, `read`, `failed`) and update `billing_messages`.
+  - [ ] Implement `waba_custom` gateway integration (`https://waba.mpocket.in/messages`).
+  - [ ] Implement `waba_graph` gateway integration (`https://graph.facebook.com/v20.0/{phone_id}/messages`).
+  - [ ] Implement quota check before dispatching.
+  - [ ] Implement SMS fallback connector.
+- [ ] **POS Ingestion Controller (`invoiceController.js`)**:
+  - [ ] Dynamic public receipt URL: `https://bill.retailnode.in/t/{shortId}`.
+  - [ ] MySQL transactions for atomic invoice save + CRM upsert + loyalty calculation.
+  - [ ] Audit logging in `billing_messages`.
+- [ ] **WhatsApp Webhook Receiver (`controllers/webhookController.js`)**:
+  - [ ] Inbound status updates: `sent` -> `delivered` -> `read` -> `failed`.
 
 ---
 
-## Phase 3: Web-Receipt & POS Integration
-- [ ] **Web Receipt UI Refinement**:
-  - [ ] Ensure Next.js metadata and OpenGraph tags generate rich WhatsApp link preview cards when `https://bill.retailnode.in/t/{shortId}` is delivered.
-  - [ ] Ensure Tally-style keyboard shortcuts on merchant dashboard forms.
-- [ ] **Desktop Print Agent Update**:
-  - [ ] Update default target API endpoint to `https://bill.retailnode.in/api/v1/invoices/upload`.
+## Phase 3: Merchant User Dashboard & SaaS SuperAdmin Panel
+- [ ] **Merchant Dashboard (`/dashboard`) Updates**:
+  - [ ] WhatsApp message delivery audit log table with live filter (`all`, `delivered`, `failed`).
+  - [ ] Store quota banner showing messages used / remaining credits.
+  - [ ] WABA credentials and gateway selector (`waba.mpocket.in` vs Meta Graph API).
+- [ ] **SaaS SuperAdmin Panel (`/saas-admin`) Creation**:
+  - [ ] Store overview table: Store Name, Plan, Quota, Used, Status (Active/Suspended), Actions.
+  - [ ] Global WABA Gateway configuration interface.
+  - [ ] Platform-wide analytics cards (total invoices, delivery %, active stores).
+  - [ ] Quota top-up modal.
 
 ---
 
 ## Phase 4: Production Deployment & Verification
-- [ ] Verify local tests and builds (`npm run build`).
-- [ ] Configure Nginx reverse proxy on `95.135.166.109` for `bill.retailnode.in`.
-- [ ] Provision SSL with Let's Encrypt Certbot.
-- [ ] Live end-to-end billing message dispatch verification.
+- [ ] Build verification for frontend and backend.
+- [ ] Nginx configuration for `bill.retailnode.in` on `95.135.166.109`.
+- [ ] End-to-end integration test: Dispatch mock invoice from RetailNode ERP format to customer phone and verify digital receipt rendering.

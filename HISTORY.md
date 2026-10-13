@@ -45,9 +45,16 @@ Successfully established the full enterprise brain framework inside the project 
 - `.agents/conversations/`: Transcripts preserved for active (`2ccf087c-9b59-49d3-b5c8-f4393c93c30f`) and historical (`8cfc030c-b5c9-47b2-8b65-41b5cafc7d82`) conversations.
 - `.agents/plans/`: Created `architecture_plan.md`, `task.md`, and `walkthrough.md`.
 
-### 4. Next Milestone: Phase 2 Implementation
-- Database migration adding `billing_messages` table and tenant gateway configurations.
+### 5. Architectural Clarification: ERP vs. Billing Utility & Dual Panels
+- **ERP Decoupling**: Re-emphasized that RetailNode (`RetailNodeV2`) is the complete ERP system, while this project (`billintegration` / `bill.retailnode.in`) is an ultra-fast, high-concurrency Billing & Customer Messaging Utility SaaS.
+- **Dual-Panel Architecture**:
+  1. **User Admin Panel (Merchant Dashboard `/dashboard`)**: For retail stores to view billing streams, delivery logs, loyalty points, customer CRM, branding, and integration tokens.
+  2. **SaaS SuperAdmin Panel (`/saas-admin`)**: For SaaS operators to manage all tenant accounts, subscription plans, message quotas, global WABA gateways, and multi-store analytics.
+- **Rule & Brain Updates**: Updated `AGENTS.md`, `SCHEMA_DICTIONARY.md`, `cto-standards.md`, and `billing-messaging` skill to permanently encode this design.
+
+### 6. Next Milestone: Phase 2 Implementation
+- Database migration adding `billing_messages`, `global_configs`, and tenant quota fields.
 - Dual WABA gateway service (`waba_custom` via `waba.mpocket.in` + Meta Graph API).
 - Production URL resolution to `https://bill.retailnode.in/t/{shortId}`.
-- MySQL transactions for invoice ingestion and customer loyalty updates.
+- Merchant message delivery status UI (`/dashboard`) and SuperAdmin panel scaffolding (`/saas-admin`).
 - WhatsApp delivery status callback webhook.

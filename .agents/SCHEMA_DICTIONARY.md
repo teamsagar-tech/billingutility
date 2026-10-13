@@ -9,10 +9,14 @@
 ## Tables List
 
 ### 1. `tenants` (Store & Firm Accounts)
-Stores the brand/merchant master record, API tokens, and messaging credentials.
+Stores the brand/merchant master record, API tokens, quota limits, and messaging credentials.
 - **id**: `INT AUTO_INCREMENT PRIMARY KEY`
 - **store_name**: `VARCHAR(255) NOT NULL` - Name displayed on digital receipts and messages
 - **api_token**: `VARCHAR(255) UNIQUE NOT NULL` - Unique POS integration key (e.g. `sk_live_...`)
+- **plan_tier**: `ENUM('starter', 'growth', 'enterprise') DEFAULT 'starter'`
+- **message_quota**: `INT DEFAULT 1000` - Monthly or lifetime messaging credits
+- **messages_used**: `INT DEFAULT 0` - Running counter of sent messages
+- **is_active**: `BOOLEAN DEFAULT TRUE` - Tenant status flag (manageable by SuperAdmin)
 - **waba_provider**: `ENUM('waba_custom', 'waba_graph') DEFAULT 'waba_custom'` - WhatsApp gateway provider
 - **waba_access_token**: `TEXT NULL` - Meta Bearer token or custom gateway API secret
 - **phone_number_id**: `VARCHAR(255) NULL` - Meta WABA phone number ID or custom sender ID
@@ -27,18 +31,29 @@ Stores the brand/merchant master record, API tokens, and messaging credentials.
 
 ---
 
-### 2. `users` (Merchant Admin & Cashier Accounts)
-Staff and manager authentication credentials.
+### 2. `users` (Store Staff & SaaS SuperAdmins)
+Staff, merchant managers, and platform operators.
 - **id**: `INT AUTO_INCREMENT PRIMARY KEY`
-- **tenant_id**: `INT NOT NULL` (REFERENCES `tenants(id)` ON DELETE CASCADE)
+- **tenant_id**: `INT NULL` - Nullable for `superadmin` users, foreign key to `tenants(id)` for merchant users
 - **email**: `VARCHAR(255) UNIQUE NOT NULL`
 - **password_hash**: `VARCHAR(255) NOT NULL` (Bcrypt 10 rounds)
-- **role**: `ENUM('owner', 'manager', 'cashier') DEFAULT 'owner'`
+- **role**: `ENUM('superadmin', 'merchant_admin', 'cashier') DEFAULT 'merchant_admin'`
 - **created_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
 
 ---
 
-### 3. `customers` (CRM & Loyalty Profiles)
+### 3. `global_configs` (SaaS SuperAdmin Platform Settings)
+Global platform settings and default provider configurations managed via SuperAdmin SaaS panel.
+- **id**: `INT AUTO_INCREMENT PRIMARY KEY`
+- **config_key**: `VARCHAR(100) UNIQUE NOT NULL` (e.g. `DEFAULT_WABA_PROVIDER`, `WABA_CUSTOM_URL`, `SYSTEM_ALERT_EMAIL`)
+- **config_value**: `TEXT NOT NULL`
+- **is_secret**: `BOOLEAN DEFAULT FALSE` - Masked in API responses if true
+- **updated_by**: `INT NULL` (REFERENCES `users(id)`)
+- **updated_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`
+
+---
+
+### 4. `customers` (CRM & Loyalty Profiles)
 Aggregated retail shopper profiles per tenant store.
 - **id**: `INT AUTO_INCREMENT PRIMARY KEY`
 - **tenant_id**: `INT NOT NULL` (REFERENCES `tenants(id)` ON DELETE CASCADE)
@@ -51,7 +66,7 @@ Aggregated retail shopper profiles per tenant store.
 
 ---
 
-### 4. `invoices` (Digital Receipts Master)
+### 5. `invoices` (Digital Receipts Master)
 Receipt records ingested from POS terminals (Tally, Busy, Marg, RetailNode ERP).
 - **id**: `INT AUTO_INCREMENT PRIMARY KEY`
 - **tenant_id**: `INT NOT NULL` (REFERENCES `tenants(id)` ON DELETE CASCADE)
@@ -69,7 +84,7 @@ Receipt records ingested from POS terminals (Tally, Busy, Marg, RetailNode ERP).
 
 ---
 
-### 5. `billing_messages` (Customer Messaging Dispatch Log)
+### 6. `billing_messages` (Customer Messaging Dispatch Log)
 Full audit trail of every billing SMS and WhatsApp message dispatched to customers.
 - **id**: `INT AUTO_INCREMENT PRIMARY KEY`
 - **tenant_id**: `INT NOT NULL` (REFERENCES `tenants(id)` ON DELETE CASCADE)
@@ -86,7 +101,7 @@ Full audit trail of every billing SMS and WhatsApp message dispatched to custome
 
 ---
 
-### 6. `loyalty_settings` (Points Engine Rules)
+### 7. `loyalty_settings` (Points Engine Rules)
 Per-store configuration for loyalty point calculations.
 - **id**: `INT AUTO_INCREMENT PRIMARY KEY`
 - **tenant_id**: `INT UNIQUE NOT NULL` (REFERENCES `tenants(id)` ON DELETE CASCADE)
@@ -97,7 +112,7 @@ Per-store configuration for loyalty point calculations.
 
 ---
 
-### 7. `referral_settings` & `referrals` (Word-of-Mouth Engine)
+### 8. `referral_settings` & `referrals` (Word-of-Mouth Engine)
 - **referral_settings**:
   - **id**: `INT AUTO_INCREMENT PRIMARY KEY`
   - **tenant_id**: `INT UNIQUE NOT NULL` (REFERENCES `tenants(id)` ON DELETE CASCADE)
@@ -114,7 +129,7 @@ Per-store configuration for loyalty point calculations.
 
 ---
 
-### 8. `feedback_settings` & `feedback_responses` (Reputation Engine)
+### 9. `feedback_settings` & `feedback_responses` (Reputation Engine)
 - **feedback_settings**:
   - **id**: `INT AUTO_INCREMENT PRIMARY KEY`
   - **tenant_id**: `INT UNIQUE NOT NULL` (REFERENCES `tenants(id)` ON DELETE CASCADE)
@@ -131,12 +146,12 @@ Per-store configuration for loyalty point calculations.
 
 ---
 
-### 9. `action_logs` (God-Mode Audit Trail)
+### 10. `action_logs` (God-Mode Audit Trail)
 Immutable ledger of administrative actions and sensitive changes.
 - **id**: `INT AUTO_INCREMENT PRIMARY KEY`
-- **tenant_id**: `INT NOT NULL` (REFERENCES `tenants(id)` ON DELETE CASCADE)
+- **tenant_id**: `INT NULL` - Nullable for global SuperAdmin actions
 - **user_id**: `INT NULL` (REFERENCES `users(id)` ON DELETE SET NULL)
-- **action**: `VARCHAR(100) NOT NULL` - e.g. `UPDATE_WABA_CREDENTIALS`, `DELETE_CUSTOMER`, `UPDATE_LOYALTY`
+- **action**: `VARCHAR(100) NOT NULL` - e.g. `UPDATE_WABA_CREDENTIALS`, `DELETE_CUSTOMER`, `UPDATE_LOYALTY`, `SUPERADMIN_TENANT_SUSPEND`
 - **entity**: `VARCHAR(100) NOT NULL`
 - **entity_id**: `VARCHAR(100) NULL`
 - **old_values**: `JSON NULL`

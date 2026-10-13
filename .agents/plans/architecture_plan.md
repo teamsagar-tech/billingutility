@@ -1,183 +1,96 @@
-# Architecture Plan: RetailNode Customer Billing Messaging SaaS Platform
+# Architecture Plan: RetailNode Customer Billing Messaging Utility SaaS Platform
 
 **Target Environment:**
 - **Domain**: `bill.retailnode.in`
 - **Server IP**: `95.135.166.109`
 - **CTO Role**: Lead Enterprise SaaS Architect
-- **Mission**: End-to-end digital invoice generation and automated customer billing messaging (WhatsApp/SMS) across thousands of multi-tenant retail stores.
+- **Mission**: High-throughput digital invoice ingestion, interactive receipt generation, and automated customer WhatsApp/SMS billing message delivery.
 
 ---
 
-## 1. System Topology & Data Flow
+## 1. Core Architectural Positioning: ERP vs. Billing Utility
+
+| Layer | System | Core Responsibilities |
+| :--- | :--- | :--- |
+| **Enterprise ERP** | **RetailNode (`RetailNodeV2`)** | Inventory, Purchase Invoices, Accounting Ledgers, GST Reporting, Barcode Label Generation, Logistics, and Store Management. |
+| **Billing Utility SaaS** | **`billintegration` (`bill.retailnode.in`)** | High-concurrency Invoice Ingestion API (< 150ms), Base62 shortlink receipt generation (`/t/{shortId}`), WhatsApp WABA billing notifications, shopper CRM, and review generation. |
+
+---
+
+## 2. Portal & Panel Architecture
 
 ```
-┌───────────────────────────────────────┐
-│     POS Terminals & ERP Systems       │
-│  - RetailNode ERP (Vouchers)          │
-│  - Desktop Print Agent (Spooler)      │
-│  - Direct Ingestion API               │
-└──────────────────┬────────────────────┘
-                   │ HTTPS POST /api/v1/invoices/upload
-                   │ Header: x-api-token: <sk_live_...>
-                   ▼
-┌────────────────────────────────────────────────────────┐
-│   Backend Ingestion Engine (Port 4000)                 │
-│  - Idempotency & Auth Verification                     │
-│  - Base62 Short Slug Generator (e.g. 8-char slug)       │
-│  - MySQL Transaction (START TRANSACTION ... COMMIT)    │
-│    • Insert into `invoices`                            │
-│    • Upsert into `customers` (CRM total spend & visits)│
-│    • Calculate Loyalty Points (rupees_per_point)       │
-│    • Convert Referrals & Award Bonuses                 │
-│  - Cache Receipt JSON in Redis (`invoice:{shortId}`)   │
-└──────────────────┬─────────────────────────────────────┘
-                   │
-         ┌─────────┴────────────────────────┐
-         │                                  │
-         ▼                                  ▼
-┌─────────────────────────────────┐ ┌─────────────────────────────────┐
-│ Messaging Dispatch Worker       │ │ Customer Web Receipt (Port 3000)│
-│ - Select Gateway:               │ │ Route: /t/{shortId}             │
-│   1. WABA Custom (waba.mpocket) │ │ - Dynamic itemized digital bill │
-│   2. Meta Graph API (Cloud API) │ │ - Interactive loyalty balance   │
-│   3. SMS Gateway Fallback       │ │ - 1-Click WhatsApp share / PDF  │
-│ - Render Utility Template       │ │ - Google Review redirect (4★+) │
-│ - Record in `billing_messages`  │ │ - Purchase history accordion    │
-│ - Webhook updates (delivered)   │ │ - Brand social channels         │
-└─────────────────────────────────┘ └─────────────────────────────────┘
+                                  bill.retailnode.in
+                                          │
+       ┌──────────────────────────────────┼──────────────────────────────────┐
+       │                                  │                                  │
+       ▼                                  ▼                                  ▼
+┌─────────────────────────┐   ┌─────────────────────────┐   ┌─────────────────────────┐
+│  Public Digital Receipt │   │  User Store Dashboard   │   │  SaaS SuperAdmin Panel  │
+│      Route: /t/[slug]   │   │   Route: /dashboard     │   │   Route: /saas-admin    │
+├─────────────────────────┤   ├─────────────────────────┤   ├─────────────────────────┤
+│ • Interactive Bill View │   │ • Live Invoices Stream  │   │ • All Tenant Accounts   │
+│ • Itemized GST Details  │   │ • Message Delivery Logs │   │ • Plan Quotas & Credits │
+│ • Loyalty Points Badge  │   │ • WhatsApp Credentials  │   │ • Global WABA Gateways  │
+│ • Referral Generator    │   │ • Loyalty & Referral UI │   │ • Multi-Store Analytics │
+│ • 4★+ Google Reviews    │   │ • Store Branding Profile│   │ • Redis & Server Health │
+│ • 1-Click WhatsApp/PDF  │   │ • Store API Key Token   │   │ • God-Mode Audit Trail  │
+└─────────────────────────┘   └─────────────────────────┘   └─────────────────────────┘
 ```
 
 ---
 
-## 2. API Contract Specification
+## 3. High-Concurrency Ingestion & Messaging Pipeline
 
-### `POST /api/v1/invoices/upload`
-**Headers:**
-```http
-Content-Type: application/json
-x-api-token: sk_live_a1b2c3d4e5f6g7h8
-X-Idempotency-Key: pos-tx-994821-20261013
 ```
-
-**Request Body:**
-```json
-{
-  "receiptData": {
-    "storeName": "Pankhudi Fashion Store",
-    "storeAddress": "Shop 4, MG Road, Mumbai",
-    "invoiceNumber": "INV-2026-1049",
-    "customerPhone": "919876543210",
-    "customerName": "Ananya Sharma",
-    "billAmount": 3499.00,
-    "taxAmount": 419.88,
-    "paymentMode": "UPI",
-    "cashierName": "Rahul S.",
-    "items": [
-      {
-        "name": "Designer Silk Saree",
-        "qty": 1,
-        "rate": 2999.00,
-        "amount": 2999.00,
-        "hsn": "5007"
-      },
-      {
-        "name": "Matching Blouse Piece",
-        "qty": 1,
-        "rate": 500.00,
-        "amount": 500.00,
-        "hsn": "5208"
-      }
-    ],
-    "discounts": 0.00,
-    "date": "2026-10-13T17:45:00.000Z"
-  },
-  "referralCode": "919811122233"
-}
-```
-
-**Response (201 Created):**
-```json
-{
-  "success": true,
-  "message": "Invoice processed and billing notification queued",
-  "data": {
-    "shortId": "xK9mP2qL",
-    "url": "https://bill.retailnode.in/t/xK9mP2qL",
-    "loyalty": {
-      "earned": 34,
-      "balance": 210
-    },
-    "messaging": {
-      "status": "queued",
-      "gateway": "waba_custom"
-    }
-  }
-}
+[RetailNode ERP / POS Terminals]
+         │ HTTPS POST /api/v1/invoices/upload (x-api-token)
+         ▼
+[Express Ingestion Controller]
+   ├── 1. Verify `x-api-token` & Check Idempotency Key
+   ├── 2. Verify Tenant Quota (`message_quota > messages_used`)
+   ├── 3. Generate 8-character Base62 `shortId`
+   ├── 4. MySQL Transaction (`START TRANSACTION`):
+   │       • INSERT INTO `invoices`
+   │       • UPSERT INTO `customers` (CRM total spend & visit count)
+   │       • Calculate Loyalty points & convert active referrals
+   │       • COMMIT
+   ├── 5. Cache Receipt Payload in Redis (`invoice:{shortId}` TTL 86400s)
+   ├── 6. Queue Billing Message Dispatch
+   └── 7. Immediate 201 Response to ERP/POS (< 150ms)
+         │
+         ▼
+[WABA Messaging Worker]
+   ├── Construct URL: https://bill.retailnode.in/t/{shortId}
+   ├── Dispatch via Gateway 1 (`waba_custom` via `waba.mpocket.in`)
+   │   or Gateway 2 (Meta Graph API) or SMS fallback
+   ├── Log dispatch into `billing_messages` (status: 'sent')
+   └── Increment tenant `messages_used`
 ```
 
 ---
 
-### `GET /api/v1/invoices/:slug` (Public Web Receipt Ingestion)
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "shortId": "xK9mP2qL",
-    "receiptData": { ... },
-    "loyalty": { "balance": 210 },
-    "createdAt": "2026-10-13T17:45:00.000Z",
-    "history": [
-      { "shortId": "a9Z1b8K2", "date": "2026-09-28T14:20:00.000Z" }
-    ],
-    "tenantProfile": {
-      "store_name": "Pankhudi Fashion Store",
-      "logo_url": "https://bill.retailnode.in/assets/logo.png",
-      "instagram_url": "https://instagram.com/pankhudi_fashion",
-      "facebook_url": "https://facebook.com/pankhudifashion",
-      "google_review_url": "https://g.page/r/pankhudi/review",
-      "feedback_enabled": true
-    }
-  }
-}
-```
+## 4. API Contract: SuperAdmin & Merchant Endpoints
 
----
+### SuperAdmin Endpoints (`requireAuth` + `requireSuperAdmin`)
+- `GET /api/v1/saas-admin/tenants`: List all retail stores with plan tier, message quota, used count, and status.
+- `POST /api/v1/saas-admin/tenants/:id/quota`: Add or adjust messaging credits for a store.
+- `PUT /api/v1/saas-admin/tenants/:id/status`: Suspend or activate a tenant.
+- `GET /api/v1/saas-admin/analytics`: Aggregated platform statistics (total bills, total WhatsApp sent, success rate %, active stores).
+- `GET /api/v1/saas-admin/configs`: Read system-wide default WABA providers and platform configs.
+- `PUT /api/v1/saas-admin/configs`: Update platform-wide messaging gateways.
 
-## 3. WhatsApp Message Template Matrix
+### Merchant Store Admin Endpoints (`requireAuth`)
+- `GET /api/v1/auth/me`: Store info and API token.
+- `GET /api/v1/invoices`: List store invoices with search, date filters, and delivery status.
+- `GET /api/v1/invoices/messages`: Audit log of sent WhatsApp/SMS messages.
+- `GET /api/v1/customers`: Store shopper CRM list.
+- `GET / PUT /api/v1/loyalty`: Loyalty point calculation settings.
+- `GET / PUT /api/v1/waba`: Store WABA provider credentials.
+- `GET / PUT /api/v1/profile`: Store branding (logo, social links, Google review URL).
 
-### Production Template: `digital_bill_receipt` (Utility Category)
-**Header:** None or Image (Brand Logo)
-**Body:**
-```
-Dear {{1}}, thank you for shopping at *{{2}}*!
-
-🧾 *Bill Number*: {{3}}
-💰 *Total Amount*: ₹{{4}}
-⭐ *Loyalty Points Earned*: {{5}} (Total: {{6}})
-
-View, download, and review your digital receipt here:
-👉 {{7}}
-```
-
-**Variables:**
-1. `{{1}}`: Customer Name / Shopper
-2. `{{2}}`: Store Name
-3. `{{3}}`: Invoice Number
-4. `{{4}}`: Formatted Bill Total
-5. `{{5}}`: Points Earned
-6. `{{6}}`: Total Available Points
-7. `{{7}}`: `https://bill.retailnode.in/t/{shortId}`
-
----
-
-## 4. Multi-Tenant Database Schema Reference
-- `tenants`: Store credentials & WABA tokens.
-- `users`: Merchant admin login.
-- `customers`: CRM shopper records & loyalty balances.
-- `invoices`: Receipt json & short_id.
-- `billing_messages`: Messaging dispatch audit trail.
-- `loyalty_settings`: Point calculation rules.
-- `referrals` & `referral_settings`: Word of mouth referrals.
-- `feedback_responses`: Customer ratings and Google review routing.
-- `action_logs`: Immutable audit trails.
+### Ingestion & Public Endpoints
+- `POST /api/v1/invoices/upload`: Ingestion from RetailNode ERP / POS print-agents (`requireApiToken`).
+- `GET /api/v1/invoices/:slug`: Public digital receipt lookup (Redis cached).
+- `POST /api/v1/invoices/public/feedback`: Shopper star rating submission.
+- `POST /api/v1/webhooks/waba`: Inbound WhatsApp delivery status callback (`delivered`, `read`, `failed`).

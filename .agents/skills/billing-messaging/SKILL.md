@@ -7,28 +7,36 @@ description: Standard Operating Procedure for customer billing message delivery,
 
 This skill defines the end-to-end architecture and execution protocol for delivering instant digital invoices and billing notifications to retail customers over WhatsApp and SMS.
 
+## Core Architectural Role
+- **RetailNode (`RetailNodeV2`) is the ERP**: Handles sales orders, inventory, GST, ledgers, and barcode labels.
+- **BillIntegration is the Billing Utility Microservice**: Pluggable high-throughput engine that ingests completed sales invoices from RetailNode ERP (or any POS terminal), computes loyalty bonuses, generates short receipt links (`https://bill.retailnode.in/t/{shortId}`), and dispatches automated WhatsApp/SMS messages to retail shoppers.
+
 ---
 
 ## 1. The Billing Message Lifecycle
 
 ```
-[POS / RetailNode ERP] 
+[RetailNode ERP / POS Terminal] 
          │  (POST /api/v1/invoices/upload with API Token)
          ▼
-[Backend Ingestion API]
-   ├── 1. Validate Payload & Check Idempotency Key
-   ├── 2. Generate Base62 Short Slug (e.g. "aB7k9XyZ")
-   ├── 3. MySQL DB Transaction: Save Invoices + Upsert Customer CRM + Credit Loyalty
-   ├── 4. Cache Receipt JSON in Redis (invoice:{shortId} TTL 86400s)
-   ├── 5. Queue Billing Message Dispatch
-   └── 6. Return 201 Created to POS (< 150ms latency)
+[Billing Utility Ingestion API]
+   ├── 1. Validate API Token (`x-api-token`) & Check Idempotency Key
+   ├── 2. Check Tenant Message Quota (`message_quota > messages_used`)
+   ├── 3. Generate Base62 Short Slug (e.g. "aB7k9XyZ")
+   ├── 4. MySQL Transaction: Save Invoices + Upsert Customer CRM + Credit Loyalty
+   ├── 5. Cache Receipt JSON in Redis (`invoice:{shortId}` TTL 86400s)
+   ├── 6. Queue Billing Message Dispatch
+   └── 7. Return 201 Created to POS (< 150ms latency)
          │
          ▼
 [Messaging Dispatch Worker]
    ├── Formulate Receipt URL: https://bill.retailnode.in/t/{shortId}
-   ├── Select Active Gateway (WABA Custom / Meta Graph / SMS)
+   ├── Select Active Gateway:
+   │   ├── 1. Custom WABA (https://waba.mpocket.in/messages)
+   │   ├── 2. Meta WhatsApp Cloud API (Graph API)
+   │   └── 3. SMS Gateway Fallback
    ├── Format Approved Utility Template
-   ├── Dispatch API Request
+   ├── Dispatch API Request & Increment `tenants.messages_used`
    └── Insert Audit Record into `billing_messages` (status: 'sent')
 ```
 
@@ -74,31 +82,6 @@ This skill defines the end-to-end architecture and execution protocol for delive
 - **Headers**:
   - `Authorization: Bearer <tenant.waba_access_token>`
   - `Content-Type: application/json`
-- **Payload Structure**:
-  ```json
-  {
-    "messaging_product": "whatsapp",
-    "to": "919876543210",
-    "type": "template",
-    "template": {
-      "name": "digital_bill_receipt",
-      "language": { "code": "en_US" },
-      "components": [
-        {
-          "type": "body",
-          "parameters": [
-            { "type": "text", "text": "Customer Name" },
-            { "type": "text", "text": "Store Name" },
-            { "type": "text", "text": "INV-1092" },
-            { "type": "text", "text": "1,450.00" },
-            { "type": "text", "text": "14" },
-            { "type": "text", "text": "https://bill.retailnode.in/t/aB7k9XyZ" }
-          ]
-        }
-      ]
-    }
-  }
-  ```
 
 ### Gateway 3: Plain-Text Fallback (During 24-hr customer service window)
 ```json
