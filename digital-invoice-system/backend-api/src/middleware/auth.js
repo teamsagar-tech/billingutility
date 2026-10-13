@@ -14,11 +14,19 @@ exports.requireAuth = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded; // Contains tenantId and userId
+    req.user = decoded; // Contains userId, tenantId, and role
     next();
   } catch (err) {
     return res.status(401).json({ success: false, error: 'Invalid or expired token' });
   }
+};
+
+// Middleware for SaaS SuperAdmin Platform Controls
+exports.requireSuperAdmin = (req, res, next) => {
+  if (req.user?.role !== 'superadmin') {
+    return res.status(403).json({ success: false, error: 'Forbidden: SuperAdmin privileges required' });
+  }
+  next();
 };
 
 // Middleware for Print Agent (API Token based)

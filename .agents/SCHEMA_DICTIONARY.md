@@ -25,7 +25,14 @@ Stores the brand/merchant master record, API tokens, quota limits, and messaging
 - **instagram_url**: `VARCHAR(255) NULL` - Merchant Instagram profile link
 - **facebook_url**: `VARCHAR(255) NULL` - Merchant Facebook profile link
 - **google_review_url**: `VARCHAR(255) NULL` - Google Business Profile review link for 4+ star ratings
+- **google_place_id**: `VARCHAR(100) NULL` - Google Place ID (e.g. `ChIJ...`) for direct `writereview?placeid=` URL generation
 - **website_url**: `VARCHAR(255) NULL` - Store official e-commerce or website link
+- **youtube_url**: `VARCHAR(255) NULL` - Merchant YouTube channel link
+- **store_address**: `VARCHAR(500) NULL` - Physical address of the retail store
+- **gstin**: `VARCHAR(25) NULL` - Store GST identification number
+- **store_phone**: `VARCHAR(30) NULL` - Store public WhatsApp/calling phone number
+- **store_email**: `VARCHAR(100) NULL` - Store customer service email
+- **fb_pixel_id**: `VARCHAR(255) NULL` - Merchant Meta Facebook Pixel ID(s), comma-separated for multi-pixel tracking
 - **feedback_enabled**: `BOOLEAN DEFAULT TRUE` - Enable/disable interactive feedback star rating
 - **created_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
 - **updated_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`
@@ -54,16 +61,47 @@ Global platform settings and default provider configurations managed via SuperAd
 
 ---
 
-### 4. `customers` (CRM & Loyalty Profiles)
-Aggregated retail shopper profiles per tenant store.
+### 4. `customers` (CRM & Demographic Loyalty Profiles)
+Aggregated retail shopper profiles per tenant store with demographic lifecycle enrichment.
 - **id**: `INT AUTO_INCREMENT PRIMARY KEY`
 - **tenant_id**: `INT NOT NULL` (REFERENCES `tenants(id)` ON DELETE CASCADE)
 - **phone**: `VARCHAR(20) NOT NULL` - E.164 formatted customer mobile number
+- **customer_name**: `VARCHAR(255) NULL` - Customer full legal / display name
+- **email**: `VARCHAR(255) NULL` - Customer email address
+- **dob**: `DATE NULL` - Customer date of birth for automated birthday greetings & vouchers
+- **anniversary_date**: `DATE NULL` - Wedding anniversary date for milestone discounts
+- **gender**: `ENUM('m', 'f', 'o') NULL` - Gender classification
+- **marital_status**: `ENUM('m', 'u') NULL` - Married ('m') or Unmarried ('u')
+- **profession**: `VARCHAR(150) NULL` - Customer occupation / professional background
+- **shopping_frequency**: `VARCHAR(50) DEFAULT 'Monthly'` - Preferred purchase interval
+- **state**: `VARCHAR(100) DEFAULT 'Maharashtra'` - Customer home state
+- **city**: `VARCHAR(100) DEFAULT 'Pune'` - Customer home city
+- **spouse_name**: `VARCHAR(150) NULL` - Spouse full name
+- **spouse_mobile**: `VARCHAR(20) NULL` - Spouse mobile number
+- **spouse_dob**: `DATE NULL` - Spouse birthday
+- **child_name**: `VARCHAR(150) NULL` - Child name
+- **child_dob**: `DATE NULL` - Child birthday
+- **profile_status**: `ENUM('complete', 'incomplete', 'not_exist') DEFAULT 'not_exist'` - Profile enrichment flag
+- **opted_out_whatsapp**: `BOOLEAN DEFAULT FALSE` - WhatsApp promotional opt-out flag
+- **opted_out_sms**: `BOOLEAN DEFAULT FALSE` - SMS promotional opt-out flag
+- **consent_given**: `BOOLEAN DEFAULT TRUE` - DPDP Act 2023 customer messaging consent
 - **total_spent**: `DECIMAL(12, 2) DEFAULT 0.00` - Lifetime purchase total
 - **loyalty_points**: `INT DEFAULT 0` - Active redeemable loyalty point balance
 - **last_visit**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
 - **created_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
 - **UNIQUE KEY**: `unique_tenant_customer (tenant_id, phone)`
+
+---
+
+### 4b. `optout_customers` (DPDP Act 2023 & WhatsApp DND Blacklist)
+Blacklist of customer phone numbers who have unsubscribed or requested Do Not Disturb (DND).
+- **id**: `INT AUTO_INCREMENT PRIMARY KEY`
+- **tenant_id**: `INT NOT NULL` (REFERENCES `tenants(id)` ON DELETE CASCADE)
+- **phone**: `VARCHAR(20) NOT NULL` - Unsubscribed mobile number
+- **channel**: `ENUM('whatsapp', 'sms', 'all') DEFAULT 'whatsapp'`
+- **reason**: `VARCHAR(255) DEFAULT 'Customer requested DND'`
+- **created_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
+- **UNIQUE KEY**: `unique_tenant_optout (tenant_id, phone, channel)`
 
 ---
 
@@ -130,32 +168,35 @@ Per-store configuration for loyalty point calculations.
 
 ---
 
-### 9. `feedback_settings` & `feedback_responses` (Reputation Engine)
+### 9. `feedback_settings` & `customer_feedback` (Dissatisfaction Shield & Reputation Engine)
 - **feedback_settings**:
   - **id**: `INT AUTO_INCREMENT PRIMARY KEY`
   - **tenant_id**: `INT UNIQUE NOT NULL` (REFERENCES `tenants(id)` ON DELETE CASCADE)
   - **min_rating_for_google_review**: `INT DEFAULT 4` - 4 or 5 stars routes to Google Review
   - **is_active**: `BOOLEAN DEFAULT TRUE`
-- **feedback_responses**:
+- **customer_feedback** (Active feedback ledger):
   - **id**: `INT AUTO_INCREMENT PRIMARY KEY`
   - **tenant_id**: `INT NOT NULL` (REFERENCES `tenants(id)` ON DELETE CASCADE)
-  - **invoice_id**: `INT NOT NULL` (REFERENCES `invoices(id)` ON DELETE CASCADE)
+  - **invoice_id**: `INT NULL` (REFERENCES `invoices(id)`)
+  - **invoice_number**: `VARCHAR(100) NULL`
+  - **customer_name**: `VARCHAR(255) NULL`
   - **customer_phone**: `VARCHAR(20) NOT NULL`
   - **rating**: `INT NOT NULL` (1 to 5)
-  - **review_text**: `TEXT NULL`
+  - **comment**: `TEXT NULL`
+  - **question_title**: `VARCHAR(255) DEFAULT 'How was your shopping experience?'`
+  - **resolution_status**: `ENUM('pending', 'in_progress', 'resolved') DEFAULT 'pending'` - Proactive Dissatisfaction Shield status
+  - **resolution_notes**: `TEXT NULL` - Private notes on customer phone call/apology coupon resolution
   - **created_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
 
 ---
 
-### 10. `action_logs` (God-Mode Audit Trail)
-Immutable ledger of administrative actions and sensitive changes.
+### 10. `action_logs` (Customer Engagement & System Audit Trail)
+High-throughput ledger tracking user clicks on Google Reviews, social channels, and administrative actions.
 - **id**: `INT AUTO_INCREMENT PRIMARY KEY`
-- **tenant_id**: `INT NULL` - Nullable for global SuperAdmin actions
-- **user_id**: `INT NULL` (REFERENCES `users(id)` ON DELETE SET NULL)
-- **action**: `VARCHAR(100) NOT NULL` - e.g. `UPDATE_WABA_CREDENTIALS`, `DELETE_CUSTOMER`, `UPDATE_LOYALTY`, `SUPERADMIN_TENANT_SUSPEND`
-- **entity**: `VARCHAR(100) NOT NULL`
-- **entity_id**: `VARCHAR(100) NULL`
-- **old_values**: `JSON NULL`
-- **new_values**: `JSON NULL`
-- **ip_address**: `VARCHAR(45) NULL`
+- **tenant_id**: `INT NOT NULL` (INDEXed)
+- **short_id**: `VARCHAR(50) NOT NULL` (INDEXed) - Associated invoice shortId
+- **customer_phone**: `VARCHAR(20) NULL` - Customer phone number
+- **action_type**: `VARCHAR(50) NOT NULL` - e.g. `google_review_click`, `instagram_click`, `youtube_click`, `facebook_click`
+- **metadata**: `JSON NULL` - Request metadata (IP, userAgent, source, destination URL)
 - **created_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
+- **Indexes**: `idx_tenant_action (tenant_id, action_type)`, `idx_short_action (short_id, action_type)`

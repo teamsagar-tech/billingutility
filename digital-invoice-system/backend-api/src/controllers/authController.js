@@ -42,27 +42,54 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, loginType } = req.body;
 
-    const [users] = await db.query('SELECT id, tenant_id, password_hash FROM users WHERE email = ?', [email]);
+    const [users] = await db.query(
+      'SELECT id, tenant_id, password_hash, role FROM users WHERE email = ?',
+      [email]
+    );
+
     if (users.length === 0) {
-      return res.status(401).json({ success: false, error: 'Invalid credentials' });
+      return res.status(401).json({ success: false, error: 'Invalid email or password' });
     }
 
     const user = users[0];
     const isMatch = await bcrypt.compare(password, user.password_hash);
     
     if (!isMatch) {
-      return res.status(401).json({ success: false, error: 'Invalid credentials' });
+      return res.status(401).json({ success: false, error: 'Invalid email or password' });
+    }
+
+    // Role safety check if specific loginType is requested
+    if (loginType === 'superadmin' && user.role !== 'superadmin') {
+      return res.status(403).json({ success: false, error: 'Access denied: SuperAdmin privileges required' });
     }
 
     const token = jwt.sign(
-      { userId: user.id, tenantId: user.tenant_id },
+      { userId: user.id, tenantId: user.tenant_id, role: user.role },
       JWT_SECRET,
-      { expiresIn: '1d' }
+      { expiresIn: '7d' }
     );
 
-    res.status(200).json({ success: true, token });
+    let storeName = 'RetailNode SaaS Platform';
+    let apiToken = '';
+    if (user.tenant_id) {
+      const [tenants] = await db.query('SELECT store_name, api_token FROM tenants WHERE id = ?', [user.tenant_id]);
+      if (tenants.length > 0) {
+        storeName = tenants[0].store_name;
+        apiToken = tenants[0].api_token;
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      token,
+      role: user.role,
+      tenantId: user.tenant_id,
+      storeName,
+      apiToken,
+      email: user.email
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ success: false, error: 'Server error during login' });
@@ -71,10 +98,33 @@ exports.login = async (req, res) => {
 
 exports.getMe = async (req, res) => {
   try {
-    const [tenants] = await db.query('SELECT store_name, api_token FROM tenants WHERE id = ?', [req.user.tenantId]);
-    if (tenants.length === 0) return res.status(404).json({ success: false, error: 'Tenant not found' });
+    if (req.user.role === 'superadmin') {
+      return res.status(200).json({
+        success: true,
+        data: {
+          role: 'superadmin',
+          store_name: 'RetailNode SaaS Command Center',
+          email: req.user.email
+        }
+      });
+    }
+
+    const [tenants] = await db.query(
+      'SELECT store_name, api_token, plan_tier, message_quota, messages_used FROM tenants WHERE id = ?',
+      [req.user.tenantId]
+    );
+
+    if (tenants.length === 0) {
+      return res.status(404).json({ success: false, error: 'Tenant not found' });
+    }
     
-    res.status(200).json({ success: true, data: tenants[0] });
+    res.status(200).json({
+      success: true,
+      data: {
+        ...tenants[0],
+        role: req.user.role
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Server error' });
   }

@@ -1,0 +1,3367 @@
+{
+  "timestamp": "2026-10-13T19:43:01.362Z",
+  "totalPagesCrawled": 120,
+  "pages": {
+    "https://billfree.in/dashboard-summary/index": {
+      "title": "Business at a Glance ✨",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/dashboard-summary_index.html",
+      "htmlLength": 96350,
+      "inputs": [
+        "sales_date_range",
+        "rewards_date_range",
+        "whatsapp_campaign_date_range"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/home/index": {
+      "title": "Home",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/home_index.html",
+      "htmlLength": 38572,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/store-comparison/store-comparision": {
+      "title": "Store Summary",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/store-comparison_store-comparision.html",
+      "htmlLength": 64461,
+      "inputs": [
+        "date_range"
+      ],
+      "tableHeaders": [
+        "Stores",
+        "No. of Bills",
+        "Revenue",
+        "New Customer",
+        "BrandRepeat Customer",
+        "Store Repeat Customer",
+        "Feedback",
+        "Loyalty Points",
+        "Coupons",
+        "Referrals",
+        "S.No.",
+        "Store Id",
+        "Store Name",
+        "Total",
+        "W/O Mobile",
+        "% W/O mobile",
+        "Printed",
+        "% Printed",
+        "Amt.",
+        "Avg Rev.",
+        "COUNT",
+        "Count",
+        "%",
+        "Avg. Rating",
+        "Rating 1",
+        "Rating 2",
+        "Rating 3",
+        "Rating 4",
+        "Rating 5",
+        "Assigned",
+        "Redeemed",
+        "Discount",
+        "Rev."
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/generate-bill/index": {
+      "title": "Vouchers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/generate-bill_index.html",
+      "htmlLength": 46957,
+      "inputs": [
+        "BfVouchers[bulk_upload]",
+        "fy",
+        "sid",
+        "from_date",
+        "to_date",
+        "BfVouchersSearch[party_name]",
+        "BfVouchersSearch[party_mobile]",
+        "BfVouchersSearch[vou_type]",
+        "BfVouchersSearch[vou_no]",
+        "BfVouchersSearch[vou_date]"
+      ],
+      "tableHeaders": [
+        "Actions",
+        "#",
+        "Party Name",
+        "Party Mobile",
+        "Vou Type",
+        "Amount",
+        "Vou No",
+        "Vou Date"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/index": {
+      "title": "Campaigns",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_index.html",
+      "htmlLength": 41582,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers.html",
+      "htmlLength": 54998,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/index": {
+      "title": "Profiles List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_index.html",
+      "htmlLength": 48373,
+      "inputs": [
+        "date_range",
+        "ProfileListSearch[p_complete]",
+        "ProfileListSearch[name]",
+        "ProfileListSearch[phone]",
+        "ProfileListSearch[gender]",
+        "ProfileListSearch[dob]",
+        "ProfileListSearch[email]",
+        "ProfileListSearch[marital_status]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Profile From Store",
+        "Profile Status",
+        "Profile Name",
+        "Phone No.",
+        "Gender",
+        "Date Of Birth",
+        "Email Id",
+        "Married?",
+        "Coupon",
+        "Date Added",
+        "Date Updated"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/roi-explorer/index": {
+      "title": "ROI Explorer",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/roi-explorer_index.html",
+      "htmlLength": 56625,
+      "inputs": [
+        "campaign_purpose",
+        "dateRange",
+        "days_roi"
+      ],
+      "tableHeaders": [
+        "#",
+        "Campaign Title",
+        "Channel Type",
+        "Stores",
+        "Date Added",
+        "User Count",
+        "Detailed Roi"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/rewards/index": {
+      "title": "Rewards",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/rewards_index.html",
+      "htmlLength": 27385,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/segmentation/list": {
+      "title": "Segmentations",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/segmentation_list.html",
+      "htmlLength": 102167,
+      "inputs": [
+        "SegmantationQuerySearch[query_name]",
+        "SegmantationQuerySearch[preview_query]",
+        "SegmantationQuerySearch[type]",
+        "SegmantationQuerySearch[is_static]",
+        "modal_case",
+        "choose_base_type",
+        "based_type",
+        "customer_base_on",
+        "exact_like",
+        "custom_tag",
+        "category",
+        "sub_category",
+        "brand",
+        "model",
+        "query_name",
+        "selected_update_id",
+        "query[${index}][value_from]",
+        "query[${index}][value_to]",
+        "query[${index}][value]",
+        "query[${index}][column]",
+        "query[${index}][operator]",
+        "query[${index}][logic]",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_from]') + '",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_to]') + '",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value]') + '",
+        "${$row.find('input,select').eq(0).attr('name').replace('[column]', '[value]')}",
+        "item",
+        "BfSegmantationCustomers[segmentation_name]",
+        "BfSegmantationCustomers[customer_upload]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Name",
+        "Definition",
+        "Type",
+        "Mode",
+        "Customers Count",
+        "Actions",
+        "Count",
+        "Phone Number",
+        "User Phone"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/download-center/index": {
+      "title": "Download Center",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/download-center_index.html",
+      "htmlLength": 28965,
+      "inputs": [
+        "BfDownloadCenterSearch[file_name]",
+        "BfDownloadCenterSearch[status]",
+        "BfDownloadCenterSearch[reason]"
+      ],
+      "tableHeaders": [
+        "#",
+        "File Name",
+        "Start Date",
+        "End Date",
+        "REQUEST DATE",
+        "Generated Time",
+        "Status",
+        "Reason",
+        "ACTION"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/loyalty-dashboard/index": {
+      "title": "Summary",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/loyalty-dashboard_index.html",
+      "htmlLength": 43904,
+      "inputs": [
+        "date_range"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout",
+        "Points Earned and Expired per Month",
+        "Redemption per Month",
+        "No. of Redemptions & Missed Redemption per Month",
+        "Points Distribution"
+      ]
+    },
+    "https://billfree.in/loyalty-dashboard/points-transaction": {
+      "title": "Transactions",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/loyalty-dashboard_points-transaction.html",
+      "htmlLength": 47899,
+      "inputs": [
+        "date_range",
+        "BfPointsSearch[inv_no]",
+        "BfPointsSearch[bill_amount]",
+        "BfPointsSearch[discount]",
+        "BfPointsSearch[user_phone]",
+        "BfPointsSearch[operator_for_earned]",
+        "BfPointsSearch[cr]",
+        "BfPointsSearch[operator_for_redeem]",
+        "BfPointsSearch[dr]",
+        "BfPointsSearch[is_referral]",
+        "BfPointsSearch[referee_mob]",
+        "BfPointsSearch[from_profile]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Bill Date",
+        "Bill Received Date",
+        "Invoice No.",
+        "Bill Value (in ₹)",
+        "discount Amt. (in ₹)",
+        "Customer Phone",
+        "Points Earned",
+        "Points Redeemed",
+        "Is Referral",
+        "Referee Mob",
+        "From Profile"
+      ],
+      "cardTitles": [
+        "",
+        "Logout",
+        "Points Earned and Expired",
+        "Loyalty Earning"
+      ]
+    },
+    "https://billfree.in/loyalty-dashboard/redemption": {
+      "title": "Redemptions",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/loyalty-dashboard_redemption.html",
+      "htmlLength": 42470,
+      "inputs": [
+        "date_range",
+        "BfPointsSearch[user_phone]",
+        "BfPointsSearch[inv_no]",
+        "BfPointsSearch[bill_amount]",
+        "BfPointsSearch[discount]",
+        "BfPointsSearch[operator_for_redeem]",
+        "BfPointsSearch[dr]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Bill Date",
+        "Redemption Date",
+        "Customer Phone",
+        "Invoice No.",
+        "Bill Value (in ₹)",
+        "Discount Amt. (in ₹)",
+        "Points Redeemed"
+      ],
+      "cardTitles": [
+        "",
+        "Logout",
+        "Redemptions and Missed Redemptions",
+        "Redemption Ratio"
+      ]
+    },
+    "https://billfree.in/coupon-dashboard/index": {
+      "title": "Summary",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/coupon-dashboard_index.html",
+      "htmlLength": 50264,
+      "inputs": [
+        "deno_id",
+        "purpose",
+        "source",
+        "val_coupon",
+        "qty",
+        "denomination",
+        "otp_required",
+        "coupon-title",
+        "disc_type",
+        "disc_value",
+        "min_order_value",
+        "max_order_value",
+        "start_date",
+        "validity_date",
+        "common_coupon",
+        "coupon_code",
+        "customer_type",
+        "redemption_count",
+        "customer_redemption_count",
+        "status",
+        "desc"
+      ],
+      "tableHeaders": [
+        "#",
+        "Deno Code",
+        "Denomination",
+        "Title",
+        "All Coupons",
+        "Available Coupons",
+        "Expired Coupons",
+        "Assigned Coupons",
+        "Expired(assigned) Coupons",
+        "Redeemed Coupons"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/redeem-reward/index": {
+      "title": "Redeem Rewards",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/redeem-reward_index.html",
+      "htmlLength": 73416,
+      "inputs": [
+        "reward_type",
+        "phone",
+        "dial_code",
+        "coupon_code",
+        "referrer_phone",
+        "dial_code_referrer",
+        "bill_amt",
+        "merchant_id",
+        "user_phone",
+        "dial_code_otp",
+        "LoginForm[otp_phone]",
+        "LoginForm[otp]",
+        "dev_token",
+        "otp_token",
+        "dev_info",
+        "user_type",
+        "billAmt",
+        "invNo",
+        "points",
+        "discount",
+        "is_referred",
+        "referrer_pts",
+        "otp_required",
+        "from",
+        "coupon",
+        "inv_no"
+      ],
+      "tableHeaders": [
+        "Select",
+        "Title",
+        "Code",
+        "Start Date",
+        "Assigned for",
+        "Assigned Date",
+        "Validity Date",
+        "Discount",
+        "Maximum Discount Amt",
+        "Minimum Order Value",
+        "applicable"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/digital-bill/index": {
+      "title": "Digital Bill",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/digital-bill_index.html",
+      "htmlLength": 30385,
+      "inputs": [
+        "phone",
+        "dial_code"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/greeting-cards/index": {
+      "title": "Greeting Cards",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/greeting-cards_index.html",
+      "htmlLength": 28092,
+      "inputs": [
+        "GrtingCardsSearch[title]",
+        "GrtingCardsSearch[purpose]",
+        "GrtingCardsSearch[status]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Title",
+        "Purpose",
+        "Status",
+        "&nbsp;"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/users/index": {
+      "title": "Users",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/users_index.html",
+      "htmlLength": 27110,
+      "inputs": [
+        "BfUsersSearch[user_fname]",
+        "BfUsersSearch[user_lname]",
+        "BfUsersSearch[user_email]",
+        "BfUsersSearch[user_phone]"
+      ],
+      "tableHeaders": [
+        "#",
+        "First Name",
+        "Last Name",
+        "Email",
+        "Phone",
+        "actions"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/account/index": {
+      "title": "",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/account_index.html",
+      "htmlLength": 381790,
+      "inputs": [
+        "BfMerchantinfo[merchant_name]",
+        "BfMerchantinfo[reg_no]",
+        "BfMerchantinfo[cin]",
+        "BfMerchantinfo[fssai_no]",
+        "BfMerchantinfo[address]",
+        "BfMerchantinfo[state]",
+        "BfMerchantinfo[city]",
+        "BfMerchantinfo[pincode]",
+        "BfMerchantinfo[alert_emails]",
+        "BfMerchantinfo[display_name]",
+        "BfMerchantinfo[display_phone]",
+        "BfMerchantinfo[display_email]",
+        "BfMerchantinfo[inv_phone]",
+        "BfMerchantinfo[inv_email]",
+        "BfMerchantinfo[display_address]",
+        "firstname",
+        "lastname",
+        "email",
+        "phone",
+        "quantity",
+        "productinfo",
+        "amount",
+        "merchant_key",
+        "subscription_id",
+        "bill_count",
+        "subscription_title",
+        "subscription_validity_interval",
+        "credit_id",
+        "credit_title",
+        "merchant_name",
+        "reg_no",
+        "user_id",
+        "cin",
+        "fssai_no",
+        "address",
+        "state",
+        "city",
+        "pincode",
+        "alert_emails",
+        "display_name",
+        "display_phone",
+        "display_email",
+        "inv_phone",
+        "inv_email",
+        "display_address",
+        "purpose",
+        "credit_type",
+        "custom_credits",
+        "custom_credit_rate",
+        "addons",
+        "is_addon",
+        "addons_id"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/account/index?tab=subscriptions": {
+      "title": "",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/account_index_tab_subscriptions.html",
+      "htmlLength": 381812,
+      "inputs": [
+        "BfMerchantinfo[merchant_name]",
+        "BfMerchantinfo[reg_no]",
+        "BfMerchantinfo[cin]",
+        "BfMerchantinfo[fssai_no]",
+        "BfMerchantinfo[address]",
+        "BfMerchantinfo[state]",
+        "BfMerchantinfo[city]",
+        "BfMerchantinfo[pincode]",
+        "BfMerchantinfo[alert_emails]",
+        "BfMerchantinfo[display_name]",
+        "BfMerchantinfo[display_phone]",
+        "BfMerchantinfo[display_email]",
+        "BfMerchantinfo[inv_phone]",
+        "BfMerchantinfo[inv_email]",
+        "BfMerchantinfo[display_address]",
+        "firstname",
+        "lastname",
+        "email",
+        "phone",
+        "quantity",
+        "productinfo",
+        "amount",
+        "merchant_key",
+        "subscription_id",
+        "bill_count",
+        "subscription_title",
+        "subscription_validity_interval",
+        "credit_id",
+        "credit_title",
+        "merchant_name",
+        "reg_no",
+        "user_id",
+        "cin",
+        "fssai_no",
+        "address",
+        "state",
+        "city",
+        "pincode",
+        "alert_emails",
+        "display_name",
+        "display_phone",
+        "display_email",
+        "inv_phone",
+        "inv_email",
+        "display_address",
+        "purpose",
+        "credit_type",
+        "custom_credits",
+        "custom_credit_rate",
+        "addons",
+        "is_addon",
+        "addons_id"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/account/index?tab=store_profile": {
+      "title": "",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/account_index_tab_store_profile.html",
+      "htmlLength": 381808,
+      "inputs": [
+        "BfMerchantinfo[merchant_name]",
+        "BfMerchantinfo[reg_no]",
+        "BfMerchantinfo[cin]",
+        "BfMerchantinfo[fssai_no]",
+        "BfMerchantinfo[address]",
+        "BfMerchantinfo[state]",
+        "BfMerchantinfo[city]",
+        "BfMerchantinfo[pincode]",
+        "BfMerchantinfo[alert_emails]",
+        "BfMerchantinfo[display_name]",
+        "BfMerchantinfo[display_phone]",
+        "BfMerchantinfo[display_email]",
+        "BfMerchantinfo[inv_phone]",
+        "BfMerchantinfo[inv_email]",
+        "BfMerchantinfo[display_address]",
+        "firstname",
+        "lastname",
+        "email",
+        "phone",
+        "quantity",
+        "productinfo",
+        "amount",
+        "merchant_key",
+        "subscription_id",
+        "bill_count",
+        "subscription_title",
+        "subscription_validity_interval",
+        "credit_id",
+        "credit_title",
+        "merchant_name",
+        "reg_no",
+        "user_id",
+        "cin",
+        "fssai_no",
+        "address",
+        "state",
+        "city",
+        "pincode",
+        "alert_emails",
+        "display_name",
+        "display_phone",
+        "display_email",
+        "inv_phone",
+        "inv_email",
+        "display_address",
+        "purpose",
+        "credit_type",
+        "custom_credits",
+        "custom_credit_rate",
+        "addons",
+        "is_addon",
+        "addons_id"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/account/index?tab=security": {
+      "title": "",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/account_index_tab_security.html",
+      "htmlLength": 381807,
+      "inputs": [
+        "BfMerchantinfo[merchant_name]",
+        "BfMerchantinfo[reg_no]",
+        "BfMerchantinfo[cin]",
+        "BfMerchantinfo[fssai_no]",
+        "BfMerchantinfo[address]",
+        "BfMerchantinfo[state]",
+        "BfMerchantinfo[city]",
+        "BfMerchantinfo[pincode]",
+        "BfMerchantinfo[alert_emails]",
+        "BfMerchantinfo[display_name]",
+        "BfMerchantinfo[display_phone]",
+        "BfMerchantinfo[display_email]",
+        "BfMerchantinfo[inv_phone]",
+        "BfMerchantinfo[inv_email]",
+        "BfMerchantinfo[display_address]",
+        "firstname",
+        "lastname",
+        "email",
+        "phone",
+        "quantity",
+        "productinfo",
+        "amount",
+        "merchant_key",
+        "subscription_id",
+        "bill_count",
+        "subscription_title",
+        "subscription_validity_interval",
+        "credit_id",
+        "credit_title",
+        "merchant_name",
+        "reg_no",
+        "user_id",
+        "cin",
+        "fssai_no",
+        "address",
+        "state",
+        "city",
+        "pincode",
+        "alert_emails",
+        "display_name",
+        "display_phone",
+        "display_email",
+        "inv_phone",
+        "inv_email",
+        "display_address",
+        "purpose",
+        "credit_type",
+        "custom_credits",
+        "custom_credit_rate",
+        "addons",
+        "is_addon",
+        "addons_id"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/merchant/integration-files": {
+      "title": "",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/merchant_integration-files.html",
+      "htmlLength": 31221,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/feedback/index": {
+      "title": "Feedback",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/feedback_index.html",
+      "htmlLength": 55108,
+      "inputs": [
+        "date_range",
+        "FeedbackSearch[rating]",
+        "FeedbackSearch[inv_no]",
+        "FeedbackSearch[user_phone]",
+        "FeedbackSearch[checkbox_options]"
+      ],
+      "tableHeaders": [
+        "#",
+        "See Bill",
+        "Store",
+        "Question Title",
+        "Customer Comment",
+        "Rating",
+        "Invoice No.",
+        "User Phone",
+        "Checked Options",
+        "Customer Name",
+        "Date Added",
+        "Remarks"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/sms-ledger/index": {
+      "title": "Promo Ledgers",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/sms-ledger_index.html",
+      "htmlLength": 49795,
+      "inputs": [
+        "date_range",
+        "SmsCampaignLedgerSearch[merchant_id]",
+        "SmsCampaignLedgerSearch[batch_id]",
+        "SmsCampaignLedgerSearch[purpose]",
+        "SmsCampaignLedgerSearch[sent]",
+        "SmsCampaignLedgerSearch[wa_sent]",
+        "SmsCampaignLedgerSearch[coupon_assigned]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store Name",
+        "Batch ID",
+        "Purpose",
+        "SMS Sent",
+        "Whatsapp Sent",
+        "Coupon Assigned",
+        "Date Added",
+        "S. No.",
+        "Customer Phone",
+        "Link Opened",
+        "Sent Time"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/optout-customers/index": {
+      "title": "Optout Customers",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/optout-customers_index.html",
+      "htmlLength": 33999,
+      "inputs": [
+        "DndSearch[user_phone]",
+        "DndSearch[type]",
+        "DndSearch[date_added]",
+        "BfDnd[type]",
+        "BfDnd[bulk_upload]"
+      ],
+      "tableHeaders": [
+        "#",
+        "User Phone",
+        "Type",
+        "Date Added"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/customer-journey/overview?mobile=8857808284": {
+      "title": "Customer Journey",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/customer-journey_overview_mobile_8857808284.html",
+      "htmlLength": 54074,
+      "inputs": [
+        "mobile",
+        "dialCode"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/customer-journey/overview?mobile=7011496743": {
+      "title": "Customer Journey",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/customer-journey_overview_mobile_7011496743.html",
+      "htmlLength": 54072,
+      "inputs": [
+        "mobile",
+        "dialCode"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/create?phone=8857808284": {
+      "title": "Create Profile",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_create_phone_8857808284.html",
+      "htmlLength": 44821,
+      "inputs": [
+        "BfCustomerProfile[0][merchant_id]",
+        "BfCustomerProfile[0][name]",
+        "BfCustomerProfile[0][phone]",
+        "BfCustomerProfile[0][dial_code]",
+        "BfCustomerProfile[0][dob]",
+        "BfCustomerProfile[0][email]",
+        "BfCustomerProfile[0][profession]",
+        "BfCustomerProfile[0][cloths_shopping_frequency]",
+        "BfCustomerProfile[0][gender]",
+        "BfCustomerProfile[0][marital_status]",
+        "BfCustomerProfile[0][state]",
+        "BfCustomerProfile[0][city]",
+        "consent_given",
+        "BfCustomerProfile[0][has_child]",
+        "BfCustomerProfile[1][name]",
+        "BfCustomerProfile[0][doa]",
+        "BfCustomerProfile[1][phone]",
+        "BfCustomerProfile[1][dial_code]",
+        "BfCustomerProfile[1][dob]",
+        "BfCustomerProfile[1][type]",
+        "BfCustomerProfile[1][gender]",
+        "BfCustomerProfile[${counter+2}][name]",
+        "BfCustomerProfile[${counter+2}][type]",
+        "BfCustomerProfile[${counter+2}][dob]"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/create?phone=7011496743": {
+      "title": "Create Profile",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_create_phone_7011496743.html",
+      "htmlLength": 44819,
+      "inputs": [
+        "BfCustomerProfile[0][merchant_id]",
+        "BfCustomerProfile[0][name]",
+        "BfCustomerProfile[0][phone]",
+        "BfCustomerProfile[0][dial_code]",
+        "BfCustomerProfile[0][dob]",
+        "BfCustomerProfile[0][email]",
+        "BfCustomerProfile[0][profession]",
+        "BfCustomerProfile[0][cloths_shopping_frequency]",
+        "BfCustomerProfile[0][gender]",
+        "BfCustomerProfile[0][marital_status]",
+        "BfCustomerProfile[0][state]",
+        "BfCustomerProfile[0][city]",
+        "consent_given",
+        "BfCustomerProfile[0][has_child]",
+        "BfCustomerProfile[1][name]",
+        "BfCustomerProfile[0][doa]",
+        "BfCustomerProfile[1][phone]",
+        "BfCustomerProfile[1][dial_code]",
+        "BfCustomerProfile[1][dob]",
+        "BfCustomerProfile[1][type]",
+        "BfCustomerProfile[1][gender]",
+        "BfCustomerProfile[${counter+2}][name]",
+        "BfCustomerProfile[${counter+2}][type]",
+        "BfCustomerProfile[${counter+2}][dob]"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/coupon-dashboard/create": {
+      "title": "Create Coupon",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/coupon-dashboard_create.html",
+      "htmlLength": 35526,
+      "inputs": [
+        "BfCoupons[merchant_id]",
+        "BfCoupons[user_phone]",
+        "BfCoupons[issue_date]",
+        "BfCoupons[title]",
+        "BfCoupons[coupon_code]",
+        "BfCoupons[desc]",
+        "BfCoupons[validity_date]",
+        "BfCoupons[issue_val_date]",
+        "BfCoupons[start_date]",
+        "BfCoupons[min_order_value]",
+        "BfCoupons[disc_value]",
+        "BfCoupons[disc_type]",
+        "BfCoupons[max_disc_amt]",
+        "BfCoupons[purpose]",
+        "BfCoupons[c_deno_id]",
+        "BfCoupons[status]"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/site/my-bills?p=user": {
+      "title": "BillFree",
+      "heading": "My Profile",
+      "savedFile": "billfree_pages/site_my-bills_p_user.html",
+      "htmlLength": 22581,
+      "inputs": [
+        "cust_phone",
+        "dial_code",
+        "Total Bill Amount",
+        "Check from",
+        "Check till"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?dormant_filter=all": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_dormant_filter_all.html",
+      "htmlLength": 55287,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?dormant_filter=3-months-active": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_dormant_filter_3-months-active.html",
+      "htmlLength": 55447,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?dormant_filter=6-months": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_dormant_filter_6-months.html",
+      "htmlLength": 54092,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?dormant_filter=12-months": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_dormant_filter_12-months.html",
+      "htmlLength": 54101,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?dormant_filter=12-plus-months": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_dormant_filter_12-plus-months.html",
+      "htmlLength": 54166,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?visit_filter=1": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_visit_filter_1.html",
+      "htmlLength": 54596,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?visit_filter=2": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_visit_filter_2.html",
+      "htmlLength": 54600,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?visit_filter=3": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_visit_filter_3.html",
+      "htmlLength": 53975,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?visit_filter=4": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_visit_filter_4.html",
+      "htmlLength": 53971,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?visit_filter=5": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_visit_filter_5.html",
+      "htmlLength": 53975,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?visit_filter=10": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_visit_filter_10.html",
+      "htmlLength": 53988,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/index?profile_filter=all": {
+      "title": "Profiles List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_index_profile_filter_all.html",
+      "htmlLength": 48400,
+      "inputs": [
+        "date_range",
+        "ProfileListSearch[p_complete]",
+        "ProfileListSearch[name]",
+        "ProfileListSearch[phone]",
+        "ProfileListSearch[gender]",
+        "ProfileListSearch[dob]",
+        "ProfileListSearch[email]",
+        "ProfileListSearch[marital_status]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Profile From Store",
+        "Profile Status",
+        "Profile Name",
+        "Phone No.",
+        "Gender",
+        "Date Of Birth",
+        "Email Id",
+        "Married?",
+        "Coupon",
+        "Date Added",
+        "Date Updated"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/index?profile_filter=birthday": {
+      "title": "Profiles List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_index_profile_filter_birthday.html",
+      "htmlLength": 48401,
+      "inputs": [
+        "date_range",
+        "ProfileListSearch[p_complete]",
+        "ProfileListSearch[name]",
+        "ProfileListSearch[phone]",
+        "ProfileListSearch[gender]",
+        "ProfileListSearch[dob]",
+        "ProfileListSearch[email]",
+        "ProfileListSearch[marital_status]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Profile From Store",
+        "Profile Status",
+        "Profile Name",
+        "Phone No.",
+        "Gender",
+        "Date Of Birth",
+        "Email Id",
+        "Married?",
+        "Coupon",
+        "Date Added",
+        "Date Updated"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/index?profile_filter=anniversary": {
+      "title": "Profiles List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_index_profile_filter_anniversary.html",
+      "htmlLength": 48406,
+      "inputs": [
+        "date_range",
+        "ProfileListSearch[p_complete]",
+        "ProfileListSearch[name]",
+        "ProfileListSearch[phone]",
+        "ProfileListSearch[gender]",
+        "ProfileListSearch[dob]",
+        "ProfileListSearch[email]",
+        "ProfileListSearch[marital_status]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Profile From Store",
+        "Profile Status",
+        "Profile Name",
+        "Phone No.",
+        "Gender",
+        "Date Of Birth",
+        "Email Id",
+        "Married?",
+        "Coupon",
+        "Date Added",
+        "Date Updated"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/online-discovery/index": {
+      "title": "Online Discovery",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/online-discovery_index.html",
+      "htmlLength": 34934,
+      "inputs": [
+        "showGoogleReviews",
+        "BfMerchantinfo[google_review_link]",
+        "showSocialMedia",
+        "BfWhitelabel[fb]",
+        "BfWhitelabel[insta]",
+        "BfWhitelabel[twitter]",
+        "BfWhitelabel[yt]",
+        "BfWhitelabel[pintrest]",
+        "BfWhitelabel[linkedin]",
+        "BfWhitelabel[whatsapp]"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/customer-analysis/index": {
+      "title": "Customer Analysis",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/customer-analysis_index.html",
+      "htmlLength": 43611,
+      "inputs": [
+        "startDate",
+        "endDate",
+        "CustAnalSearch[user_phone]",
+        "CustAnalSearch[cust_name]",
+        "CustAnalSearch[bill_count]",
+        "CustAnalSearch[fb_count]",
+        "CustAnalSearch[avg_rating]",
+        "CustAnalSearch[total_revenue]",
+        "CustAnalSearch[avg_trans]",
+        "CustAnalSearch[store_visited]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Mobile",
+        "Customer Name",
+        "No of Visits",
+        "No of Feedback",
+        "Avg Rating",
+        "Total Relationship Value",
+        "Avg Transaction Value",
+        "No of Stores Visited"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/automation/index": {
+      "title": "",
+      "heading": "",
+      "savedFile": "billfree_pages/automation_index.html",
+      "htmlLength": 14079,
+      "inputs": [
+        "LoginForm[username]",
+        "LoginForm[password]",
+        "LoginForm[fresh]",
+        "dev_token",
+        "dev_info",
+        "BfOtp[otp]",
+        "BfOtp[token]",
+        "BfOtp[phone]",
+        "password",
+        "confirmPassword"
+      ],
+      "tableHeaders": [],
+      "cardTitles": []
+    },
+    "https://billfree.in/trend/index": {
+      "title": "Monthly Trend",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/trend_index.html",
+      "htmlLength": 52259,
+      "inputs": [
+        "date_range"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout",
+        "Revenue & Sales Summary",
+        "New Customer Acquisition",
+        "Feedback Summary",
+        "Feedback Rating Distribution",
+        "New/Repeat Customer Revenue Share",
+        "New/Repeat Customer Sales Count",
+        "New/Repeat Sales Count",
+        "Google Page Visited",
+        "Profile Completion Trend"
+      ]
+    },
+    "https://billfree.in/bill/index": {
+      "title": "Sales Transactions",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/bill_index.html",
+      "htmlLength": 49330,
+      "inputs": [
+        "date_range",
+        "AnalyticsSearch[user_phone]",
+        "AnalyticsSearch[inv_no]",
+        "AnalyticsSearch[new_customer]"
+      ],
+      "tableHeaders": [
+        "#",
+        "See Bill",
+        "Customer Name",
+        "User Phone",
+        "Invoice No.",
+        "Bill Amount",
+        "Bill Date",
+        "New Customer"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/store-comparison/index": {
+      "title": "Daily Report",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/store-comparison_index.html",
+      "htmlLength": 66860,
+      "inputs": [
+        "date_range"
+      ],
+      "tableHeaders": [
+        "#",
+        "Date",
+        "Revenue",
+        "New Customer Revenue",
+        "Repeat Customer Revenue",
+        "Total Bill",
+        "Bills with phone",
+        "Bills Without Phone",
+        "Duplicate Bills Count",
+        "New Customer",
+        "Repeat Customers",
+        "Revenue with Loyalty",
+        "Loyalty Discount",
+        "Customer Loyalty Earned",
+        "Customer Loyalty Redeemed",
+        "Revenue with Coupon",
+        "Coupon Discounts",
+        "Coupon Earned",
+        "Coupon Redeemed",
+        "Revenue With Referral",
+        "Referral Discounts",
+        "Feedback Counts",
+        "Feedback Rating",
+        "Points Earned",
+        "Points Redeemed",
+        "Google Review",
+        "Profile Collection"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profile-configuration/index": {
+      "title": "Profile Configuration",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profile-configuration_index.html",
+      "htmlLength": 45206,
+      "inputs": [
+        "customerProfileCheckBox",
+        "withCouponsCheckbox",
+        "BfMerchantinfo[profile_form_type]",
+        "coupon_type",
+        "denomination",
+        "otp_required",
+        "coupon-title",
+        "disc_type",
+        "disc_value",
+        "min_order_value",
+        "max_order_value",
+        "start_date",
+        "validity_date",
+        "common_coupon",
+        "coupon_code",
+        "customer_type",
+        "redemption_count",
+        "customer_redemption_count",
+        "status",
+        "desc",
+        "validity",
+        "BfMerchantinfo[profile_popup_heading]",
+        "BfMerchantinfo[profile_popup_message]"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/generate-bill/index?sort=party_name": {
+      "title": "Vouchers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/generate-bill_index_sort_party_name.html",
+      "htmlLength": 46987,
+      "inputs": [
+        "BfVouchers[bulk_upload]",
+        "fy",
+        "sid",
+        "from_date",
+        "to_date",
+        "BfVouchersSearch[party_name]",
+        "BfVouchersSearch[party_mobile]",
+        "BfVouchersSearch[vou_type]",
+        "BfVouchersSearch[vou_no]",
+        "BfVouchersSearch[vou_date]"
+      ],
+      "tableHeaders": [
+        "Actions",
+        "#",
+        "Party Name",
+        "Party Mobile",
+        "Vou Type",
+        "Amount",
+        "Vou No",
+        "Vou Date"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/generate-bill/index?sort=party_mobile": {
+      "title": "Vouchers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/generate-bill_index_sort_party_mobile.html",
+      "htmlLength": 46991,
+      "inputs": [
+        "BfVouchers[bulk_upload]",
+        "fy",
+        "sid",
+        "from_date",
+        "to_date",
+        "BfVouchersSearch[party_name]",
+        "BfVouchersSearch[party_mobile]",
+        "BfVouchersSearch[vou_type]",
+        "BfVouchersSearch[vou_no]",
+        "BfVouchersSearch[vou_date]"
+      ],
+      "tableHeaders": [
+        "Actions",
+        "#",
+        "Party Name",
+        "Party Mobile",
+        "Vou Type",
+        "Amount",
+        "Vou No",
+        "Vou Date"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/generate-bill/index?sort=vou_type": {
+      "title": "Vouchers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/generate-bill_index_sort_vou_type.html",
+      "htmlLength": 46981,
+      "inputs": [
+        "BfVouchers[bulk_upload]",
+        "fy",
+        "sid",
+        "from_date",
+        "to_date",
+        "BfVouchersSearch[party_name]",
+        "BfVouchersSearch[party_mobile]",
+        "BfVouchersSearch[vou_type]",
+        "BfVouchersSearch[vou_no]",
+        "BfVouchersSearch[vou_date]"
+      ],
+      "tableHeaders": [
+        "Actions",
+        "#",
+        "Party Name",
+        "Party Mobile",
+        "Vou Type",
+        "Amount",
+        "Vou No",
+        "Vou Date"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/generate-bill/index?sort=vou_no": {
+      "title": "Vouchers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/generate-bill_index_sort_vou_no.html",
+      "htmlLength": 46983,
+      "inputs": [
+        "BfVouchers[bulk_upload]",
+        "fy",
+        "sid",
+        "from_date",
+        "to_date",
+        "BfVouchersSearch[party_name]",
+        "BfVouchersSearch[party_mobile]",
+        "BfVouchersSearch[vou_type]",
+        "BfVouchersSearch[vou_no]",
+        "BfVouchersSearch[vou_date]"
+      ],
+      "tableHeaders": [
+        "Actions",
+        "#",
+        "Party Name",
+        "Party Mobile",
+        "Vou Type",
+        "Amount",
+        "Vou No",
+        "Vou Date"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/generate-bill/index?sort=vou_date": {
+      "title": "Vouchers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/generate-bill_index_sort_vou_date.html",
+      "htmlLength": 46985,
+      "inputs": [
+        "BfVouchers[bulk_upload]",
+        "fy",
+        "sid",
+        "from_date",
+        "to_date",
+        "BfVouchersSearch[party_name]",
+        "BfVouchersSearch[party_mobile]",
+        "BfVouchersSearch[vou_type]",
+        "BfVouchersSearch[vou_no]",
+        "BfVouchersSearch[vou_date]"
+      ],
+      "tableHeaders": [
+        "Actions",
+        "#",
+        "Party Name",
+        "Party Mobile",
+        "Vou Type",
+        "Amount",
+        "Vou No",
+        "Vou Date"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/sms-campaign/index": {
+      "title": "SMS Campaigns",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/sms-campaign_index.html",
+      "htmlLength": 30509,
+      "inputs": [
+        "days_roi",
+        "BfCampaignSearch[user_count]",
+        "BfCampaignSearch[title]"
+      ],
+      "tableHeaders": [
+        "Users Reached",
+        "Offer Title",
+        "SMS Text",
+        "Stores",
+        "Credit Spent",
+        "Campaign Date",
+        "Total Cost (₹)",
+        "Total Bill",
+        "Unique Roi Customer",
+        "Total Revenue (₹)",
+        "ROI(%)",
+        "Average Bill Amount",
+        "Detailed Roi"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/whatsapp-campaign/index": {
+      "title": "Whatsapp Campaigns",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/whatsapp-campaign_index.html",
+      "htmlLength": 31540,
+      "inputs": [
+        "days_roi"
+      ],
+      "tableHeaders": [
+        "#",
+        "Campaign Date",
+        "Template Title",
+        "Stores",
+        "User Count",
+        "Double Boost",
+        "Credit Spent",
+        "Total Cost (₹)",
+        "Total Bill",
+        "Unique Roi Customer",
+        "Total Revenue (₹)",
+        "ROI(%)",
+        "Average Bill Amount",
+        "Detailed Roi"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/rcs-campaign/index": {
+      "title": "RCS Campaigns",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/rcs-campaign_index.html",
+      "htmlLength": 29435,
+      "inputs": [
+        "days_roi"
+      ],
+      "tableHeaders": [
+        "#",
+        "Campaign Date",
+        "Template Title",
+        "Stores",
+        "User Count",
+        "Credit Spent",
+        "Total Cost (₹)",
+        "Total Bill",
+        "Unique Roi Customer",
+        "Total Revenue (₹)",
+        "ROI(%)",
+        "Average Bill Amount",
+        "Detailed Roi"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/coupon-dashboard/adhoc-coupons": {
+      "title": "Adhoc Coupons",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/coupon-dashboard_adhoc-coupons.html",
+      "htmlLength": 191214,
+      "inputs": [
+        "deno_id",
+        "denomination",
+        "otp_required",
+        "coupon-title",
+        "disc_type",
+        "disc_value",
+        "min_order_value",
+        "max_order_value",
+        "start_date",
+        "validity_date",
+        "common_coupon",
+        "coupon_code",
+        "customer_type",
+        "redemption_count",
+        "customer_redemption_count",
+        "status",
+        "desc",
+        "val_coupon",
+        "channelType",
+        "merchant_id",
+        "activatePromotion",
+        "store_ids",
+        "query_id",
+        "selectInputOfChooseCustomerSegmentation",
+        "startDate",
+        "endDate",
+        "profile",
+        "allow_resend_failed",
+        "max_retry",
+        "checkAll",
+        "moNosCount",
+        "checkAllAdded",
+        "addedMoNosCount",
+        "modal_case",
+        "choose_base_type",
+        "based_type",
+        "customer_base_on",
+        "exact_like",
+        "custom_tag",
+        "category",
+        "sub_category",
+        "brand",
+        "model",
+        "query_name",
+        "selected_update_id",
+        "query[${index}][value_from]",
+        "query[${index}][value_to]",
+        "query[${index}][value]",
+        "query[${index}][column]",
+        "query[${index}][operator]",
+        "query[${index}][logic]",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_from]') + '",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_to]') + '",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value]') + '",
+        "${$row.find('input,select').eq(0).attr('name').replace('[column]', '[value]')}",
+        "item",
+        "segmantation_query_id",
+        "${variable}",
+        "UploadFile[excelFile]"
+      ],
+      "tableHeaders": [
+        "Name",
+        "Definition",
+        "Count",
+        "#",
+        "Phone Number",
+        "User Phone"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/birthday": {
+      "title": "Birthday Campaigns",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_birthday.html",
+      "htmlLength": 45226,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/anniversary": {
+      "title": "Anniversary Campaigns",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_anniversary.html",
+      "htmlLength": 45246,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/festival": {
+      "title": "Festival Campaigns",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_festival.html",
+      "htmlLength": 45229,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/win-back": {
+      "title": "Win Back Old Customers Campaigns",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_win-back.html",
+      "htmlLength": 45345,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/sku": {
+      "title": "SKU Based Campaigns",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_sku.html",
+      "htmlLength": 45184,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/bill-sent": {
+      "title": "Bill Sent Automation",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_bill-sent.html",
+      "htmlLength": 45246,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/profile": {
+      "title": "Profile Completion Automation",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_profile.html",
+      "htmlLength": 45360,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/feedback": {
+      "title": "Feedback Automation",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_feedback.html",
+      "htmlLength": 45228,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/welcome": {
+      "title": "Welcome Automation",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_welcome.html",
+      "htmlLength": 45216,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/referrer-message": {
+      "title": "Referrer Automation",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_referrer-message.html",
+      "htmlLength": 45209,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/referee-message": {
+      "title": "Referrer by Coupon Automation",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_referee-message.html",
+      "htmlLength": 45242,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/vip": {
+      "title": "VIP Based Automation",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_vip.html",
+      "htmlLength": 45158,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/spin-wheel": {
+      "title": "Spin Wheel Reward Automation",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_spin-wheel.html",
+      "htmlLength": 45230,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/point-balance-reminder": {
+      "title": "Outstanding Point Balance Reminder",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_point-balance-reminder.html",
+      "htmlLength": 45245,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/point-expiry-reminder": {
+      "title": "Points Expiry Reminder",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_point-expiry-reminder.html",
+      "htmlLength": 45187,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/campaigns-hub/coupon-reminder": {
+      "title": "Coupon Reminder",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/campaigns-hub_coupon-reminder.html",
+      "htmlLength": 45133,
+      "inputs": [],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/customer-journey/overview": {
+      "title": "Customer Journey",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/customer-journey_overview.html",
+      "htmlLength": 41245,
+      "inputs": [
+        "mobile",
+        "dialCode"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?sort=merchant_id": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_sort_merchant_id.html",
+      "htmlLength": 55023,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?sort=name": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_sort_name.html",
+      "htmlLength": 55018,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?sort=user_phone": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_sort_user_phone.html",
+      "htmlLength": 55024,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?sort=no_of_visit": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_sort_no_of_visit.html",
+      "htmlLength": 55027,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?sort=total_bill_value": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_sort_total_bill_value.html",
+      "htmlLength": 55028,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?sort=last_bill_value": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_sort_last_bill_value.html",
+      "htmlLength": 55027,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?sort=last_bill_date": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_sort_last_bill_date.html",
+      "htmlLength": 55028,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?sort=max_bill_value": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_sort_max_bill_value.html",
+      "htmlLength": 55026,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?sort=points_earned": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_sort_points_earned.html",
+      "htmlLength": 55027,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?sort=points_redeemed": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_sort_points_redeemed.html",
+      "htmlLength": 55027,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?sort=point_balance": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_sort_point_balance.html",
+      "htmlLength": 55025,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/customers?sort=points_expired": {
+      "title": "Customers List",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_customers_sort_points_expired.html",
+      "htmlLength": 55032,
+      "inputs": [
+        "date_range",
+        "VendorCustomersSearch[p_complete]",
+        "VendorCustomersSearch[name]",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[no_of_visit]",
+        "VendorCustomersSearch[total_bill_value]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Store",
+        "Profile Status",
+        "Customer Name",
+        "Phone Numbers",
+        "No of visit",
+        "Lifetime Value",
+        "Avg Trx. Value",
+        "Last Bill Value",
+        "Last Bill Date",
+        "Max Bill Amt.",
+        "Points Earned",
+        "Points Redeemed",
+        "Point Balance",
+        "Points Expired"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/profiles/create": {
+      "title": "Create Profile",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/profiles_create.html",
+      "htmlLength": 44792,
+      "inputs": [
+        "BfCustomerProfile[0][merchant_id]",
+        "BfCustomerProfile[0][name]",
+        "BfCustomerProfile[0][phone]",
+        "BfCustomerProfile[0][dial_code]",
+        "BfCustomerProfile[0][dob]",
+        "BfCustomerProfile[0][email]",
+        "BfCustomerProfile[0][profession]",
+        "BfCustomerProfile[0][cloths_shopping_frequency]",
+        "BfCustomerProfile[0][gender]",
+        "BfCustomerProfile[0][marital_status]",
+        "BfCustomerProfile[0][state]",
+        "BfCustomerProfile[0][city]",
+        "consent_given",
+        "BfCustomerProfile[0][has_child]",
+        "BfCustomerProfile[1][name]",
+        "BfCustomerProfile[0][doa]",
+        "BfCustomerProfile[1][phone]",
+        "BfCustomerProfile[1][dial_code]",
+        "BfCustomerProfile[1][dob]",
+        "BfCustomerProfile[1][type]",
+        "BfCustomerProfile[1][gender]",
+        "BfCustomerProfile[${counter+2}][name]",
+        "BfCustomerProfile[${counter+2}][type]",
+        "BfCustomerProfile[${counter+2}][dob]"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/roi-explorer/analyze-sku?campaign_purpose=offer-and-promotion&dateRange=14-Sep-2026%20-%2014-Oct-2026&days_roi=15": {
+      "title": "Analyze SKU",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/roi-explorer_analyze-sku_campaign_purpose_offer-and-promotion_dateRange_14-Sep-2.html",
+      "htmlLength": 35245,
+      "inputs": [
+        "campaign_purpose",
+        "dateRange",
+        "days_roi"
+      ],
+      "tableHeaders": [
+        "Invoice",
+        "Category",
+        "Sub Category",
+        "Brand",
+        "Model",
+        "Product",
+        "Amount",
+        "Date Added",
+        "Bill Link"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/segmentation/sku": {
+      "title": "Product Based",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/segmentation_sku.html",
+      "htmlLength": 28388,
+      "inputs": [
+        "MerchantSkuSearch[description]",
+        "MerchantSkuSearch[custom_tag]",
+        "MerchantSkuSearch[tag_category]",
+        "MerchantSkuSearch[tag_sub_category]",
+        "MerchantSkuSearch[tag_brand]",
+        "MerchantSkuSearch[tag_model]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Description",
+        "Custom Tag",
+        "Category",
+        "Sub Category",
+        "Brand",
+        "Model",
+        "actions"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/segmentation/list?sort=query_name": {
+      "title": "Segmentations",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/segmentation_list_sort_query_name.html",
+      "htmlLength": 102209,
+      "inputs": [
+        "SegmantationQuerySearch[query_name]",
+        "SegmantationQuerySearch[preview_query]",
+        "SegmantationQuerySearch[type]",
+        "SegmantationQuerySearch[is_static]",
+        "modal_case",
+        "choose_base_type",
+        "based_type",
+        "customer_base_on",
+        "exact_like",
+        "custom_tag",
+        "category",
+        "sub_category",
+        "brand",
+        "model",
+        "query_name",
+        "selected_update_id",
+        "query[${index}][value_from]",
+        "query[${index}][value_to]",
+        "query[${index}][value]",
+        "query[${index}][column]",
+        "query[${index}][operator]",
+        "query[${index}][logic]",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_from]') + '",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_to]') + '",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value]') + '",
+        "${$row.find('input,select').eq(0).attr('name').replace('[column]', '[value]')}",
+        "item",
+        "BfSegmantationCustomers[segmentation_name]",
+        "BfSegmantationCustomers[customer_upload]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Name",
+        "Definition",
+        "Type",
+        "Mode",
+        "Customers Count",
+        "Actions",
+        "Count",
+        "Phone Number",
+        "User Phone"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/segmentation/list?sort=preview_query": {
+      "title": "Segmentations",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/segmentation_list_sort_preview_query.html",
+      "htmlLength": 102221,
+      "inputs": [
+        "SegmantationQuerySearch[query_name]",
+        "SegmantationQuerySearch[preview_query]",
+        "SegmantationQuerySearch[type]",
+        "SegmantationQuerySearch[is_static]",
+        "modal_case",
+        "choose_base_type",
+        "based_type",
+        "customer_base_on",
+        "exact_like",
+        "custom_tag",
+        "category",
+        "sub_category",
+        "brand",
+        "model",
+        "query_name",
+        "selected_update_id",
+        "query[${index}][value_from]",
+        "query[${index}][value_to]",
+        "query[${index}][value]",
+        "query[${index}][column]",
+        "query[${index}][operator]",
+        "query[${index}][logic]",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_from]') + '",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_to]') + '",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value]') + '",
+        "${$row.find('input,select').eq(0).attr('name').replace('[column]', '[value]')}",
+        "item",
+        "BfSegmantationCustomers[segmentation_name]",
+        "BfSegmantationCustomers[customer_upload]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Name",
+        "Definition",
+        "Type",
+        "Mode",
+        "Customers Count",
+        "Actions",
+        "Count",
+        "Phone Number",
+        "User Phone"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/segmentation/list?sort=type": {
+      "title": "Segmentations",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/segmentation_list_sort_type.html",
+      "htmlLength": 102203,
+      "inputs": [
+        "SegmantationQuerySearch[query_name]",
+        "SegmantationQuerySearch[preview_query]",
+        "SegmantationQuerySearch[type]",
+        "SegmantationQuerySearch[is_static]",
+        "modal_case",
+        "choose_base_type",
+        "based_type",
+        "customer_base_on",
+        "exact_like",
+        "custom_tag",
+        "category",
+        "sub_category",
+        "brand",
+        "model",
+        "query_name",
+        "selected_update_id",
+        "query[${index}][value_from]",
+        "query[${index}][value_to]",
+        "query[${index}][value]",
+        "query[${index}][column]",
+        "query[${index}][operator]",
+        "query[${index}][logic]",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_from]') + '",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_to]') + '",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value]') + '",
+        "${$row.find('input,select').eq(0).attr('name').replace('[column]', '[value]')}",
+        "item",
+        "BfSegmantationCustomers[segmentation_name]",
+        "BfSegmantationCustomers[customer_upload]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Name",
+        "Definition",
+        "Type",
+        "Mode",
+        "Customers Count",
+        "Actions",
+        "Count",
+        "Phone Number",
+        "User Phone"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/segmentation/list?sort=is_static": {
+      "title": "Segmentations",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/segmentation_list_sort_is_static.html",
+      "htmlLength": 102209,
+      "inputs": [
+        "SegmantationQuerySearch[query_name]",
+        "SegmantationQuerySearch[preview_query]",
+        "SegmantationQuerySearch[type]",
+        "SegmantationQuerySearch[is_static]",
+        "modal_case",
+        "choose_base_type",
+        "based_type",
+        "customer_base_on",
+        "exact_like",
+        "custom_tag",
+        "category",
+        "sub_category",
+        "brand",
+        "model",
+        "query_name",
+        "selected_update_id",
+        "query[${index}][value_from]",
+        "query[${index}][value_to]",
+        "query[${index}][value]",
+        "query[${index}][column]",
+        "query[${index}][operator]",
+        "query[${index}][logic]",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_from]') + '",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_to]') + '",
+        "' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value]') + '",
+        "${$row.find('input,select').eq(0).attr('name').replace('[column]', '[value]')}",
+        "item",
+        "BfSegmantationCustomers[segmentation_name]",
+        "BfSegmantationCustomers[customer_upload]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Name",
+        "Definition",
+        "Type",
+        "Mode",
+        "Customers Count",
+        "Actions",
+        "Count",
+        "Phone Number",
+        "User Phone"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/download-center/index?sort=file_name": {
+      "title": "Download Center",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/download-center_index_sort_file_name.html",
+      "htmlLength": 28994,
+      "inputs": [
+        "BfDownloadCenterSearch[file_name]",
+        "BfDownloadCenterSearch[status]",
+        "BfDownloadCenterSearch[reason]"
+      ],
+      "tableHeaders": [
+        "#",
+        "File Name",
+        "Start Date",
+        "End Date",
+        "REQUEST DATE",
+        "Generated Time",
+        "Status",
+        "Reason",
+        "ACTION"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/download-center/index?sort=start_date": {
+      "title": "Download Center",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/download-center_index_sort_start_date.html",
+      "htmlLength": 28997,
+      "inputs": [
+        "BfDownloadCenterSearch[file_name]",
+        "BfDownloadCenterSearch[status]",
+        "BfDownloadCenterSearch[reason]"
+      ],
+      "tableHeaders": [
+        "#",
+        "File Name",
+        "Start Date",
+        "End Date",
+        "REQUEST DATE",
+        "Generated Time",
+        "Status",
+        "Reason",
+        "ACTION"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/download-center/index?sort=end_date": {
+      "title": "Download Center",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/download-center_index_sort_end_date.html",
+      "htmlLength": 28995,
+      "inputs": [
+        "BfDownloadCenterSearch[file_name]",
+        "BfDownloadCenterSearch[status]",
+        "BfDownloadCenterSearch[reason]"
+      ],
+      "tableHeaders": [
+        "#",
+        "File Name",
+        "Start Date",
+        "End Date",
+        "REQUEST DATE",
+        "Generated Time",
+        "Status",
+        "Reason",
+        "ACTION"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/download-center/index?sort=date_added": {
+      "title": "Download Center",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/download-center_index_sort_date_added.html",
+      "htmlLength": 28999,
+      "inputs": [
+        "BfDownloadCenterSearch[file_name]",
+        "BfDownloadCenterSearch[status]",
+        "BfDownloadCenterSearch[reason]"
+      ],
+      "tableHeaders": [
+        "#",
+        "File Name",
+        "Start Date",
+        "End Date",
+        "REQUEST DATE",
+        "Generated Time",
+        "Status",
+        "Reason",
+        "ACTION"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/download-center/index?sort=generated_time": {
+      "title": "Download Center",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/download-center_index_sort_generated_time.html",
+      "htmlLength": 28999,
+      "inputs": [
+        "BfDownloadCenterSearch[file_name]",
+        "BfDownloadCenterSearch[status]",
+        "BfDownloadCenterSearch[reason]"
+      ],
+      "tableHeaders": [
+        "#",
+        "File Name",
+        "Start Date",
+        "End Date",
+        "REQUEST DATE",
+        "Generated Time",
+        "Status",
+        "Reason",
+        "ACTION"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/download-center/index?sort=status": {
+      "title": "Download Center",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/download-center_index_sort_status.html",
+      "htmlLength": 28993,
+      "inputs": [
+        "BfDownloadCenterSearch[file_name]",
+        "BfDownloadCenterSearch[status]",
+        "BfDownloadCenterSearch[reason]"
+      ],
+      "tableHeaders": [
+        "#",
+        "File Name",
+        "Start Date",
+        "End Date",
+        "REQUEST DATE",
+        "Generated Time",
+        "Status",
+        "Reason",
+        "ACTION"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/download-center/index?sort=reason": {
+      "title": "Download Center",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/download-center_index_sort_reason.html",
+      "htmlLength": 28995,
+      "inputs": [
+        "BfDownloadCenterSearch[file_name]",
+        "BfDownloadCenterSearch[status]",
+        "BfDownloadCenterSearch[reason]"
+      ],
+      "tableHeaders": [
+        "#",
+        "File Name",
+        "Start Date",
+        "End Date",
+        "REQUEST DATE",
+        "Generated Time",
+        "Status",
+        "Reason",
+        "ACTION"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/loyalty-settings/index": {
+      "title": "Loyalty Configuration",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/loyalty-settings_index.html",
+      "htmlLength": 43321,
+      "inputs": [
+        "setupType",
+        "BfLoyalty[inr_to_pts]",
+        "BfLoyalty[pt_to_inr]",
+        "BfLoyalty[pts_expiry]",
+        "BfLoyalty[0][inr_to_pts]",
+        "BfLoyalty[0][pt_to_inr]",
+        "BfLoyalty[0][trigger_amt]",
+        "BfLoyalty[min_pts_redeemable]",
+        "BfLoyalty[max_pts_redeemable_as_prcnt_of_amt]",
+        "BfLoyalty[redeem_same_day]",
+        "BfLoyalty[otp_verification]",
+        "otp-input",
+        "dev_token",
+        "otp_token",
+        "dev_info",
+        "user_type",
+        "coupon_code",
+        "billAmt",
+        "invNo",
+        "points",
+        "is_referred",
+        "referrer_pts",
+        "referrer_phone",
+        "merchant_id",
+        "BfLoyalty[${count}][inr_to_pts]",
+        "BfLoyalty[${count}][pt_to_inr]",
+        "BfLoyalty[${count}][trigger_amt]"
+      ],
+      "tableHeaders": [
+        "1 Rupee to Points",
+        "1 Point to Rupees",
+        "Minimum Amount",
+        "Action"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/loyalty-dashboard/daily-report": {
+      "title": "Daily Report",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/loyalty-dashboard_daily-report.html",
+      "htmlLength": 44765,
+      "inputs": [
+        "date_range"
+      ],
+      "tableHeaders": [],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/loyalty-dashboard/customers": {
+      "title": "Customers",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/loyalty-dashboard_customers.html",
+      "htmlLength": 53455,
+      "inputs": [
+        "date_range_graph",
+        "VendorCustomersSearch[user_phone]",
+        "VendorCustomersSearch[operator_for_earned]",
+        "VendorCustomersSearch[points_earned]",
+        "VendorCustomersSearch[operator_for_redeem]",
+        "VendorCustomersSearch[points_redeemed]",
+        "VendorCustomersSearch[operator_for_balance]",
+        "VendorCustomersSearch[point_balance]",
+        "VendorCustomersSearch[operator_for_expired]",
+        "VendorCustomersSearch[points_expired]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Customer Phone",
+        "Total Points Earned",
+        "Total Points Redeemed",
+        "Total Points Balance",
+        "Total Points Expired",
+        "S. No.",
+        "Date",
+        "Type",
+        "Invoice Number",
+        "Invoice Value",
+        "Credit Point",
+        "Debit Point"
+      ],
+      "cardTitles": [
+        "",
+        "Logout",
+        "Customer Acquisition\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t&nbsp;",
+        "Points Distribution"
+      ]
+    },
+    "https://billfree.in/loyalty-dashboard/expiring-points": {
+      "title": "Expiring Points",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/loyalty-dashboard_expiring-points.html",
+      "htmlLength": 49181,
+      "inputs": [
+        "date_range",
+        "BfPointsSearch[user_phone]",
+        "BfPointsSearch[operator_for_expired]",
+        "BfPointsSearch[expiry_points]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Customer Phone",
+        "Expiring Points",
+        "Expiry Date",
+        "S. No.",
+        "Date",
+        "Type",
+        "Invoice Number",
+        "Invoice Value",
+        "Credit Point",
+        "Debit Point"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/loyalty-dashboard/blacklist-customers": {
+      "title": "BlackList Customers",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/loyalty-dashboard_blacklist-customers.html",
+      "htmlLength": 33557,
+      "inputs": [
+        "DndSearch[user_phone]",
+        "DndSearch[date_added]",
+        "BfDnd[type]",
+        "BfDnd[bulk_upload]"
+      ],
+      "tableHeaders": [
+        "#",
+        "User Phone",
+        "Date Added"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    },
+    "https://billfree.in/loyalty-dashboard/missed-redemption": {
+      "title": "Missed Redemption",
+      "heading": "V R Pawar Sarees  Chatti Galli |",
+      "savedFile": "billfree_pages/loyalty-dashboard_missed-redemption.html",
+      "htmlLength": 36151,
+      "inputs": [
+        "date_range",
+        "BfLoyaltyMissedRedemptionSearch[inv_no]",
+        "BfLoyaltyMissedRedemptionSearch[bill_amount]",
+        "BfLoyaltyMissedRedemptionSearch[user_phone]"
+      ],
+      "tableHeaders": [
+        "#",
+        "Date",
+        "Store Name",
+        "Invoice No.",
+        "Bill Value (in ₹)",
+        "Customer Phone",
+        "Missed Points"
+      ],
+      "cardTitles": [
+        "",
+        "Logout"
+      ]
+    }
+  }
+}

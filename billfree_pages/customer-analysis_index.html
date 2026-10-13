@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#19222aff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="BillFree">
+    <meta name="msapplication-TileColor" content="#19222aff">
+    <!-- Favicon and PWA Icons -->
+    <link rel="apple-touch-icon" href="/img/icon-192.png">
+    <link rel="manifest" href="/manifest.json">
+
+    <link rel="shortcut icon" href="https://billfree-bills.s3.us-west-2.amazonaws.com/public/billfree_logo_blue_icon_only_4x.png" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;700&display=swap" rel="stylesheet">
+    <title>Customer Analysis</title>
+    <script type="text/javascript">
+        var BASEURL = '';
+        var AUTH_TOKEN = 'a324e1299ed6e9b781b89bb1506d8a87';
+        var CURRENCY_SYMBOL = "\u20b9";
+        var CURRENCY_PROFILE = {"symbol":"\u20b9","code":"INR","display":"symbol","grouping":"indian","scale":"indian","decimals":2,"name":"Rupee","namePlural":"Rupees"};
+        // Merchant's phone dial code settings (bf_merchantinfo.default_dial_code /
+        // allowed_dial_code) — drives initDialCodeInput() in dashboard/js/script.js.
+        var DEFAULT_DIAL_CODE = "91";
+        var ALLOWED_DIAL_CODES = ["91"];
+    </script>
+    <link href="/assets/9447997a/css/bootstrap.css?v=1691821954" rel="stylesheet">
+<link href="/resources/css/font-awesome.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/dashboard/css/tabler.min.css?v=1765634031" rel="stylesheet">
+<link href="/resources/dashboard/css/tabler-vendors.min.css?v=1761449473" rel="stylesheet">
+<link href="/resources/plugins/line-awesome/css/line-awesome.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/plugins/country-selector/intlTelInput.css?v=1746774834" rel="stylesheet">
+<link href="/resources/dashboard/libs/vanillajs-datepicker/dist/css/datepicker-bs5.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/dashboard/css/styles.css?v=1784526184" rel="stylesheet">
+<script src="/assets/5bab33a3/jquery.js?v=1691821954"></script></head>
+
+<body class="layout-fluid d-flex flex-column">
+    
+    <div class="page">
+        
+<style>
+    .navbar {
+        overflow-y: auto;
+    }
+
+    .demo-dashboard-link {
+        display: block;
+        width: 100%;
+        padding: 0;
+        border-radius: 20px;
+        text-decoration: none;
+    }
+
+    .demo-dashboard-card {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        padding: 1.25rem 1.15rem;
+        border-radius: 20px;
+        background: #0d47a1;
+        background-image: radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 70%),
+            url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M10 80 Q 30 40, 50 60 T 90 20" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="2"/></svg>');
+        background-size: cover, 140px;
+        background-position: center, calc(100% + 20px) -10px;
+        background-repeat: no-repeat;
+        isolation: isolate;
+        transition: transform 0.25s ease;
+    }
+
+    .demo-dashboard-card-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.38rem;
+        color: #1f2937;
+    }
+
+    .demo-dashboard-title {
+        margin: 0;
+        max-width: 180px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        line-height: 1.25;
+        color: #ffffff;
+        letter-spacing: 0em;
+    }
+
+    .demo-dashboard-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: fit-content;
+        margin-top: 0.65rem;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        background: #ffffff;
+        color: #0d47a1;
+        font-size: 0.7rem;
+        font-weight: 700;
+        line-height: 1;
+        transition: all 0.2s ease;
+    }
+
+    .navbar::-webkit-scrollbar {
+        width: 5px;
+        display: none;
+    }
+
+    .navbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
+
+    .navbar::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 5px;
+    }
+
+    .navbar::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    .navbar:hover::-webkit-scrollbar {
+        display: initial;
+    }
+</style>
+<!-- Sidebar -->
+<aside class="navbar navbar-vertical navbar-expand-lg navbar-light">
+    <div class="container-fluid justify-content-between">
+        <!-- Brand Logo -->
+        <h1 class="navbar-brand navbar-brand-autodark justify-content-start">
+            <a class="navbar-brandname" href="/dashboard-summary/index">
+                <img src="https://billfree-bills.s3.us-west-2.amazonaws.com/public/billfree_logo_blue_icon_only_4x.png" alt="BillFree Labs" width="40">
+                <p class="ms-2 mb-0">V R Pawar Sarees  Chatti Galli |</p>
+            </a>
+        </h1>
+
+        <!-- user toggle -->
+        <a class="p-0 ms-auto d-lg-none" data-bs-toggle="offcanvas" href="#offcanvasStart" role="button" aria-controls="offcanvasStart">
+            <div class="d-flex text-dark">
+                <i class="las la-user-circle p-2" style="font-size:1.6rem;"></i>
+            </div>
+        </a>
+
+        <!-- menu toggle -->
+        <button class="navbar-toggler m-2" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- menu sidebar -->
+        <div class="collapse navbar-collapse" id="sidebar-menu">
+            <ul class="navbar-nav pt-lg-3 pb-5 w-100 mx-0 px-3 px-md-0">
+
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/dashboard-summary/index">
+                            <i class="las la-home fs-2 me-2"></i>Home
+                        </a>
+                    </li>
+                
+                <li class="nav-item ">
+                    <a class="nav-link d-flex w-100" href="/home/index">
+                        <i class="las la-paperclip fs-2 me-2"></i> Quick Links
+                    </a>
+                </li>
+
+                <!-- <li class="nav-item  d-flex w-100">
+                    <a class="nav-link" href="/dashboard-summary/index"><i class="las la-home fs-2 me-2"></i> Dashboard</a>
+                </li> -->
+
+                                    <li class="nav-item active">
+                        <a class="nav-link d-flex w-100" href="/store-comparison/store-comparision">
+                            <i class="las la-chart-bar fs-2 me-2"></i> Analytics
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item  dropdown invoice-header d-flex w-100">
+                        <a class="nav-link" href="/generate-bill/index"><i class="las la-receipt fs-2 me-2"></i> Invoice</a>
+                    </li>
+                
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/campaigns-hub/index">
+                            <i class="las la-bullhorn fs-2 me-2"></i> Campaigns & Automation
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/profiles/customers">
+                            <i class="las la-user-friends fs-2 me-2"></i> Customers
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/roi-explorer/index">
+                            <i class="las la-funnel-dollar fs-2 me-2"></i> ROI
+                        </a>
+                    </li>
+                
+                <!--                     <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/rewards/index">
+                            <i class="lab la-gratipay me-2" style="font-size: 1.5rem;"></i> Rewards
+                        </a>
+                    </li>
+                 -->
+
+                                    <li class="nav-item  ">
+                        <a class="nav-link d-flex w-100" href="/segmentation/list">
+                            <i class="las la-box fs-2 me-2"></i> Segmentation
+                        </a>
+                    </li>
+                
+
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/download-center/index">
+                            <i class="las la-download fs-2 me-2"></i> Download Center
+                        </a>
+                    </li>
+                
+                
+                
+                    <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                    <h4 class="my-1">REWARDS</h4>
+
+                                            <li class="nav-item ">
+                            <a class="nav-link d-flex w-100" href="/loyalty-dashboard/index">
+                                <i class="las la-coins me-2" style="font-size: 1.5rem;"></i> Loyalty
+                            </a>
+                        </li>
+                    
+                                            <li class="nav-item ">
+                            <a class="nav-link d-flex w-100" href="/coupon-dashboard/index">
+                                <i class="las la-tags fs-2 me-2"></i> Coupon
+                            </a>
+                        </li>
+                    
+                    
+                                            <li class="nav-item ">
+                            <a class="nav-link d-flex w-100" href="/redeem-reward/index">
+                                <i class="lab la-gratipay fs-2 me-2"></i> Redeem Reward
+                            </a>
+                        </li>
+                                    
+                                    <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                    <h4 class="my-1">CHANNELS</h4>
+                                                                                <li class="nav-item ">
+                                    <a class="nav-link d-flex w-100" href="/gupshup-ss/index">
+                                        <i class="lab la-whatsapp fs-2 me-2"></i> WhatsApp
+                                    </a>
+                                </li>
+                                                
+                    
+                                    
+                
+                    <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                    <h4 class="my-1">CUSTOMIZATIONS</h4>
+
+                                            <li class="nav-item  d-flex w-100">
+                            <a class="nav-link" href="/digital-bill/index"><i class="las la-mobile fs-2 me-2"></i> Digital Bill</a>
+                        </li>
+                    
+                                            <li class="nav-item ">
+                            <a class="nav-link d-flex w-100" href="/greeting-cards/index">
+                                <i class="las la-handshake fs-2 me-2"></i> CRM
+                            </a>
+                        </li>
+                                    
+
+                <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                <h4 class="my-1">MANAGE</h4>
+
+                                    <li class="nav-item  d-flex w-100">
+                        <a class="nav-link" href="/users/index"><i class="las la-user-cog fs-2 me-2"></i> Users</a>
+                    </li>
+                
+                                <li class="nav-item  d-flex w-100">
+                    <a class="nav-link d-flex w-100" href="/account/index"><i class="las la-cog fs-2 me-2"></i> My Account
+                    </a>
+                </li>
+                
+                
+                
+                
+                                    <li class="nav-item">
+                        <a class="nav-link d-flex w-100" href="/site/my-bills?p=user" target="_blank">
+                            Personal Bills
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item dropdown d-flex w-100 mt-3">
+                        <div class="card demo-dashboard-card">
+                            <div class="demo-dashboard-card-content">
+                                <p class="demo-dashboard-title">Experience the Power of the Billfree Dashboard.</p>
+                                <a class="demo-dashboard-cta text-decoration-none" href="https://demo.billfree.in/dashboard-summary/index?user=Ij26C9nIguJZj9gFd7YxoDNjZDA5OTM5ZjkzNDFmNDY0NWU5NmI2ZmJiODE3MmQ4Zjk3ZGEzY2Q1MDc1OTY2OGIwYmZjNzI2OWQ1M2ViMjUbnCDPvxMeb4FNrmj%2FZWsbAAy7aP74Hle7y%2B1dTy4vTQ%3D%3D" target="_blank" rel="noopener noreferrer">
+                                    View Demo Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                            </ul>
+        </div>
+
+        <!-- user logout button on desktop -->
+        <a class="d-none d-lg-block logout-button-desktop px-2 text-decoration-none" data-bs-toggle="offcanvas" href="#offcanvasStart" role="button" aria-controls="offcanvasStart">
+            <div class="d-flex gap-2 m-2">
+                <i class="las la-user-circle mr-2 mt-1" style="font-size:1.6rem;"></i>
+                <p class="mb-0 logout-button" style="line-height: 1.3;">
+                    Sagar<br>
+                    <small class="d-inline-block">sagarmohite2808@gmail.com</small>
+                </p>
+            </div>
+        </a>
+    </div>
+</aside>
+
+<script>
+    function collapseNavbar() {
+        if (window.innerWidth <= 1024) {
+            var navbarToggle = document.querySelector('.navbar-toggler');
+            navbarToggle.click();
+        }
+    }
+    var dropdownItems = document.querySelectorAll('.dropdown-item');
+    dropdownItems.forEach(function(item) {
+        item.addEventListener('click', collapseNavbar);
+    });
+</script>
+        <aside data-bs-backdrop="true" class="merchant-profile  offcanvas offcanvas-start" tabindex="-1" id="offcanvasStart" aria-labelledby="offcanvasStartLabel">
+    <div class="mb-1 d-flex justify-content-between">
+        <h2 class="page-title p-2">Merchants Profile</h2>
+        <a href="#" data-bs-dismiss="offcanvas"><i style="font-size:1.5rem;" class="las la-times p-2"></i></a>
+    </div>
+
+    <div class="card mb-3 m-2">
+        <div class="card-header card-header-light p-2">
+            <h3 class="card-title">
+                <form class="mb-0" action="/site/logout" method="post"><button type="submit" class="btn logout w-100 p-0 bg-transparent"><div class="card-title"><i class="las la-sign-out-alt mr-2" style="font: size 1.2rem;"></i></div><div class="card-title"><p class="mb-0 mt-0">Logout</p></div></button></form>            </h3>
+        </div>
+        <div class="card-body p-2">
+            <div><b>Name</b><br> Sagar</div>
+            <hr class="m-2">
+            <div><b>Email ID</b><br> sagarmohite2808@gmail.com</div>
+            <hr class="m-2">
+            <div><b>Phone Number</b><br> +91-8857808284</div>
+        </div>
+    </div>
+
+
+            <div class="card mb-3 m-2">
+            <div class="card-header card-header-light p-2 justify-content-between">
+                <h3 class="card-title">Business Details</h3>
+                <a href="#" onclick="editBusinessDetails();" class="edit-business-btn"><i style="font-size:1.1rem;" class="las la-pen"></i></a>
+            </div>
+            <div class="card-body p-2 business-details-container">
+                                    <div><b>Firm Name </b><br> V R Pawar Sarees  Chatti Galli |</div>
+                    <hr class="m-2">
+                                                    <div><b>Display Name </b><br> V R Pawar Sarees  Chatti Galli |</div>
+                    <hr class="m-2">
+                                                    <div><b>Phone Number </b><br> +91-8857808284</div>
+                    <hr class="m-2">
+                                                    <div><b>Email ID </b><br> sagarmohite2808@gmail.com</div>
+                    <hr class="m-2">
+                                                                                                    <div><b>Store Addr. </b><br> Address: 275 ,W.Magalwar Peth, Chatti Galli, Mangalwar Peth, Solapur, Maharashtra 413002</div>
+                    <hr class="m-2">
+                                                    <div><b>Store Country </b><br> India</div>
+                    <hr class="m-2">
+                                <div class="d-flex flex-wrap justify-content-between">
+                                            <div class="w-50"><b>Store State </b><br> Maharashtra</div>
+                                                                <div class="w-50"><b>Store City </b><br> Solapur</div>
+                                    </div>
+                <hr class="m-2">
+                <div class="d-flex flex-wrap justify-content-between">
+                                            <div class="w-50"><b>Store Pincode </b><br> 413002</div>
+                                                                <div class="w-50"><b>POS </b><br> universal</div>
+                                    </div>
+            </div>
+            <div class="loader mx-auto" style="width:30px;height:30px; display: none;" id="businessLoader"></div>
+        </div>
+    
+    <div class="card mb-3 m-2">
+        <div class="card-header card-header-light p-2 justify-content-between">
+            <h3 class="card-title">Active Features</h3>
+        </div>
+
+        <div class="card-body p-2">
+            • Invoice<br>            • Roles<br>                                    • Ad Banner<br>            • Google Review<br>                        • White Label/Branding<br>                    </div>
+
+    </div>
+
+    <div class="card mb-3 m-2">
+        <div class="card-header px-3" style="background:var(--tblr-primary-bg-subtle);border-radius:calc(.37rem - 1px) calc(.37rem - 1px) calc(.37rem - 1px) calc(.37rem - 1px);">
+            <a class="card-title download-integration-files w-100 d-flex justify-content-between align-items-center" href="/merchant/integration-files" target="_blank">Download Integration Files
+                <svg width="15px" height="15px" viewBox="0 0 16 16" class="bi bi-download" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path>
+                    <path fill-rule="evenodd" d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</aside>
+<script>
+    function editBusinessDetails() {
+        $('.edit-business-btn').hide();
+        $('#businessLoader').show();
+        $('.business-details-container').html('');
+
+        $.ajax({
+            type: "GET",
+            url: "/merchant/business-edit",
+            success: function(response) {
+                let resp = JSON.parse(response);
+                if (!resp.error) {
+                    $('.business-details-container').html(resp.data);
+                }
+                $('#businessLoader').hide();
+            },
+            error: function(error) {
+                $('#businessLoader').hide();
+                console.log(error);
+            }
+        });
+    }
+</script>
+        <div class="page-wrapper">
+
+                        <!-- <div id="info">
+                <div class="row" style="background: #1d273b;justify-content: center;">
+                    <div class="col-11 text-light text-center" style="width:90%">Contact us for any query on&nbsp; <a class="text-light" href="mailto:contact@billfree.in">contact@billfree.in</a> &nbsp; or&nbsp;+91 (120) 420 7081
+                    </div>
+                    <button onclick="handleClick()" class="col-1 text-right bg-transparent border-0 text-light text-right px-2"><i class="las la-times fs-2"></i></button>
+                </div>
+            </div> -->
+            <div class="page-body mt-0">
+                
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-4 col-12">
+            <h2 class="mb-0 text-dark">Customer Analysis</h2>
+            <ul class="breadcrumb"><li><a href="/store-comparison/store-comparision">Summary</a></li> &nbsp; / &nbsp; 
+<li class="active">Customer Analysis</li>
+</ul>        </div>
+        <div class="col-md-8">
+            <div id="date-range" class="d-flex justify-content-end align-items-center flex-wrap">
+                <div class="row">
+                    <div class="col-6">
+                        <label for="startDate">From</label>
+                        <div class="input-icon">
+                            <input class="form-control lite-picker w-100" autocomplete="off" id="startDate" name="startDate" onchange="dateFilter('start')" placeholder="Start Date" value="" />
+                            <span class="input-icon-addon"><!-- Download SVG icon from http://tabler-icons.io/i/calendar -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M4 5m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" />
+                                    <path d="M16 3l0 4" />
+                                    <path d="M8 3l0 4" />
+                                    <path d="M4 11l16 0" />
+                                    <path d="M11 15l1 0" />
+                                    <path d="M12 15l0 3" />
+                                </svg>
+                            </span>
+                        </div>
+                        <!-- <input type="date" class="form-control " id="startDate" name="startDate" onchange="dateFilter('start')"></input> -->
+                    </div>
+                    <div class="col-6">
+                        <label for="endDate">To</label>
+                        <div class="input-icon">
+                            <input class="form-control lite-picker w-100" autocomplete="off" id="endDate" name="endDate" onchange="dateFilter('end')" placeholder="End Date" value="" />
+                            <span class="input-icon-addon"><!-- Download SVG icon from http://tabler-icons.io/i/calendar -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M4 5m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" />
+                                    <path d="M16 3l0 4" />
+                                    <path d="M8 3l0 4" />
+                                    <path d="M4 11l16 0" />
+                                    <path d="M11 15l1 0" />
+                                    <path d="M12 15l0 3" />
+                                </svg>
+                            </span>
+                        </div>
+                        <!-- <input type="date" class="form-control " id="endDate" name="endDate" onchange="dateFilter('end')"></input> -->
+                    </div>
+                </div>
+                <button style="margin-left: 0.5rem;" class="btn btn-success mt-updated" onclick="dateFilter('filter')">Filter</button>
+                                <button id="export-cust-analysis-btn" type="button" class="btn btn-primary mt-updated" style="margin-left: 0.5rem;">
+                    <i class="las la-download"></i> Export
+                </button>
+                            </div>
+        </div>
+    </div>
+</div>
+<hr style="margin-top: 1rem; margin-bottom: 0;">
+<div class="container-fluid">
+    <div id="offer-scope" class="store-scope mb-3"></div>
+    <div class="navigation-btn-group mb-3">
+            <a href="/store-comparison/store-comparision" class="btn py-2 px-3 sub-nav-btn "><span class="fs-2">🛍️</span> Store Summary</a>
+        <a href="/store-comparison/index" class="btn py-2 px-3 sub-nav-btn "><span class="fs-2">📅</span> Daily Report</a>
+                    <a href="/bill/index" class="btn py-2 px-3 sub-nav-btn "><span class="fs-2">💸</span> Sales Transaction</a>
+                <a href="/trend/index" class="btn py-2 px-3 sub-nav-btn "><span class="fs-2">📈</span> Monthly Trend</a>
+                <a href="/feedback/index" class="btn py-2 px-3 sub-nav-btn "><span class="fs-2">👍</span> Feedback</a>
+                    <a href="/sms-ledger/index" class="btn py-2 px-3 sub-nav-btn "><span class="fs-2">⛃</span> Credit Ledger</a>
+    </div>    <div class="card">
+        <!-- <div class="card-body"> -->
+        <div class="row">
+            <div id="grid" class="table-responsive mt-2">
+                <div id="analyticsGrid" data-pjax-container="" data-pjax-push-state data-pjax-timeout="30000">
+                <div id="w0" class="grid-view">
+<table class="table card-table table-vcenter text-nowrap datatable"><thead>
+<tr><th>#</th><th style="text-align:center;vertical-align: middle">Mobile</th><th style="text-align:center;vertical-align: middle">Customer Name</th><th style="text-align:center;vertical-align: middle">No of Visits</th><th style="text-align:center;vertical-align: middle">No of Feedback</th><th style="text-align:center;vertical-align: middle">Avg Rating</th><th style="text-align:center;vertical-align: middle">Total Relationship Value</th><th style="text-align:center;vertical-align: middle">Avg Transaction Value</th><th style="text-align:center;vertical-align: middle">No of Stores Visited</th></tr><tr id="w0-filters" class="filters"><td>&nbsp;</td><td><input type="text" id="custanalsearch-user_phone" class="form-control " name="CustAnalSearch[user_phone]"></td><td><input type="text" id="custanalsearch-cust_name" class="form-control " name="CustAnalSearch[cust_name]"></td><td><input type="text" id="custanalsearch-bill_count" class="form-control " name="CustAnalSearch[bill_count]"></td><td><input type="text" id="custanalsearch-fb_count" class="form-control " name="CustAnalSearch[fb_count]"></td><td><input type="text" id="custanalsearch-avg_rating" class="form-control " name="CustAnalSearch[avg_rating]"></td><td><input type="text" id="custanalsearch-total_revenue" class="form-control " name="CustAnalSearch[total_revenue]"></td><td><input type="text" id="custanalsearch-avg_trans" class="form-control " name="CustAnalSearch[avg_trans]"></td><td><input type="text" id="custanalsearch-store_visited" class="form-control " name="CustAnalSearch[store_visited]"></td></tr>
+</thead>
+<tbody>
+<tr><td colspan="9"><div class="empty">No results found.</div></td></tr>
+</tbody></table>
+</div>
+                </div>            </div>
+
+            <div id="timeline" class="col-md-3">
+                <div class="loader" id="loader_sub" style="width:100px;height:100px;margin:auto;display: none"></div>
+
+                <div id="t-content"></div>
+            </div>
+        </div>
+        <div class="loader" id="loader" style="width:50px;height:50px;margin:auto;display: none"></div>
+        <input type="hidden" id="mIds"></input>
+        <!--To Store merchant Ids-->
+        <!-- </div> -->
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#loader').show();
+        var date = new Date();
+        date.setDate(date.getDate() - 1);
+
+        var startDate = new Date();
+        startDate.setDate(startDate.getDate() - 365);
+
+        var smm = startDate.getMonth() + 1; // getMonth() is zero-based
+        var sdd = startDate.getDate();
+
+        var dateStr = [startDate.getFullYear(),
+            (smm > 9 ? '' : '0') + smm,
+            (sdd > 9 ? '' : '0') + sdd
+        ].join('-');
+
+        $('#startDate').val(dateStr);
+
+
+
+        var mm = date.getMonth() + 1; // getMonth() is zero-based
+        var dd = date.getDate();
+
+        var dateEnd = [date.getFullYear(),
+            (mm > 9 ? '' : '0') + mm,
+            (dd > 9 ? '' : '0') + dd
+        ].join('-');
+
+        $('#endDate').val(dateEnd);
+    });
+
+    function getUserTimeline(data, ele = '') {
+        $('.tRow').removeClass('tbRowHighlight');
+        //    $('#user_'+data['user_phone']).addClass('active');
+        console.log(ele.parentNode.parentNode.classList.add);
+        console.log(ele.classList.add);
+        ele.parentNode.parentNode.classList.add("tbRowHighlight");
+        //    ele.parentNode.parentNode.style = "background-color:#dae6ec";
+        user_phone = data['user_phone'];
+        cust_name = data['cust_name'];
+        bill_count = data['bill_count'];
+        fb_count = data['fb_count'];
+        avg_rating = data['avg_rating'];
+        total_revenue = data['total_revenue'];
+        avg_trans = data['avg_trans'];
+
+        $("#grid").removeClass("col-md-12").addClass('col-md-9');
+        $('#loader_sub').show();
+        $('#t-content').html('');
+        $.ajax({
+            url: '/customer-analysis/get-user-timeline',
+            type: 'POST',
+            data: {
+                user_phone: user_phone,
+                avg_trans: avg_trans,
+                total_revenue: total_revenue,
+                avg_rating: avg_rating,
+                fb_count: fb_count,
+                bill_count: bill_count,
+                cust_name: cust_name
+            },
+            success: function(response) {
+                resp = JSON.parse(response);
+                if (resp.error == false) {
+                    $('#loader_sub').hide();
+                    $('#t-content').html(resp.data);
+                }
+            }
+        });
+    }
+
+    function stripSlashes(data) {
+        return data.replace(/\\(.)/mg, "$1");
+    }
+
+    $('#analyticsGrid').on('pjax:beforeSend', function(e, jqXHR, settings) {
+        $('#analyticsGrid').hide();
+        $('#loader').show();
+        if (settings.url.indexOf('mIds') === -1) {
+            //If merchant Id doesn't exist in the url add a new parameter
+            settings.url = settings.url + '&CustAnalSearch%5BmIds%5D=' + $('#mIds').val(); //using %5B and %5D as [ and ] because the url is encoded
+        } else {
+            var mField = $('#mIds').val();
+
+            //fix when user remove all the stores from store filter
+            var mFieldArr = JSON.parse(mField);
+            if (mFieldArr.length == 0) {
+                mField = '[' + 60646 + ']';
+            }
+
+            //If merchant Id already exists in the url just replace the value
+            settings.url = settings.url.replace(/mIds%5D=.*%5D/, 'mIds%5D=' + mField);
+        }
+
+        //for start date
+        if (settings.url.indexOf('startDate') === -1) {
+            var strVal = $('#startDate').val();
+
+            if (!strVal) {
+                strVal = '1997-01-01'; //random initial value being compared at the backend
+            }
+            //If merchant Id doesn't exist in the url add a new parameter
+            settings.url = settings.url + '&startDate=' + strVal //using %5B and %5D as [ and ] because the url is encoded
+        } else {
+            var mField = $('#startDate').val();
+
+            if (!mField) {
+                mField = '1997-01-01'; //random initial value being compared at the backend
+            }
+            //If merchant Id already exists in the url just replace the value
+            settings.url = settings.url.replace(/startDate=.{10}/, 'startDate=' + mField);
+        }
+
+        //for end date
+        if (settings.url.indexOf('endDate') === -1) {
+            var endVal = $('#endDate').val();
+
+            if (!endVal) {
+                endVal = '1997-01-01'; //random initial value being compared at the backend
+            }
+            //If merchant Id doesn't exist in the url add a new parameter
+            settings.url = settings.url + '&endDate=' + endVal; //using %5B and %5D as [ and ] because the url is encoded
+        } else {
+            var meField = $('#endDate').val();
+            if (!meField) {
+                meField = '1997-01-01'; //random initial value being compared at the backend
+            }
+            //If merchant Id already exists in the url just replace the value
+            settings.url = settings.url.replace(/endDate=.{10}/, 'endDate=' + meField);
+        }
+    });
+
+    $('#analyticsGrid').on('pjax:success', function(e, data, status, xhr, options) {
+        $('#loader').hide();
+        $('#analyticsGrid').show();
+    });
+
+    function prepare() {
+        restrictDate();
+        mIds = '';
+        var redir = false;
+        var urlStr = window.location.href;
+        var url = new URL(urlStr);
+        if (urlStr.indexOf('mIds') != -1) {
+            var mIds = url.searchParams.get("CustAnalSearch[mIds]");
+            $('#mIds').val(mIds);
+            mIds = JSON.parse(mIds);
+            redir = true;
+        }
+
+        renderCoverage([60646], '', 'bills', mIds); // Defined in billfree.js
+
+        if (urlStr.indexOf('startDate') !== -1) {
+            var startDate = url.searchParams.get("startDate");
+            $('#startDate').val(startDate);
+            redir = true;
+        }
+
+        if (urlStr.indexOf('endDate') !== -1) {
+            var endDate = url.searchParams.get("endDate");
+            $('#endDate').val(endDate);
+            redir = true;
+        }
+
+        if (redir) {
+            var ratingField = $("input[name='CustAnalSearch[user_phone]']");
+            ratingField.trigger('change'); //on triggering onchange at any search field pjax updates the grid itself
+        } else {
+            filterAnalytics([60646]);
+        }
+    }
+
+    function restrictDate() {
+        var dtToday = new Date();
+        dtToday.setDate(dtToday.getDate() - 1);
+
+
+        var month = dtToday.getMonth() + 1;
+        var day = dtToday.getDate();
+        var year = dtToday.getFullYear();
+
+        if (month < 10)
+            month = '0' + month.toString();
+        if (day < 10)
+            day = '0' + day.toString();
+
+        var maxDate = year + '-' + month + '-' + day;
+        $('#endDate').attr('max', maxDate);
+        $('#startDate').attr('max', maxDate);
+    };
+
+    function filterAnalytics(merchantIds) {
+        var mField = $("#mIds");
+        var ratingField = $("input[name='CustAnalSearch[user_phone]']");
+        mField.val(JSON.stringify(merchantIds));
+        ratingField.trigger('change'); //on triggering onchange at any search field pjax updates the grid itself
+    }
+
+    function dateFilter(type) {
+        var endDate = $('#endDate');
+        var startDate = $('#startDate');
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (type == 'start') {
+            var sDate = new Date(startDate.val());
+            sDate.setHours(0, 0, 0, 0);
+            if (sDate > today) {
+                alert('Date cannot be greater than today');
+                var dd = today.getDate();
+
+                var mm = today.getMonth() + 1;
+                var yyyy = today.getFullYear();
+                if (dd < 10) {
+                    dd = '0' + dd;
+                }
+
+                if (mm < 10) {
+                    mm = '0' + mm;
+                }
+                var todayStr = yyyy + '-' + mm + '-' + dd;
+                startDate.val(todayStr);
+                endDate.val(todayStr);
+            } else if (startDate.val() && !endDate.val()) {
+                //setting end date to 7 days after start date only if it is empty
+                var eDate = new Date(startDate.val());
+                eDate.setHours(0, 0, 0, 0);
+
+                eDate.setDate(eDate.getDate() + 7);
+
+                if (eDate > today) {
+                    var dd = today.getDate();
+                    var mm = today.getMonth() + 1;
+                    var yyyy = today.getFullYear();
+                    if (dd < 10) {
+                        dd = '0' + dd;
+                    }
+
+                    if (mm < 10) {
+                        mm = '0' + mm;
+                    }
+                    todayStr = yyyy + '-' + mm + '-' + dd;
+                    endDate.val(todayStr);
+                } else {
+                    var mm = eDate.getMonth() + 1; // getMonth() is zero-based
+                    var dd = eDate.getDate();
+
+                    var dateStr = [eDate.getFullYear(),
+                        (mm > 9 ? '' : '0') + mm,
+                        (dd > 9 ? '' : '0') + dd
+                    ].join('-');
+
+                    endDate.val(dateStr);
+                }
+            }
+        }
+
+        if (type === 'filter') {
+            if (startDate.val() && endDate.val()) {
+                var ratingField = $("input[name='CustAnalSearch[user_phone]']");
+                ratingField.trigger('change'); //on triggering onchange at any search field pjax updates the grid itself
+            } else {
+                alert('please fill both the dates first');
+            }
+        }
+
+        if (type === 'end') {
+            var eDate = new Date(endDate.val());
+            eDate.setHours(0, 0, 0, 0);
+            if (eDate > today) {
+                alert('Date cannot be greater than today');
+                var dd = today.getDate();
+
+                var mm = today.getMonth() + 1;
+                var yyyy = today.getFullYear();
+                if (dd < 10) {
+                    dd = '0' + dd;
+                }
+
+                if (mm < 10) {
+                    mm = '0' + mm;
+                }
+                todayStr = yyyy + '-' + mm + '-' + dd;
+                endDate.val(todayStr);
+            }
+        }
+    }
+
+    $('#export-cust-analysis-btn').on('click', function() {
+        // Get the current URL and its parameters
+        var url = window.location.href;
+
+        // Check if 'export' param already exists
+        if (!url.includes('export')) {
+            if (url.includes('?')) {
+                url += '&export=1';
+            } else {
+                url += '?export=1';
+            }
+        }
+        window.location.href = url;
+    });
+</script>            </div>
+
+
+        </div>
+    </div>
+    <footer class="mt-auto">
+    <div class="page-wrapper-bottom">
+        <div class="page-footer text-center text-muted mb-3" style="background-color: var(--tblr-body-bg);">
+            <div><a href="https://billfree.in" class="text-muted" title="BillFree Labs" target="">BillFree Labs</a> Pvt Ltd, 2026 &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; <a href="mailto:contact@billfree.in?subject=Billfree-backend query" class="text-muted"><i class="las la-envelope"></i> contact@billfree.in</a> &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; <a class="text-muted" href="tel:+01204207081"><i class="las la-phone"></i> 0120-4207081</a></div>
+            <!-- <div style='float:right;'><a  href="https://bit.ly/BilFree">BillFree</a></div> -->
+        </div>
+    </div>
+</footer>    <script src="/assets/d7c67dda/yii.js?v=1656451257"></script>
+<script src="/assets/d7c67dda/yii.gridView.js?v=1656451257"></script>
+<script src="/assets/301ac8e8/jquery.pjax.js?v=1691822120"></script>
+<script src="/resources/dashboard/js/tabler.min.js?v=1738999962"></script>
+<script src="/resources/js/constants.js?v=1746774834"></script>
+<script src="/resources/js/currency-format.js?v=1790566300"></script>
+<script src="/resources/dashboard/libs/tom-select/dist/js/tom-select.base.min.js?v=1738999962"></script>
+<script src="/resources/dashboard/libs/vanillajs-datepicker/dist/js/datepicker.min.js?v=1738999962"></script>
+<script src="/resources/js/billfreeMerchant.js?v=1773472590"></script>
+<script src="/resources/js/billfree.js?v=1773472590"></script>
+<script src="/resources/qfree-backend/js/script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/whatsapp-script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/rcs-script.js?v=1759128504"></script>
+<script src="/resources/dashboard/js/campaign-script.js?v=1759128504"></script>
+<script src="/resources/dashboard/js/chartInit.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/crypto-js.min.js?v=1738999962"></script>
+<script src="/resources/plugins/country-selector/intlTelInput.js?v=1746707187"></script>
+<script src="/resources/dashboard/js/redeem-rewards.js?v=1790566300"></script>
+<script>jQuery(function ($) {
+jQuery('#w0').yiiGridView({"filterUrl":"\/customer-analysis\/index","filterSelector":"#w0-filters input, #w0-filters select","filterOnFocusOut":true});
+jQuery(document).pjax("#analyticsGrid a", {"push":true,"replace":false,"timeout":"30000","scrollTo":false,"container":"#analyticsGrid"});
+jQuery(document).off("submit", "#analyticsGrid form[data-pjax]").on("submit", "#analyticsGrid form[data-pjax]", function (event) {jQuery.pjax.submit(event, {"push":true,"replace":false,"timeout":"30000","scrollTo":false,"container":"#analyticsGrid"});});
+$(document).ready(function(){prepare();})
+});</script>
+    <!-- Modal HTML for Bootstrap 5 -->
+    <div id="accessDeniedModal" class="modal modal-blur fade" tabindex="-1" aria-labelledby="accessDeniedModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="accessDeniedModalLabel">Access Denied</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex flex-column align-items-center justify-content-center">
+                        <img class="w-25" src="/resources/images/access_denied.png" alt="img">
+                        <div class="mt-3">
+                            <p class="fs-3" id="">You do not have access to the requested feature.</p>
+                            <p class="fs-3" id="accessDeniedMessage">Please buy a subscription to use this feature.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-primary" href="/account/index?tab=subscriptions"
+                        style="margin-top: 14px;">Buy Subscription</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+<script>
+    function handleClick() {
+        $('#info').hide();
+    }
+</script>
+
+<!-- PWA JavaScript -->
+<script src="/js/pwa-app.js"></script>
+

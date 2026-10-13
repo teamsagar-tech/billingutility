@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#19222aff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="BillFree">
+    <meta name="msapplication-TileColor" content="#19222aff">
+    <!-- Favicon and PWA Icons -->
+    <link rel="apple-touch-icon" href="/img/icon-192.png">
+    <link rel="manifest" href="/manifest.json">
+
+    <link rel="shortcut icon" href="https://billfree-bills.s3.us-west-2.amazonaws.com/public/billfree_logo_blue_icon_only_4x.png" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;700&display=swap" rel="stylesheet">
+    <title>Optout Customers</title>
+    <script type="text/javascript">
+        var BASEURL = '';
+        var AUTH_TOKEN = 'a324e1299ed6e9b781b89bb1506d8a87';
+        var CURRENCY_SYMBOL = "\u20b9";
+        var CURRENCY_PROFILE = {"symbol":"\u20b9","code":"INR","display":"symbol","grouping":"indian","scale":"indian","decimals":2,"name":"Rupee","namePlural":"Rupees"};
+        // Merchant's phone dial code settings (bf_merchantinfo.default_dial_code /
+        // allowed_dial_code) — drives initDialCodeInput() in dashboard/js/script.js.
+        var DEFAULT_DIAL_CODE = "91";
+        var ALLOWED_DIAL_CODES = ["91"];
+    </script>
+    <link href="/assets/9447997a/css/bootstrap.css?v=1691821954" rel="stylesheet">
+<link href="/assets/5c82dce2/css/activeform.min.css?v=1715677042" rel="stylesheet">
+<link href="/assets/36646495/css/fileinput.min.css?v=1656451282" rel="stylesheet">
+<link href="/assets/5fc1f4db/css/kv-widgets.min.css?v=1656451282" rel="stylesheet">
+<link href="/resources/css/font-awesome.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/dashboard/css/tabler.min.css?v=1765634031" rel="stylesheet">
+<link href="/resources/dashboard/css/tabler-vendors.min.css?v=1761449473" rel="stylesheet">
+<link href="/resources/plugins/line-awesome/css/line-awesome.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/plugins/country-selector/intlTelInput.css?v=1746774834" rel="stylesheet">
+<link href="/resources/dashboard/libs/vanillajs-datepicker/dist/css/datepicker-bs5.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/dashboard/css/styles.css?v=1784526184" rel="stylesheet">
+<script src="/assets/5bab33a3/jquery.js?v=1691821954"></script>
+<script>window.fileinput_95256ad6 = {"showPreview":false,"showDrag":false,"showUpload":false,"showCancel":false,"maxFileCount":1,"language":"en","purifyHtml":true};
+</script></head>
+
+<body class="layout-fluid d-flex flex-column">
+    
+    <div class="page">
+        
+<style>
+    .navbar {
+        overflow-y: auto;
+    }
+
+    .demo-dashboard-link {
+        display: block;
+        width: 100%;
+        padding: 0;
+        border-radius: 20px;
+        text-decoration: none;
+    }
+
+    .demo-dashboard-card {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        padding: 1.25rem 1.15rem;
+        border-radius: 20px;
+        background: #0d47a1;
+        background-image: radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 70%),
+            url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M10 80 Q 30 40, 50 60 T 90 20" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="2"/></svg>');
+        background-size: cover, 140px;
+        background-position: center, calc(100% + 20px) -10px;
+        background-repeat: no-repeat;
+        isolation: isolate;
+        transition: transform 0.25s ease;
+    }
+
+    .demo-dashboard-card-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.38rem;
+        color: #1f2937;
+    }
+
+    .demo-dashboard-title {
+        margin: 0;
+        max-width: 180px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        line-height: 1.25;
+        color: #ffffff;
+        letter-spacing: 0em;
+    }
+
+    .demo-dashboard-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: fit-content;
+        margin-top: 0.65rem;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        background: #ffffff;
+        color: #0d47a1;
+        font-size: 0.7rem;
+        font-weight: 700;
+        line-height: 1;
+        transition: all 0.2s ease;
+    }
+
+    .navbar::-webkit-scrollbar {
+        width: 5px;
+        display: none;
+    }
+
+    .navbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
+
+    .navbar::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 5px;
+    }
+
+    .navbar::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    .navbar:hover::-webkit-scrollbar {
+        display: initial;
+    }
+</style>
+<!-- Sidebar -->
+<aside class="navbar navbar-vertical navbar-expand-lg navbar-light">
+    <div class="container-fluid justify-content-between">
+        <!-- Brand Logo -->
+        <h1 class="navbar-brand navbar-brand-autodark justify-content-start">
+            <a class="navbar-brandname" href="/dashboard-summary/index">
+                <img src="https://billfree-bills.s3.us-west-2.amazonaws.com/public/billfree_logo_blue_icon_only_4x.png" alt="BillFree Labs" width="40">
+                <p class="ms-2 mb-0">V R Pawar Sarees  Chatti Galli |</p>
+            </a>
+        </h1>
+
+        <!-- user toggle -->
+        <a class="p-0 ms-auto d-lg-none" data-bs-toggle="offcanvas" href="#offcanvasStart" role="button" aria-controls="offcanvasStart">
+            <div class="d-flex text-dark">
+                <i class="las la-user-circle p-2" style="font-size:1.6rem;"></i>
+            </div>
+        </a>
+
+        <!-- menu toggle -->
+        <button class="navbar-toggler m-2" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- menu sidebar -->
+        <div class="collapse navbar-collapse" id="sidebar-menu">
+            <ul class="navbar-nav pt-lg-3 pb-5 w-100 mx-0 px-3 px-md-0">
+
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/dashboard-summary/index">
+                            <i class="las la-home fs-2 me-2"></i>Home
+                        </a>
+                    </li>
+                
+                <li class="nav-item ">
+                    <a class="nav-link d-flex w-100" href="/home/index">
+                        <i class="las la-paperclip fs-2 me-2"></i> Quick Links
+                    </a>
+                </li>
+
+                <!-- <li class="nav-item  d-flex w-100">
+                    <a class="nav-link" href="/dashboard-summary/index"><i class="las la-home fs-2 me-2"></i> Dashboard</a>
+                </li> -->
+
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/store-comparison/store-comparision">
+                            <i class="las la-chart-bar fs-2 me-2"></i> Analytics
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item  dropdown invoice-header d-flex w-100">
+                        <a class="nav-link" href="/generate-bill/index"><i class="las la-receipt fs-2 me-2"></i> Invoice</a>
+                    </li>
+                
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/campaigns-hub/index">
+                            <i class="las la-bullhorn fs-2 me-2"></i> Campaigns & Automation
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item active">
+                        <a class="nav-link d-flex w-100" href="/profiles/customers">
+                            <i class="las la-user-friends fs-2 me-2"></i> Customers
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/roi-explorer/index">
+                            <i class="las la-funnel-dollar fs-2 me-2"></i> ROI
+                        </a>
+                    </li>
+                
+                <!--                     <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/rewards/index">
+                            <i class="lab la-gratipay me-2" style="font-size: 1.5rem;"></i> Rewards
+                        </a>
+                    </li>
+                 -->
+
+                                    <li class="nav-item  ">
+                        <a class="nav-link d-flex w-100" href="/segmentation/list">
+                            <i class="las la-box fs-2 me-2"></i> Segmentation
+                        </a>
+                    </li>
+                
+
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/download-center/index">
+                            <i class="las la-download fs-2 me-2"></i> Download Center
+                        </a>
+                    </li>
+                
+                
+                
+                    <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                    <h4 class="my-1">REWARDS</h4>
+
+                                            <li class="nav-item ">
+                            <a class="nav-link d-flex w-100" href="/loyalty-dashboard/index">
+                                <i class="las la-coins me-2" style="font-size: 1.5rem;"></i> Loyalty
+                            </a>
+                        </li>
+                    
+                                            <li class="nav-item ">
+                            <a class="nav-link d-flex w-100" href="/coupon-dashboard/index">
+                                <i class="las la-tags fs-2 me-2"></i> Coupon
+                            </a>
+                        </li>
+                    
+                    
+                                            <li class="nav-item ">
+                            <a class="nav-link d-flex w-100" href="/redeem-reward/index">
+                                <i class="lab la-gratipay fs-2 me-2"></i> Redeem Reward
+                            </a>
+                        </li>
+                                    
+                                    <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                    <h4 class="my-1">CHANNELS</h4>
+                                                                                <li class="nav-item ">
+                                    <a class="nav-link d-flex w-100" href="/gupshup-ss/index">
+                                        <i class="lab la-whatsapp fs-2 me-2"></i> WhatsApp
+                                    </a>
+                                </li>
+                                                
+                    
+                                    
+                
+                    <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                    <h4 class="my-1">CUSTOMIZATIONS</h4>
+
+                                            <li class="nav-item  d-flex w-100">
+                            <a class="nav-link" href="/digital-bill/index"><i class="las la-mobile fs-2 me-2"></i> Digital Bill</a>
+                        </li>
+                    
+                                            <li class="nav-item ">
+                            <a class="nav-link d-flex w-100" href="/greeting-cards/index">
+                                <i class="las la-handshake fs-2 me-2"></i> CRM
+                            </a>
+                        </li>
+                                    
+
+                <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                <h4 class="my-1">MANAGE</h4>
+
+                                    <li class="nav-item  d-flex w-100">
+                        <a class="nav-link" href="/users/index"><i class="las la-user-cog fs-2 me-2"></i> Users</a>
+                    </li>
+                
+                                <li class="nav-item  d-flex w-100">
+                    <a class="nav-link d-flex w-100" href="/account/index"><i class="las la-cog fs-2 me-2"></i> My Account
+                    </a>
+                </li>
+                
+                
+                
+                
+                                    <li class="nav-item">
+                        <a class="nav-link d-flex w-100" href="/site/my-bills?p=user" target="_blank">
+                            Personal Bills
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item dropdown d-flex w-100 mt-3">
+                        <div class="card demo-dashboard-card">
+                            <div class="demo-dashboard-card-content">
+                                <p class="demo-dashboard-title">Experience the Power of the Billfree Dashboard.</p>
+                                <a class="demo-dashboard-cta text-decoration-none" href="https://demo.billfree.in/dashboard-summary/index?user=c1Pqu1DvQNWhIJV%2BQJxjx2QwMjY0NDljNmM2N2I5M2Q0ZDU4NDM2MzEwYTg1NjVkN2RkNDZjMmY0ZTUwZTE3YWE0YmRkYmM1MWVlMDY2MGYcLpca4ZTG4fVOxGA9lrEgFSCZckoDM8fH2B%2FPiJ0pnQ%3D%3D" target="_blank" rel="noopener noreferrer">
+                                    View Demo Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                            </ul>
+        </div>
+
+        <!-- user logout button on desktop -->
+        <a class="d-none d-lg-block logout-button-desktop px-2 text-decoration-none" data-bs-toggle="offcanvas" href="#offcanvasStart" role="button" aria-controls="offcanvasStart">
+            <div class="d-flex gap-2 m-2">
+                <i class="las la-user-circle mr-2 mt-1" style="font-size:1.6rem;"></i>
+                <p class="mb-0 logout-button" style="line-height: 1.3;">
+                    Sagar<br>
+                    <small class="d-inline-block">sagarmohite2808@gmail.com</small>
+                </p>
+            </div>
+        </a>
+    </div>
+</aside>
+
+<script>
+    function collapseNavbar() {
+        if (window.innerWidth <= 1024) {
+            var navbarToggle = document.querySelector('.navbar-toggler');
+            navbarToggle.click();
+        }
+    }
+    var dropdownItems = document.querySelectorAll('.dropdown-item');
+    dropdownItems.forEach(function(item) {
+        item.addEventListener('click', collapseNavbar);
+    });
+</script>
+        <aside data-bs-backdrop="true" class="merchant-profile  offcanvas offcanvas-start" tabindex="-1" id="offcanvasStart" aria-labelledby="offcanvasStartLabel">
+    <div class="mb-1 d-flex justify-content-between">
+        <h2 class="page-title p-2">Merchants Profile</h2>
+        <a href="#" data-bs-dismiss="offcanvas"><i style="font-size:1.5rem;" class="las la-times p-2"></i></a>
+    </div>
+
+    <div class="card mb-3 m-2">
+        <div class="card-header card-header-light p-2">
+            <h3 class="card-title">
+                <form class="mb-0" action="/site/logout" method="post"><button type="submit" class="btn logout w-100 p-0 bg-transparent"><div class="card-title"><i class="las la-sign-out-alt mr-2" style="font: size 1.2rem;"></i></div><div class="card-title"><p class="mb-0 mt-0">Logout</p></div></button></form>            </h3>
+        </div>
+        <div class="card-body p-2">
+            <div><b>Name</b><br> Sagar</div>
+            <hr class="m-2">
+            <div><b>Email ID</b><br> sagarmohite2808@gmail.com</div>
+            <hr class="m-2">
+            <div><b>Phone Number</b><br> +91-8857808284</div>
+        </div>
+    </div>
+
+
+            <div class="card mb-3 m-2">
+            <div class="card-header card-header-light p-2 justify-content-between">
+                <h3 class="card-title">Business Details</h3>
+                <a href="#" onclick="editBusinessDetails();" class="edit-business-btn"><i style="font-size:1.1rem;" class="las la-pen"></i></a>
+            </div>
+            <div class="card-body p-2 business-details-container">
+                                    <div><b>Firm Name </b><br> V R Pawar Sarees  Chatti Galli |</div>
+                    <hr class="m-2">
+                                                    <div><b>Display Name </b><br> V R Pawar Sarees  Chatti Galli |</div>
+                    <hr class="m-2">
+                                                    <div><b>Phone Number </b><br> +91-8857808284</div>
+                    <hr class="m-2">
+                                                    <div><b>Email ID </b><br> sagarmohite2808@gmail.com</div>
+                    <hr class="m-2">
+                                                                                                    <div><b>Store Addr. </b><br> Address: 275 ,W.Magalwar Peth, Chatti Galli, Mangalwar Peth, Solapur, Maharashtra 413002</div>
+                    <hr class="m-2">
+                                                    <div><b>Store Country </b><br> India</div>
+                    <hr class="m-2">
+                                <div class="d-flex flex-wrap justify-content-between">
+                                            <div class="w-50"><b>Store State </b><br> Maharashtra</div>
+                                                                <div class="w-50"><b>Store City </b><br> Solapur</div>
+                                    </div>
+                <hr class="m-2">
+                <div class="d-flex flex-wrap justify-content-between">
+                                            <div class="w-50"><b>Store Pincode </b><br> 413002</div>
+                                                                <div class="w-50"><b>POS </b><br> universal</div>
+                                    </div>
+            </div>
+            <div class="loader mx-auto" style="width:30px;height:30px; display: none;" id="businessLoader"></div>
+        </div>
+    
+    <div class="card mb-3 m-2">
+        <div class="card-header card-header-light p-2 justify-content-between">
+            <h3 class="card-title">Active Features</h3>
+        </div>
+
+        <div class="card-body p-2">
+            • Invoice<br>            • Roles<br>                                    • Ad Banner<br>            • Google Review<br>                        • White Label/Branding<br>                    </div>
+
+    </div>
+
+    <div class="card mb-3 m-2">
+        <div class="card-header px-3" style="background:var(--tblr-primary-bg-subtle);border-radius:calc(.37rem - 1px) calc(.37rem - 1px) calc(.37rem - 1px) calc(.37rem - 1px);">
+            <a class="card-title download-integration-files w-100 d-flex justify-content-between align-items-center" href="/merchant/integration-files" target="_blank">Download Integration Files
+                <svg width="15px" height="15px" viewBox="0 0 16 16" class="bi bi-download" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path>
+                    <path fill-rule="evenodd" d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</aside>
+<script>
+    function editBusinessDetails() {
+        $('.edit-business-btn').hide();
+        $('#businessLoader').show();
+        $('.business-details-container').html('');
+
+        $.ajax({
+            type: "GET",
+            url: "/merchant/business-edit",
+            success: function(response) {
+                let resp = JSON.parse(response);
+                if (!resp.error) {
+                    $('.business-details-container').html(resp.data);
+                }
+                $('#businessLoader').hide();
+            },
+            error: function(error) {
+                $('#businessLoader').hide();
+                console.log(error);
+            }
+        });
+    }
+</script>
+        <div class="page-wrapper">
+
+                        <!-- <div id="info">
+                <div class="row" style="background: #1d273b;justify-content: center;">
+                    <div class="col-11 text-light text-center" style="width:90%">Contact us for any query on&nbsp; <a class="text-light" href="mailto:contact@billfree.in">contact@billfree.in</a> &nbsp; or&nbsp;+91 (120) 420 7081
+                    </div>
+                    <button onclick="handleClick()" class="col-1 text-right bg-transparent border-0 text-light text-right px-2"><i class="las la-times fs-2"></i></button>
+                </div>
+            </div> -->
+            <div class="page-body mt-0">
+                <style>
+    .input-group-addon,
+    .input-group-btn {
+        width: auto;
+    }
+
+    .input-group-btn:last-child>.btn,
+    .input-group-btn:last-child>.btn-group {
+        height: 100%;
+    }
+
+    tbody td {
+        font-weight: unset !important;
+    }
+</style>
+<div class="bf-dnd-index mt-2">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-md-3 col-12">
+                <h2 class="mb-0 text-dark">Optout Customers</h2>
+                <ul class="breadcrumb"><li><a href="/dashboard-summary/index">Home</a></li> &nbsp; / &nbsp; 
+<li class="active">Optout Customers</li>
+</ul>            </div>
+            <div class="col-md-4 col-12  text-right ms-auto">
+                <a class="btn btn-success gap-1 ml-2" href="javascript:;" data-bs-toggle="modal" data-bs-target="#bulk-upload"><i class="las la-upload"></i> upload Optout's </a>                <a class="btn btn-primary gap-1 ml-2" href="/optout-customers/create"><i class="las la-plus-circle"></i>Add Customer </a>            </div>
+
+        </div>
+    </div>
+    <hr style="margin: 1rem 0;">
+    <div class="container-fluid">
+        <div class="navigation-btn-group">
+                            <a href="/profiles/customers" class="btn py-2 px-3 sub-nav-btn"><span class="fs-2">😎</span> Customers</a>
+                <a href="/profiles/index" class="btn py-2 px-3 sub-nav-btn"><span class="fs-2">👦🏻</span> Profiles</a>
+                                        <a href="/customer-journey/overview" class="btn py-2 px-3 sub-nav-btn"><span class="fs-2">🛣️</span> Customer
+                    Journey</a>
+                                        <a href="/optout-customers/index" class="btn py-2 px-3 sub-nav-btn btn-primary"><span class="fs-2">🚫</span>
+                    Opt-out Customers</a>
+                                </div>
+        <div class="card mt-3">
+            <!-- <div class="card-body"> -->
+            <div class="table-responsive mt-2" style="color: rgb(29, 39, 59);">
+                <div id="p0" data-pjax-container="" data-pjax-push-state data-pjax-timeout="1000">                <div id="w0" class="grid-view">
+<table class="table card-table table-vcenter text-nowrap datatable"><thead>
+<tr><th>#</th><th><a href="/optout-customers/index?sort=user_phone" data-sort="user_phone">User Phone</a></th><th><a href="/optout-customers/index?sort=type" data-sort="type">Type</a></th><th><a href="/optout-customers/index?sort=date_added" data-sort="date_added">Date Added</a></th></tr><tr id="w0-filters" class="filters"><td>&nbsp;</td><td><input type="text" id="dndsearch-user_phone" class="form-control " name="DndSearch[user_phone]"></td><td><select id="dndsearch-type" class="form-select " name="DndSearch[type]">
+<option value="">All</option>
+<option value="w">WhatsApp</option>
+<option value="s">SMS</option>
+<option value="l">Loyalty &amp; Referral</option>
+<option value="co">Coupon</option>
+<option value="c">Chatbot</option>
+<option value="rcs">RCS</option>
+</select></td><td><input type="text" id="dndsearch-date_added" class="form-control " name="DndSearch[date_added]"></td></tr>
+</thead>
+<tbody>
+<tr><td colspan="4"><div class="empty">No results found.</div></td></tr>
+</tbody></table>
+</div>                </div>            </div>
+            <!-- </div> -->
+        </div>
+    </div>
+</div>
+
+
+<!-- Bulk upload Modal -->
+<div id="bulk-upload" data-bs-backdrop="static" data-bs-keyboard="false" class="modal modal-blur fade" tabindex="-1"
+	role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header" style="display: flex; justify-content: flex-start;">
+				<h3 class="modal-title">
+					Bulk Upload Multiple Optout's				</h3>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+			</div>
+			<div class="modal-body">
+				<p>Use this section to upload a xlsx of multiple Optout Customers.
+					<br />
+					<a href="/resources/docs/phone_numbers.xlsx?v=1791920545">Click Here</a> to Download
+					the template, enter all details from 2nd row and re-upload the file below.
+				</p>
+				
+				<form id="w1" class="form-vertical" action="/optout-customers/bulk-upload" method="post" enctype="multipart/form-data" onsubmit="uploadingSpinner($(&quot;#submitBtn&quot;));">				<div class="">
+					<label class="form-label">Channel Type</label>
+					<select type="text" class="form-select tom-select mb-2" name="BfDnd[type]"
+						placeholder="Select Channel Type" required="true" id="denoId" value="">
+													<option class="tom-select-item" value="w">
+								WhatsApp							</option>
+													<option class="tom-select-item" value="s">
+								SMS							</option>
+													<option class="tom-select-item" value="c">
+								Chatbot							</option>
+													<option class="tom-select-item" value="l">
+								Loyalty & Referral							</option>
+													<option class="tom-select-item" value="co">
+								Coupon							</option>
+													<option class="tom-select-item" value="rcs">
+								RCS							</option>
+											</select>
+				</div>
+
+				<div class="form-group field-bfdnd-bulk_upload">
+<label class="form-label" for="bfdnd-bulk_upload">Bulk Upload</label>
+
+<input type="hidden" name="BfDnd[bulk_upload]" value=""><input type="file" id="bfdnd-bulk_upload" class="form-control file-loading" name="BfDnd[bulk_upload]" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required data-krajee-fileinput="fileinput_95256ad6">
+<!--[if lt IE 10]><br><div class="alert alert-warning"><strong>Note:</strong> Your browser does not support multiple file upload. Try an alternative or more recent browser to access these features.</div><script>document.getElementById("bfdnd-bulk_upload").className.replace(/\bfile-loading\b/,"");;</script><![endif]-->
+
+<div class="help-block"></div>
+
+</div>
+			</div>
+			<div class="modal-footer">
+				<button type="submit" id="submitBtn" class="btn btn-success gap-1 px-3 mt-2"><i class="las la-plus-circle"></i>Upload </button>				</form>				<!-- <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary" data-bs-dismiss="modal">Save changes</button> -->
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<script>
+
+	function uploadingSpinner(elm) {
+		$(elm).attr('disabled', 'disabled')
+			.html(
+				'<div class="loader" id="loader" style="filter: brightness(5);background-size:contain;width:20px !important;height:20px !important;margin: 0 auto !important;background-repeat:no-repeat;background-position: center;"></div>'
+			);
+	}
+</script>            </div>
+
+
+        </div>
+    </div>
+    <footer class="mt-auto">
+    <div class="page-wrapper-bottom">
+        <div class="page-footer text-center text-muted mb-3" style="background-color: var(--tblr-body-bg);">
+            <div><a href="https://billfree.in" class="text-muted" title="BillFree Labs" target="">BillFree Labs</a> Pvt Ltd, 2026 &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; <a href="mailto:contact@billfree.in?subject=Billfree-backend query" class="text-muted"><i class="las la-envelope"></i> contact@billfree.in</a> &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; <a class="text-muted" href="tel:+01204207081"><i class="las la-phone"></i> 0120-4207081</a></div>
+            <!-- <div style='float:right;'><a  href="https://bit.ly/BilFree">BillFree</a></div> -->
+        </div>
+    </div>
+</footer>    <script src="/resources/js/billfreeMerchant.js?v=1773472590"></script>
+<script src="/resources/js/billfree.js?v=1773472590"></script>
+<script src="/assets/d7c67dda/yii.js?v=1656451257"></script>
+<script src="/assets/d7c67dda/yii.gridView.js?v=1656451257"></script>
+<script src="/assets/301ac8e8/jquery.pjax.js?v=1691822120"></script>
+<script src="/assets/9447997a/js/bootstrap.js?v=1691821954"></script>
+<script src="/assets/5c82dce2/js/activeform.min.js?v=1715677042"></script>
+<script src="/assets/36646495/js/plugins/sortable.min.js?v=1656451282"></script>
+<script src="/assets/36646495/js/plugins/purify.min.js?v=1656451282"></script>
+<script src="/assets/36646495/js/fileinput.min.js?v=1656451282"></script>
+<script src="/assets/5fc1f4db/js/kv-widgets.min.js?v=1656451282"></script>
+<script src="/assets/d7c67dda/yii.validation.js?v=1656451257"></script>
+<script src="/assets/d7c67dda/yii.activeForm.js?v=1656451257"></script>
+<script src="/resources/dashboard/js/tabler.min.js?v=1738999962"></script>
+<script src="/resources/js/constants.js?v=1746774834"></script>
+<script src="/resources/js/currency-format.js?v=1790566300"></script>
+<script src="/resources/dashboard/libs/tom-select/dist/js/tom-select.base.min.js?v=1738999962"></script>
+<script src="/resources/dashboard/libs/vanillajs-datepicker/dist/js/datepicker.min.js?v=1738999962"></script>
+<script src="/resources/qfree-backend/js/script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/whatsapp-script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/rcs-script.js?v=1759128504"></script>
+<script src="/resources/dashboard/js/campaign-script.js?v=1759128504"></script>
+<script src="/resources/dashboard/js/chartInit.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/crypto-js.min.js?v=1738999962"></script>
+<script src="/resources/plugins/country-selector/intlTelInput.js?v=1746707187"></script>
+<script src="/resources/dashboard/js/redeem-rewards.js?v=1790566300"></script>
+<script>jQuery(function ($) {
+jQuery('#w0').yiiGridView({"filterUrl":"\/optout-customers\/index","filterSelector":"#w0-filters input, #w0-filters select","filterOnFocusOut":true});
+jQuery(document).pjax("#p0 a", {"push":true,"replace":false,"timeout":1000,"scrollTo":false,"container":"#p0"});
+jQuery(document).off("submit", "#p0 form[data-pjax]").on("submit", "#p0 form[data-pjax]", function (event) {jQuery.pjax.submit(event, {"push":true,"replace":false,"timeout":1000,"scrollTo":false,"container":"#p0"});});
+var $el=jQuery("#w1 .kv-hint-special");if($el.length){$el.each(function(){$(this).activeFieldHint()});}
+if (jQuery('#bfdnd-bulk_upload').data('fileinput')) { jQuery('#bfdnd-bulk_upload').fileinput('destroy'); }
+jQuery('#bfdnd-bulk_upload').fileinput(fileinput_95256ad6);
+
+jQuery('#w1').yiiActiveForm([{"id":"bfdnd-bulk_upload","name":"bulk_upload","container":".field-bfdnd-bulk_upload","input":"#bfdnd-bulk_upload","validate":function (attribute, value, messages, deferred, $form) {yii.validation.file(attribute, messages, {"message":"File upload failed.","skipOnEmpty":true,"mimeTypes":[],"wrongMimeType":"Only files with these MIME types are allowed: .","extensions":["csv","xls","xlsx"],"wrongExtension":"Only files with these extensions are allowed: csv, xls, xlsx.","maxFiles":1,"tooMany":"You can upload at most 1 file."});}}], []);
+});</script>
+    <!-- Modal HTML for Bootstrap 5 -->
+    <div id="accessDeniedModal" class="modal modal-blur fade" tabindex="-1" aria-labelledby="accessDeniedModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="accessDeniedModalLabel">Access Denied</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex flex-column align-items-center justify-content-center">
+                        <img class="w-25" src="/resources/images/access_denied.png" alt="img">
+                        <div class="mt-3">
+                            <p class="fs-3" id="">You do not have access to the requested feature.</p>
+                            <p class="fs-3" id="accessDeniedMessage">Please buy a subscription to use this feature.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-primary" href="/account/index?tab=subscriptions"
+                        style="margin-top: 14px;">Buy Subscription</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+<script>
+    function handleClick() {
+        $('#info').hide();
+    }
+</script>
+
+<!-- PWA JavaScript -->
+<script src="/js/pwa-app.js"></script>
+

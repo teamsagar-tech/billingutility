@@ -23,40 +23,51 @@
 
 ---
 
-## Phase 2: Database Schema & Core Messaging Engine
-- [ ] **Database Migration (`setupDb.js`)**:
-  - [ ] Add `billing_messages` table (invoice_id, recipient, gateway, message_id, status, error_reason).
-  - [ ] Add `global_configs` table for platform SuperAdmin settings.
-  - [ ] Add `plan_tier`, `message_quota`, and `messages_used` to `tenants` table.
-  - [ ] Support `role: 'superadmin'` in `users` table.
-- [ ] **Dual WABA Gateway Service (`services/wabaService.js`)**:
-  - [ ] Implement `waba_custom` gateway integration (`https://waba.mpocket.in/messages`).
-  - [ ] Implement `waba_graph` gateway integration (`https://graph.facebook.com/v20.0/{phone_id}/messages`).
-  - [ ] Implement quota check before dispatching.
-  - [ ] Implement SMS fallback connector.
-- [ ] **POS Ingestion Controller (`invoiceController.js`)**:
-  - [ ] Dynamic public receipt URL: `https://bill.retailnode.in/t/{shortId}`.
-  - [ ] MySQL transactions for atomic invoice save + CRM upsert + loyalty calculation.
-  - [ ] Audit logging in `billing_messages`.
-- [ ] **WhatsApp Webhook Receiver (`controllers/webhookController.js`)**:
-  - [ ] Inbound status updates: `sent` -> `delivered` -> `read` -> `failed`.
+## Phase 2: Database Schema & Core Messaging Engine (COMPLETED)
+- [x] **Database Schema Extensions**:
+  - [x] `action_logs` table for tracking Google review clicks, Instagram/YouTube actions, and customer logins.
+  - [x] `google_place_id`, `youtube_url`, `store_address`, `gstin`, `store_phone`, `store_email` in `tenants` table.
+  - [x] Added `role ENUM('superadmin', 'merchant_admin', 'cashier')` and nullable `tenant_id` to `users` table.
+  - [x] Seeded administrative accounts for SuperAdmin and Store Admin.
+- [x] **Dual WABA Gateway Service & Ingestion**:
+  - [x] Implemented `waba_custom` gateway integration (`https://waba.mpocket.in/messages`).
+  - [x] Implemented `meta_cloud` WhatsApp Graph API integration.
+  - [x] 72-hour session security lock for invoice viewing.
+  - [x] Action tracking API: `POST /api/v1/invoices/:slug/track` and `GET /api/v1/invoices/:slug/track-status`.
+- [x] **Smart Review Resolution & First-Visit Modal**:
+  - [x] Direct Place ID dialog resolution (`https://search.google.com/local/writereview?placeid={id}`).
+  - [x] First-visit customer engagement modal with Google review, Instagram, and YouTube buttons.
+  - [x] Zero hardcoding across frontend and backend.
 
 ---
 
-## Phase 3: Merchant User Dashboard & SaaS SuperAdmin Panel
-- [ ] **Merchant Dashboard (`/dashboard`) Updates**:
-  - [ ] WhatsApp message delivery audit log table with live filter (`all`, `delivered`, `failed`).
-  - [ ] Store quota banner showing messages used / remaining credits.
-  - [ ] WABA credentials and gateway selector (`waba.mpocket.in` vs Meta Graph API).
-- [ ] **SaaS SuperAdmin Panel (`/saas-admin`) Creation**:
-  - [ ] Store overview table: Store Name, Plan, Quota, Used, Status (Active/Suspended), Actions.
-  - [ ] Global WABA Gateway configuration interface.
-  - [ ] Platform-wide analytics cards (total invoices, delivery %, active stores).
-  - [ ] Quota top-up modal.
+## Phase 3: Dual Admin Panels (Merchant Dashboard & SaaS SuperAdmin) (COMPLETED)
+- [x] **Merchant Admin Dashboard (`/dashboard`)**:
+  - [x] 100% full-width layout without artificial containers.
+  - [x] Real-time Billing Stream with invoice #, date, customer phone, total (₹), WhatsApp status badge, and Google Review conversion badge.
+  - [x] Store Branding & Google Reviews Tab (Name, Address, GSTIN, Place ID, Review URL, Instagram, YouTube, Facebook, Meta Pixel).
+  - [x] WhatsApp Gateway Tab (WABA provider selector, access token, phone number ID, template name).
+  - [x] Customer CRM & Loyalty Engine Tab (Customer lifetime spend table, points balance, earning & redemption rules).
+  - [x] POS & ERP Interceptor Integration Tab (API key copy, Print Interceptor Agent download, sample cURL payload).
+- [x] **SaaS SuperAdmin Platform Panel (`/saas-admin`)**:
+  - [x] Protected with `superadmin` role verification guard.
+  - [x] Platform telemetry KPI cards (Active stores, Invoices processed, WhatsApp dispatched, Review clicks).
+  - [x] Tenants Directory with quota usage meter, active/suspended toggle, and Top-Up modal.
+  - [x] Onboard New Retail Store modal (10-second store provisioning with auto-generated `sk_live_...` API token).
+  - [x] Platform Live Action Audit stream from `action_logs`.
+  - [x] Global Gateway configuration editor.
+- [x] **Routing & Authentication**:
+  - [x] Registered `/dashboard` and `/saas-admin` in `src/App.jsx`.
+  - [x] Connected to `/login` (`UnifiedLogin.jsx`) for automatic role-based redirection.
 
 ---
 
-## Phase 4: Production Deployment & Verification
-- [ ] Build verification for frontend and backend.
-- [ ] Nginx configuration for `bill.retailnode.in` on `95.135.166.109`.
-- [ ] End-to-end integration test: Dispatch mock invoice from RetailNode ERP format to customer phone and verify digital receipt rendering.
+## Phase 4: Production Deployment & Verification (COMPLETED)
+- [x] Local Vite build check (`npm run build` in 567ms).
+- [x] Rsync `dist/` to `/var/www/billintegration/dist` on `95.135.166.109`.
+- [x] Rsync `backend-api/src/` to `/var/www/billintegration/backend-api/src/`.
+- [x] Restarted PM2 `bill-backend` (service ID 6).
+- [x] End-to-end live testing:
+  - SuperAdmin login & analytics verified.
+  - Merchant login & invoice streaming verified.
+  - HTTP 200 confirmed on `/login`, `/dashboard`, and `/saas-admin`.

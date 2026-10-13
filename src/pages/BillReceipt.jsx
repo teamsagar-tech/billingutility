@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import html2pdf from 'html2pdf.js';
 import { 
   Download, 
   Share2, 
@@ -11,32 +12,132 @@ import {
   ShieldCheck, 
   ShoppingBag, 
   MessageCircle, 
-  ChevronRight
+  ChevronRight,
+  Lock,
+  X,
+  Sparkles,
+  Heart,
+  ThumbsUp
 } from 'lucide-react';
+
+// Resolves direct Google Review Write Dialog URL from Place ID, review link, or Google share link
+function resolveGoogleReviewUrl(reviewUrl, placeId, storeName, storeAddress) {
+  // 1. If explicit Google Place ID is provided, use Google's official direct write-review URL
+  if (placeId && placeId.trim()) {
+    return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId.trim())}`;
+  }
+
+  if (reviewUrl && reviewUrl.trim()) {
+    let url = reviewUrl.trim();
+
+    // If user entered a raw Google Place ID (typically starts with ChIJ and has no slashes)
+    if (url.startsWith('ChIJ') && !url.includes('/')) {
+      return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(url)}`;
+    }
+
+    // If it's a Google Business Profile short link (g.page), ensure /review is attached to open write dialog directly
+    if (url.includes('g.page/') && !url.endsWith('/review')) {
+      return url.endsWith('/') ? `${url}review` : `${url}/review`;
+    }
+
+    // If it's a Google search URL with #lrd, ensure ,3 is attached to trigger the write review popup directly
+    if (url.includes('#lrd=') && !url.endsWith(',3')) {
+      const parts = url.split('#lrd=');
+      if (parts[1] && !parts[1].includes(',')) {
+        return `${parts[0]}#lrd=${parts[1]},3`;
+      }
+    }
+
+    // Standard URL (including share.google, maps.app.goo.gl, etc.)
+    return url;
+  }
+
+  // Fallback: Dynamic Google search with store name and address
+  if (storeName && storeName !== 'Store Receipt') {
+    const q = (storeName + (storeAddress ? ' ' + storeAddress : '')).trim();
+    return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+  }
+
+  return '';
+}
 
 export default function BillReceipt() {
   const { slug } = useParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [sharingPdf, setSharingPdf] = useState(false);
+
+  // 72-Hour WhatsApp OTP & Security Lock State
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockInfo, setLockInfo] = useState(null);
+  const [inputPhone, setInputPhone] = useState('');
+  const [inputOtp, setInputOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [lockError, setLockError] = useState('');
+  const [countdown, setCountdown] = useState(0);
   
   // Rating & Feedback State
   const [starRating, setStarRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [feedbackSent, setFeedbackSent] = useState(false);
+
+  // First-Visit Customer Engagement Modal & Action Tracking State
+  const [showEngagementModal, setShowEngagementModal] = useState(false);
+  const [engagementActionDone, setEngagementActionDone] = useState({
+    googleReview: false,
+    instagram: false,
+    youtube: false
+  });
   
   // Slider states
-  const [socialSlide, setSocialSlide] = useState(0); // 0 = Facebook, 1 = Instagram
+  const [socialSlide, setSocialSlide] = useState(0);
   const [offerSlide, setOfferSlide] = useState(0);
+
+  // OTP Countdown timer
+  useEffect(() => {
+    let timer;
+    if (countdown > 0) {
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [countdown]);
 
   useEffect(() => {
     async function fetchBill() {
       try {
         setLoading(true);
-        const res = await fetch(`/api/v1/invoices/${slug}`);
+        setError('');
+        const savedToken = localStorage.getItem(`inv_auth_${slug}`) || '';
+        const savedPhone = localStorage.getItem('customerPhone') || '';
+        const savedAuthTime = localStorage.getItem('customer_auth_time') || '';
+        const savedSession = localStorage.getItem('customer_session_token') || '';
+
+        const headers = {};
+        if (savedToken) headers['x-invoice-token'] = savedToken;
+        if (savedPhone) headers['x-customer-phone'] = savedPhone;
+        if (savedSession) headers['x-customer-session'] = savedSession;
+        if (savedAuthTime) headers['x-customer-authtime'] = savedAuthTime;
+
+        const res = await fetch(`/api/v1/invoices/${slug}`, { headers });
         const result = await res.json();
         if (result.success) {
-          setData(result.data);
+          if (result.requiresAuth) {
+            setIsLocked(true);
+            setLockInfo({
+              maskedPhone: result.maskedPhone || '••••••••••',
+              storeName: result.storeName || 'Store Receipt',
+              logoUrl: result.logoUrl || null,
+              ageHours: result.ageHours || 72
+            });
+            document.title = `Verify Customer Mobile - ${result.storeName || 'Digital Invoice'}`;
+          } else {
+            setData(result.data);
+            setIsLocked(false);
+          }
         } else {
           setError(result.error || 'Invoice not found');
         }
@@ -53,7 +154,7 @@ export default function BillReceipt() {
   useEffect(() => {
     if (data) {
       const invNo = data.receiptData?.InvoiceNumber || data.receiptData?.invoiceNumber || slug;
-      const firm = data.tenantProfile?.store_name || data.receiptData?.StoreName || 'Deepak Sarees';
+      const firm = data.tenantProfile?.store_name || data.receiptData?.StoreName || data.receiptData?.storeName || 'Store Receipt';
       document.title = `${invNo} - ${firm}`;
 
       // Enforce strict no-index / no-archive for search crawlers
@@ -72,6 +173,53 @@ export default function BillReceipt() {
         document.head.appendChild(metaGooglebot);
       }
       metaGooglebot.setAttribute('content', 'noindex, nofollow, noarchive, nosnippet');
+
+      // =========================================================
+      // DUAL META PIXEL ENGINE (Platform Master + Store Pixel)
+      // Fully compliant with India DPDP Act 2023 & Meta Terms:
+      // Anonymized PageView & Purchase tracking without raw PII
+      // =========================================================
+      try {
+        if (!window.fbq) {
+          (function(f,b,e,v,n,t,s)
+          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t,s)})(window, document,'script',
+          'https://connect.facebook.net/en_US/fbevents.js');
+        }
+
+        const platformPixel = data.platformPixelId || '101582739485721';
+        const storePixelRaw = data.tenantProfile?.fb_pixel_id || '';
+        const storePixels = storePixelRaw
+          ? storePixelRaw.split(',').map((p) => p.trim()).filter(Boolean)
+          : [];
+
+        const allPixels = Array.from(new Set([platformPixel, ...storePixels]));
+
+        allPixels.forEach((pixelId) => {
+          if (pixelId && window.fbq) {
+            window.fbq('init', pixelId);
+          }
+        });
+
+        if (window.fbq) {
+          window.fbq('track', 'PageView');
+
+          const total = parseFloat(data.receiptData?.BillTotal || data.receiptData?.billAmount || 0);
+          if (total > 0) {
+            window.fbq('track', 'Purchase', {
+              value: total,
+              currency: 'INR',
+              content_name: firm
+            });
+          }
+        }
+      } catch (pxErr) {
+        console.warn('Pixel initialization error:', pxErr);
+      }
     }
   }, [data, slug]);
 
@@ -104,20 +252,164 @@ export default function BillReceipt() {
     return () => clearInterval(timer);
   }, [offerSlides.length]);
 
-  const handlePrint = () => {
-    window.print();
+  // Download ONLY the invoice (#printable-bill) as PDF without browser print dialog
+  const handleDownloadPdf = async () => {
+    const element = document.getElementById('printable-bill');
+    if (!element) return;
+
+    setDownloadingPdf(true);
+    try {
+      const invoiceNo = receipt.InvoiceNumber || receipt.invoiceNumber || slug;
+      const opt = {
+        margin: [8, 8, 8, 8],
+        filename: `Invoice_${invoiceNo}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true, 
+          letterRendering: true, 
+          backgroundColor: '#ffffff',
+          scrollY: 0
+        },
+        jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error('PDF download error:', err);
+      alert('Could not download invoice PDF. Please try again.');
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: `Digital Receipt - ${data?.receiptData?.StoreName || data?.tenantProfile?.store_name || 'RetailNode'}`,
-        url: window.location.href
-      }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Receipt link copied to clipboard!');
+  // Share Bill: Share PDF file directly to mobile communication apps (WhatsApp, Telegram, etc.) with text and RetailNode branding
+  const handleShareBill = async () => {
+    const element = document.getElementById('printable-bill');
+    if (!element) return;
+
+    setSharingPdf(true);
+    const invoiceNo = receipt.InvoiceNumber || receipt.invoiceNumber || slug;
+    const firm = tenant.store_name || receipt.StoreName || receipt.storeName || 'Store Receipt';
+    const total = parseFloat(billTotal).toFixed(2);
+    const billUrl = window.location.href;
+
+    // Branded text with RetailNode branding at the very end
+    const shareMessage = `*Invoice #${invoiceNo}*\nStore: ${firm}\nTotal: ₹${total}\n\nView Online Bill:\n${billUrl}\n\nPowered by RetailNode\nhttps://retailnode.in`;
+
+    const opt = {
+      margin: [8, 8, 8, 8],
+      filename: `Invoice_${invoiceNo}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true, 
+        letterRendering: true, 
+        backgroundColor: '#ffffff',
+        scrollY: 0
+      },
+      jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
+    };
+
+    try {
+      // Generate standalone PDF blob for the invoice
+      const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
+      const pdfFile = new File([pdfBlob], `Invoice_${invoiceNo}.pdf`, { type: 'application/pdf' });
+
+      // If mobile browser supports sharing files (WhatsApp, Telegram, Gmail, Messages, etc.)
+      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        await navigator.share({
+          files: [pdfFile],
+          title: `Invoice #${invoiceNo} - ${firm}`,
+          text: shareMessage
+        });
+      } else if (navigator.share) {
+        // Fallback for browsers supporting text/URL sharing: share message & download PDF
+        await navigator.share({
+          title: `Invoice #${invoiceNo} - ${firm}`,
+          text: shareMessage,
+          url: billUrl
+        });
+        await html2pdf().set(opt).from(element).save();
+      } else {
+        // Desktop fallback: download PDF & copy branded message
+        await html2pdf().set(opt).from(element).save();
+        try {
+          await navigator.clipboard.writeText(shareMessage);
+          alert('Invoice PDF downloaded! Bill details with RetailNode branding copied to clipboard.');
+        } catch {
+          alert('Invoice PDF downloaded!');
+        }
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.error('Share bill error:', err);
+        try {
+          await html2pdf().set(opt).from(element).save();
+        } catch (saveErr) {}
+      }
+    } finally {
+      setSharingPdf(false);
     }
+  };
+
+  // Centralized Engagement Tracking & Safe URL Dispatcher (Zero Hardcoding)
+  const handleTrackAndOpen = (actionType, url, source = 'popup') => {
+    if (!url || url === '#') return;
+
+    // 1. Immediately update UI state and local storage
+    if (actionType === 'google_review_click') {
+      setEngagementActionDone(prev => ({ ...prev, googleReview: true }));
+      try { localStorage.setItem(`rn_reviewed_${slug}`, 'true'); } catch (e) {}
+    } else if (actionType === 'instagram_click') {
+      setEngagementActionDone(prev => ({ ...prev, instagram: true }));
+      try { localStorage.setItem(`rn_instagram_${slug}`, 'true'); } catch (e) {}
+    } else if (actionType === 'youtube_click') {
+      setEngagementActionDone(prev => ({ ...prev, youtube: true }));
+      try { localStorage.setItem(`rn_youtube_${slug}`, 'true'); } catch (e) {}
+    }
+
+    // 2. Dispatch Meta Pixel tracking event
+    try {
+      if (window.fbq) {
+        const eventMap = {
+          'google_review_click': 'GoogleReviewClick',
+          'instagram_click': 'InstagramFollowClick',
+          'youtube_click': 'YouTubeSubscribeClick',
+          'facebook_click': 'FacebookFollowClick'
+        };
+        const evtName = eventMap[actionType] || 'EngagementClick';
+        const stName = data?.tenantProfile?.store_name || data?.receiptData?.StoreName || 'Store';
+        window.fbq('trackCustom', evtName, {
+          invoice: slug,
+          store: stName,
+          source
+        });
+      }
+    } catch (e) {}
+
+    // 3. Dispatch backend tracking call (Logged in MySQL action_logs & Redis)
+    try {
+      fetch(`/api/v1/invoices/${slug}/track`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: actionType,
+          source,
+          metadata: { targetUrl: url }
+        })
+      }).catch(() => {});
+    } catch (e) {}
+
+    // 4. Open destination in new tab
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const dismissEngagementModal = () => {
+    setShowEngagementModal(false);
+    try {
+      localStorage.setItem(`rn_engagement_dismissed_${slug}`, 'true');
+    } catch (e) {}
   };
 
   const handleRatingSubmit = async (rating) => {
@@ -137,14 +429,131 @@ export default function BillReceipt() {
       console.error('Feedback submission error:', err);
     }
 
-    // If rating >= 4, automatically open Google Review write dialog
-    const targetUrl = data?.tenantProfile?.google_review_url || 
-      'https://www.google.com/search?q=DEEPAK+SAREES+old+panvel#lrd=0x3be7e90524b2180d:0x15c5576269cfa09b,3';
+    // Direct Google Review Write Dialog URL (Supports Place ID, Google share link, or review URL)
+    const firmName = data?.tenantProfile?.store_name || data?.receiptData?.StoreName || data?.receiptData?.storeName || '';
+    const firmAddress = data?.tenantProfile?.store_address || data?.receiptData?.StoreAddress || '';
+    const targetUrl = resolveGoogleReviewUrl(
+      data?.tenantProfile?.google_review_url,
+      data?.tenantProfile?.google_place_id,
+      firmName,
+      firmAddress
+    );
     
     if (rating >= 4 && targetUrl && targetUrl !== '#') {
       setTimeout(() => {
-        window.open(targetUrl, '_blank');
-      }, 300);
+        handleTrackAndOpen('google_review_click', targetUrl, 'star_rating_prompt');
+      }, 350);
+    }
+  };
+
+  // Send OTP to customer's WhatsApp
+  const handleSendOtp = async (e) => {
+    if (e) e.preventDefault();
+    const cleanDigits = inputPhone.replace(/\D/g, '');
+    if (cleanDigits.length < 10) {
+      setLockError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    setSendingOtp(true);
+    setLockError('');
+    try {
+      const res = await fetch(`/api/v1/invoices/${slug}/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanDigits })
+      });
+      const result = await res.json();
+      if (result.success) {
+        setOtpSent(true);
+        setCountdown(45);
+        if (result.devOtp) {
+          setInputOtp(result.devOtp);
+        }
+      } else {
+        setLockError(result.error || 'Failed to send WhatsApp OTP. Please try again.');
+      }
+    } catch (err) {
+      setLockError('Network error while requesting WhatsApp OTP.');
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  // Verify OTP & Activate 72-Hour Session
+  const handleVerifyOtp = async (e) => {
+    if (e) e.preventDefault();
+    const cleanDigits = inputPhone.replace(/\D/g, '');
+    const cleanOtp = inputOtp.trim();
+    if (!cleanOtp || cleanOtp.length < 4) {
+      setLockError('Please enter the 6-digit OTP received on WhatsApp.');
+      return;
+    }
+    setVerifyingOtp(true);
+    setLockError('');
+    try {
+      const res = await fetch(`/api/v1/invoices/${slug}/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanDigits, otp: cleanOtp })
+      });
+      const result = await res.json();
+      if (result.success) {
+        // Activate 72-Hour Seamless Mobile Session in browser
+        localStorage.setItem('customerPhone', cleanDigits);
+        localStorage.setItem('customer_auth_time', Date.now().toString());
+        if (result.customerSessionToken) {
+          localStorage.setItem('customer_session_token', result.customerSessionToken);
+        }
+        if (result.token) {
+          localStorage.setItem(`inv_auth_${slug}`, result.token);
+        }
+        setData(result.data);
+        setIsLocked(false);
+      } else {
+        setLockError(result.error || 'Invalid OTP code. Please check WhatsApp and try again.');
+      }
+    } catch (err) {
+      setLockError('Network error while verifying WhatsApp OTP.');
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
+  // Direct phone unlock fallback
+  const handleDirectUnlock = async (e) => {
+    if (e) e.preventDefault();
+    const cleanDigits = inputPhone.replace(/\D/g, '');
+    if (cleanDigits.length < 10) {
+      setLockError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    setVerifyingOtp(true);
+    setLockError('');
+    try {
+      const res = await fetch(`/api/v1/invoices/${slug}/unlock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanDigits })
+      });
+      const result = await res.json();
+      if (result.success) {
+        localStorage.setItem('customerPhone', cleanDigits);
+        localStorage.setItem('customer_auth_time', Date.now().toString());
+        if (result.customerSessionToken) {
+          localStorage.setItem('customer_session_token', result.customerSessionToken);
+        }
+        if (result.token) {
+          localStorage.setItem(`inv_auth_${slug}`, result.token);
+        }
+        setData(result.data);
+        setIsLocked(false);
+      } else {
+        setLockError(result.error || 'Access denied: The entered mobile number does not match.');
+      }
+    } catch (err) {
+      setLockError('Network error while verifying mobile number.');
+    } finally {
+      setVerifyingOtp(false);
     }
   };
 
@@ -156,6 +565,273 @@ export default function BillReceipt() {
           <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: '500' }}>Loading your verified bill...</p>
         </div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  if (isLocked) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#f1f5f9', padding: '24px 16px 48px', fontFamily: 'Inter, system-ui, sans-serif' }}>
+        <div style={{ maxWidth: '420px', margin: '0 auto' }}>
+          
+          {/* Store Header */}
+          <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', padding: '0 4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {lockInfo?.logoUrl ? (
+                <img 
+                  src={lockInfo.logoUrl} 
+                  alt={lockInfo.storeName} 
+                  style={{ height: '40px', width: '40px', borderRadius: '50%', objectFit: 'contain', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }} 
+                />
+              ) : (
+                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#0f766e', color: '#ffffff', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px' }}>
+                  {(lockInfo?.storeName || 'R').charAt(0)}
+                </div>
+              )}
+              <div>
+                <h1 style={{ fontSize: '1.05rem', fontWeight: '800', color: '#0f172a', margin: 0, lineHeight: 1.2 }}>
+                  {lockInfo?.storeName || 'Store Receipt'}
+                </h1>
+                <p style={{ fontSize: '11px', color: '#64748b', margin: '2px 0 0', fontWeight: '500' }}>
+                  Digital Invoice #{slug.toUpperCase()}
+                </p>
+              </div>
+            </div>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#0f766e', backgroundColor: '#ccfbf1', border: '1px solid #99f6e4', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>
+              <ShieldCheck style={{ width: '13px', height: '13px' }} /> Verified
+            </span>
+          </header>
+
+          {/* WhatsApp OTP Verification Card */}
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '20px', boxShadow: '0 6px 20px rgba(0,0,0,0.06)', border: '1px solid #e2e8f0', padding: '28px 24px', textAlign: 'center' }}>
+            
+            {/* WhatsApp Verification Icon */}
+            <div style={{ width: '58px', height: '58px', borderRadius: '50%', backgroundColor: '#ecfdf5', color: '#059669', border: '2px solid #a7f3d0', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 4px 14px rgba(5, 150, 105, 0.15)' }}>
+              <MessageCircle style={{ width: '30px', height: '30px' }} />
+            </div>
+
+            <div style={{ display: 'inline-block', backgroundColor: '#fef3c7', color: '#92400e', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '12px', marginBottom: '12px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              72-Hour Security Lock
+            </div>
+
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '900', color: '#0f172a', margin: '0 0 8px' }}>
+              {otpSent ? 'Enter WhatsApp OTP' : 'Verify Mobile Number'}
+            </h2>
+
+            <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 20px', lineHeight: 1.5 }}>
+              {otpSent 
+                ? 'We sent a 6-digit verification code to your WhatsApp. Enter it below to unlock your bill.'
+                : 'This invoice was issued more than 72 hours ago. Verify your mobile number to view and download your bill.'}
+            </p>
+
+            {/* Masked recipient hint */}
+            <div style={{ backgroundColor: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '12px', padding: '10px 14px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '12px', color: '#475569' }}>
+              <span>Registered to:</span>
+              <strong style={{ fontFamily: 'monospace', fontSize: '13px', color: '#0f172a', letterSpacing: '0.05em' }}>
+                +91 {lockInfo?.maskedPhone || '••••••••••'}
+              </strong>
+            </div>
+
+            {/* Stage 1: Request WhatsApp OTP */}
+            {!otpSent ? (
+              <form onSubmit={handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                    Customer Mobile Number
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', border: lockError ? '2px solid #ef4444' : '1px solid #cbd5e1', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#ffffff', transition: 'border-color 0.2s' }}>
+                    <span style={{ padding: '0 12px', backgroundColor: '#f8fafc', color: '#475569', fontSize: '13px', fontWeight: '700', borderRight: '1px solid #cbd5e1', height: '44px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      🇮🇳 +91
+                    </span>
+                    <input
+                      type="tel"
+                      autoFocus
+                      maxLength={10}
+                      value={inputPhone}
+                      onChange={(e) => {
+                        setInputPhone(e.target.value.replace(/\D/g, ''));
+                        setLockError('');
+                      }}
+                      placeholder="10-digit mobile number"
+                      style={{
+                        flex: 1,
+                        height: '44px',
+                        border: 'none',
+                        outline: 'none',
+                        padding: '0 12px',
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        letterSpacing: '0.05em',
+                        color: '#0f172a'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {lockError && (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', color: '#b91c1c', backgroundColor: '#fef2f2', padding: '10px 12px', borderRadius: '10px', fontSize: '12px', lineHeight: 1.4 }}>
+                    <AlertCircle style={{ width: '16px', height: '16px', flexShrink: 0, marginTop: '1px' }} />
+                    <span>{lockError}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={sendingOtp || inputPhone.length < 10}
+                  style={{
+                    width: '100%',
+                    height: '46px',
+                    backgroundColor: inputPhone.length >= 10 ? '#25D366' : '#94a3b8',
+                    color: '#ffffff',
+                    fontWeight: '800',
+                    fontSize: '14px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    cursor: inputPhone.length >= 10 && !sendingOtp ? 'pointer' : 'not-allowed',
+                    boxShadow: inputPhone.length >= 10 ? '0 4px 12px rgba(37, 211, 102, 0.35)' : 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    marginTop: '4px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <MessageCircle style={{ width: '18px', height: '18px' }} />
+                  <span>{sendingOtp ? 'Sending OTP...' : 'Send OTP on WhatsApp'}</span>
+                </button>
+              </form>
+            ) : (
+              /* Stage 2: Enter & Verify WhatsApp OTP */
+              <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left' }}>
+                <div style={{ backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '10px', padding: '10px 12px', fontSize: '12px', color: '#065f46', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CheckCircle2 style={{ width: '16px', height: '16px', color: '#059669', flexShrink: 0 }} />
+                  <span>OTP dispatched to WhatsApp (+91 •••••• {inputPhone.slice(-4)})</span>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>
+                      6-Digit WhatsApp OTP
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setOtpSent(false)}
+                      style={{ background: 'none', border: 'none', color: '#0f766e', fontSize: '11px', fontWeight: '700', cursor: 'pointer', padding: 0 }}
+                    >
+                      Change Number
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoFocus
+                    maxLength={6}
+                    value={inputOtp}
+                    onChange={(e) => {
+                      setInputOtp(e.target.value.replace(/\D/g, ''));
+                      setLockError('');
+                    }}
+                    placeholder="• • • • • •"
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      border: lockError ? '2px solid #ef4444' : '2px solid #0f766e',
+                      borderRadius: '12px',
+                      outline: 'none',
+                      textAlign: 'center',
+                      fontSize: '22px',
+                      fontWeight: '800',
+                      letterSpacing: '0.3em',
+                      color: '#0f172a',
+                      backgroundColor: '#ffffff',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                {lockError && (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', color: '#b91c1c', backgroundColor: '#fef2f2', padding: '10px 12px', borderRadius: '10px', fontSize: '12px', lineHeight: 1.4 }}>
+                    <AlertCircle style={{ width: '16px', height: '16px', flexShrink: 0, marginTop: '1px' }} />
+                    <span>{lockError}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={verifyingOtp || inputOtp.length < 4}
+                  style={{
+                    width: '100%',
+                    height: '46px',
+                    backgroundColor: inputOtp.length >= 4 ? '#0f766e' : '#94a3b8',
+                    color: '#ffffff',
+                    fontWeight: '800',
+                    fontSize: '14px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    cursor: inputOtp.length >= 4 && !verifyingOtp ? 'pointer' : 'not-allowed',
+                    boxShadow: inputOtp.length >= 4 ? '0 4px 12px rgba(15, 118, 110, 0.3)' : 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    marginTop: '4px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <Lock style={{ width: '16px', height: '16px' }} />
+                  <span>{verifyingOtp ? 'Verifying...' : 'Unlock Bill (72-Hour Session)'}</span>
+                </button>
+
+                <div style={{ textAlign: 'center', marginTop: '6px' }}>
+                  {countdown > 0 ? (
+                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                      Resend OTP via WhatsApp in <strong style={{ color: '#475569' }}>{countdown}s</strong>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSendOtp}
+                      style={{ background: 'none', border: 'none', color: '#25D366', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <MessageCircle style={{ width: '14px', height: '14px' }} /> Resend OTP on WhatsApp
+                    </button>
+                  )}
+                </div>
+              </form>
+            )}
+
+            <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #f1f5f9', fontSize: '11px', color: '#94a3b8', textAlign: 'center' }}>
+              🔒 Verified login unlocks all your invoices for 72 hours
+            </div>
+          </div>
+
+          {/* Footer */}
+          <footer style={{ textAlign: 'center', paddingBottom: '32px', paddingTop: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>
+              <span>Powered by</span>
+              <a 
+                href="https://retailnode.in" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: '700', color: '#0f172a', textDecoration: 'none' }}
+              >
+                <img 
+                  src="https://retailnode.in/logo.svg" 
+                  alt="RetailNode Logo" 
+                  style={{ width: '18px', height: '18px', display: 'inline-block' }} 
+                />
+                <span>RetailNode</span>
+              </a>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', fontSize: '11px', color: '#94a3b8' }}>
+              <Link to="/privacy-policy" style={{ color: '#64748b', textDecoration: 'underline' }}>Privacy Policy</Link>
+              <span>&bull;</span>
+              <Link to="/terms-and-conditions" style={{ color: '#64748b', textDecoration: 'underline' }}>Terms &amp; Conditions</Link>
+            </div>
+          </footer>
+
+        </div>
       </div>
     );
   }
@@ -184,21 +860,79 @@ export default function BillReceipt() {
   const items = receipt.Items || receipt.items || receipt.LineItems || [];
   const billTotal = receipt.BillTotal || receipt.billAmount || receipt.totalAmount || '0.00';
   const taxAmount = receipt.TaxAmount || receipt.taxAmount || '0.00';
-  const storeName = tenant.store_name || receipt.StoreName || 'Deepak Sarees';
-  const storeAddress = receipt.StoreAddress || 'X4P5+FG Mumbai, Maharashtra';
+  const storeName = tenant.store_name || receipt.StoreName || receipt.storeName || 'Store Receipt';
+  const storeAddress = tenant.store_address || receipt.StoreAddress || receipt.storeAddress || '';
   const pointsEarned = data.loyalty?.earned || Math.floor(parseFloat(billTotal) / 100);
   const pointsBalance = data.loyalty?.balance || 0;
   
   // Website URL
   const websiteUrl = tenant.website_url || receipt.StoreWebsite || receipt.website;
   
-  // Direct Google Review Write Dialog URL
-  const googleReviewUrl = tenant.google_review_url || 
-    'https://www.google.com/search?q=DEEPAK+SAREES+old+panvel#lrd=0x3be7e90524b2180d:0x15c5576269cfa09b,3';
+  // Direct Google Review Write Dialog URL (Supports Place ID, Google share link, or review URL)
+  const googleReviewUrl = resolveGoogleReviewUrl(
+    tenant.google_review_url,
+    tenant.google_place_id,
+    storeName,
+    storeAddress
+  );
+
+  // Social & Engagement Channels (Dynamic)
+  const instagramUrl = tenant.instagram_url || '';
+  const youtubeUrl = tenant.youtube_url || '';
+  const facebookUrl = tenant.facebook_url || '';
+
+  // Active Social Media Channels
+  const activeSocials = [];
+  if (facebookUrl) {
+    activeSocials.push({
+      type: 'facebook',
+      name: 'Facebook',
+      url: facebookUrl,
+      color: '#1877F2',
+      renderIcon: () => (
+        <svg viewBox="0 0 48 48" style={{ width: '50px', height: '50px', flexShrink: 0 }}>
+          <circle cx="24" cy="24" r="24" fill="#1877F2"/>
+          <path fill="#FFFFFF" d="M26.67 38V24.5h4.53l.68-5.26h-5.21v-3.36c0-1.52.42-2.56 2.61-2.56h2.79V8.61c-.48-.06-2.14-.21-4.07-.21-4.03 0-6.79 2.46-6.79 6.98v3.86h-4.54v5.26h4.54V38h5.46z"/>
+        </svg>
+      )
+    });
+  }
+  if (instagramUrl) {
+    activeSocials.push({
+      type: 'instagram',
+      name: 'Instagram',
+      url: instagramUrl,
+      color: '#ec4899',
+      renderIcon: () => (
+        <div style={{ width: '50px', height: '50px', borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+          <svg viewBox="0 0 24 24" style={{ width: '28px', height: '28px', color: '#ffffff', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+          </svg>
+        </div>
+      )
+    });
+  }
+  if (youtubeUrl) {
+    activeSocials.push({
+      type: 'youtube',
+      name: 'YouTube',
+      url: youtubeUrl,
+      color: '#FF0000',
+      renderIcon: () => (
+        <div style={{ width: '50px', height: '50px', borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF0000', boxShadow: '0 2px 8px rgba(255,0,0,0.2)' }}>
+          <svg viewBox="0 0 24 24" style={{ width: '28px', height: '28px', fill: '#ffffff' }}>
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+          </svg>
+        </div>
+      )
+    });
+  }
 
   // WhatsApp store contact number (clean format for wa.me)
-  const rawPhone = tenant.phone_number_id || receipt.StorePhone || '917977163140';
-  const whatsappNumber = rawPhone.replace(/\D/g, '');
+  const rawPhone = tenant.store_phone || tenant.phone_number_id || receipt.StorePhone || receipt.storePhone || '';
+  const whatsappNumber = rawPhone ? rawPhone.replace(/\D/g, '') : '';
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f1f5f9', padding: '16px 12px 48px', fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
@@ -249,18 +983,17 @@ export default function BillReceipt() {
 
           <div style={{ padding: '8px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
             <div style={{ flex: 1 }}>
-              <a 
-                href={googleReviewUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ textDecoration: 'none', display: 'block' }}
+              <button 
+                type="button"
+                onClick={() => handleTrackAndOpen('google_review_click', googleReviewUrl, 'receipt_card_header')}
+                style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', display: 'block' }}
               >
-                <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#d97706', margin: '0 0 10px', letterSpacing: '-0.01em', cursor: 'pointer' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#d97706', margin: '0 0 10px', letterSpacing: '-0.01em' }}>
                   Rate Your Experience with us
                 </h3>
-              </a>
+              </button>
               
-              {feedbackSent ? (
+              {(feedbackSent || engagementActionDone.googleReview) ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontWeight: '700', fontSize: '13px' }}>
                   <CheckCircle2 style={{ width: '16px', height: '16px' }} />
                   <span>Thank you for your review!</span>
@@ -293,12 +1026,11 @@ export default function BillReceipt() {
             </div>
 
             {/* Official Google 4-Color "G" Icon */}
-            <a
-              href={googleReviewUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={() => handleTrackAndOpen('google_review_click', googleReviewUrl, 'receipt_card_icon')}
               title="Leave a Google Review"
-              style={{ flexShrink: 0, padding: '4px', display: 'block', transition: 'transform 0.2s' }}
+              style={{ background: 'none', border: 'none', flexShrink: 0, padding: '4px', display: 'block', cursor: 'pointer', transition: 'transform 0.2s' }}
             >
               <svg viewBox="0 0 48 48" style={{ width: '46px', height: '46px', display: 'block' }}>
                 <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
@@ -306,99 +1038,68 @@ export default function BillReceipt() {
                 <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.91l7.35-5.73z"/>
                 <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
               </svg>
-            </a>
+            </button>
           </div>
         </div>
 
         {/* ========================================================= */}
-        {/* 3. SOCIAL FOLLOW SLIDER: Facebook & Instagram follow      */}
+        {/* 3. SOCIAL FOLLOW SLIDER: Dynamic (FB, Insta, YouTube)     */}
         {/* ========================================================= */}
-        <div style={{ backgroundColor: '#ffffff', borderRadius: '18px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', overflow: 'hidden', marginBottom: '14px', padding: '16px 20px' }}>
-          <div style={{ minHeight: '68px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {socialSlide === 0 ? (
-              <a
-                href={tenant.facebook_url || 'https://facebook.com'}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', textDecoration: 'none', width: '100%' }}
-              >
-                {/* Official Meta Facebook Circle Icon */}
-                <svg viewBox="0 0 48 48" style={{ width: '50px', height: '50px', flexShrink: 0 }}>
-                  <circle cx="24" cy="24" r="24" fill="#1877F2"/>
-                  <path fill="#FFFFFF" d="M26.67 38V24.5h4.53l.68-5.26h-5.21v-3.36c0-1.52.42-2.56 2.61-2.56h2.79V8.61c-.48-.06-2.14-.21-4.07-.21-4.03 0-6.79 2.46-6.79 6.98v3.86h-4.54v5.26h4.54V38h5.46z"/>
-                </svg>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                  <span style={{ fontSize: '18px', fontWeight: '700', color: '#1e293b' }}>Follow us on</span>
-                  <span style={{ fontSize: '23px', fontWeight: '800', color: '#1877F2', letterSpacing: '-0.02em' }}>facebook</span>
-                </div>
-              </a>
-            ) : (
-              <a
-                href={tenant.instagram_url || 'https://instagram.com'}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', textDecoration: 'none', width: '100%' }}
-              >
-                {/* Official Instagram Gradient Round Icon */}
-                <div
-                  style={{
-                    width: '50px',
-                    height: '50px',
-                    borderRadius: '50%',
-                    flexShrink: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: 'radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" style={{ width: '28px', height: '28px', color: '#ffffff', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
-                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-                  </svg>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                  <span style={{ fontSize: '18px', fontWeight: '700', color: '#1e293b' }}>Follow us on</span>
-                  <span
-                    style={{
-                      fontSize: '23px',
-                      fontWeight: '800',
-                      letterSpacing: '-0.02em',
-                      background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent'
-                    }}
+        {activeSocials.length > 0 && (
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '18px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', overflow: 'hidden', marginBottom: '14px', padding: '16px 20px' }}>
+            <div style={{ minHeight: '68px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {(() => {
+                const cur = activeSocials[socialSlide % activeSocials.length];
+                if (!cur) return null;
+                return (
+                  <button
+                    type="button"
+                    onClick={() => handleTrackAndOpen(`${cur.type}_click`, cur.url, 'social_slider')}
+                    style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', cursor: 'pointer', width: '100%', padding: 0 }}
                   >
-                    Instagram
-                  </span>
-                </div>
-              </a>
+                    {cur.renderIcon()}
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                      <span style={{ fontSize: '18px', fontWeight: '700', color: '#1e293b' }}>Follow us on</span>
+                      <span style={{ fontSize: '23px', fontWeight: '800', color: cur.color, letterSpacing: '-0.02em' }}>{cur.name}</span>
+                    </div>
+                  </button>
+                );
+              })()}
+            </div>
+
+            {/* Social Slide Dots */}
+            {activeSocials.length > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '10px' }}>
+                {activeSocials.map((item, idx) => (
+                  <button
+                    key={item.type}
+                    onClick={() => setSocialSlide(idx)}
+                    style={{
+                      height: '6px',
+                      width: (socialSlide % activeSocials.length) === idx ? '20px' : '6px',
+                      borderRadius: '3px',
+                      backgroundColor: (socialSlide % activeSocials.length) === idx ? item.color : '#e2e8f0',
+                      transition: 'all 0.2s',
+                      padding: 0,
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                    aria-label={`${item.name} slide`}
+                  />
+                ))}
+              </div>
             )}
           </div>
-
-          {/* Social Slide Dots */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '10px' }}>
-            <button
-              onClick={() => setSocialSlide(0)}
-              style={{ height: '6px', width: socialSlide === 0 ? '20px' : '6px', borderRadius: '3px', backgroundColor: socialSlide === 0 ? '#1877F2' : '#e2e8f0', transition: 'all 0.2s', padding: 0, border: 'none' }}
-              aria-label="Facebook slide"
-            />
-            <button
-              onClick={() => setSocialSlide(1)}
-              style={{ height: '6px', width: socialSlide === 1 ? '20px' : '6px', borderRadius: '3px', backgroundColor: socialSlide === 1 ? '#ec4899' : '#e2e8f0', transition: 'all 0.2s', padding: 0, border: 'none' }}
-              aria-label="Instagram slide"
-            />
-          </div>
-        </div>
+        )}
 
         {/* ========================================================= */}
         {/* QUICK ACTIONS: Download PDF & Share Bill                  */}
         {/* ========================================================= */}
         <div style={{ display: 'flex', gap: '10px', marginBottom: '14px' }}>
           <button
-            onClick={handlePrint}
+            type="button"
+            onClick={handleDownloadPdf}
+            disabled={downloadingPdf}
             style={{
               flex: 1,
               height: '44px',
@@ -413,13 +1114,18 @@ export default function BillReceipt() {
               gap: '8px',
               boxShadow: '0 4px 10px rgba(15, 118, 110, 0.2)',
               border: 'none',
-              cursor: 'pointer'
+              cursor: downloadingPdf ? 'not-allowed' : 'pointer',
+              opacity: downloadingPdf ? 0.75 : 1,
+              transition: 'all 0.15s'
             }}
           >
-            <Download style={{ width: '16px', height: '16px' }} /> Download PDF
+            <Download style={{ width: '16px', height: '16px' }} />
+            <span>{downloadingPdf ? 'Saving PDF...' : 'Download PDF'}</span>
           </button>
           <button
-            onClick={handleShare}
+            type="button"
+            onClick={handleShareBill}
+            disabled={sharingPdf}
             style={{
               flex: 1,
               height: '44px',
@@ -434,10 +1140,13 @@ export default function BillReceipt() {
               justifyContent: 'center',
               gap: '8px',
               boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
-              cursor: 'pointer'
+              cursor: sharingPdf ? 'not-allowed' : 'pointer',
+              opacity: sharingPdf ? 0.75 : 1,
+              transition: 'all 0.15s'
             }}
           >
-            <Share2 style={{ width: '16px', height: '16px', color: '#64748b' }} /> Share Bill
+            <Share2 style={{ width: '16px', height: '16px', color: '#64748b' }} />
+            <span>{sharingPdf ? 'Preparing PDF...' : 'Share Bill'}</span>
           </button>
         </div>
 
@@ -550,6 +1259,13 @@ export default function BillReceipt() {
               <span>Grand Total</span>
               <span style={{ color: '#0f766e', fontFamily: 'monospace' }}>₹{parseFloat(billTotal).toFixed(2)}</span>
             </div>
+          </div>
+
+          {/* Verified Digital Bill Footer in Downloaded PDF & On Screen */}
+          <div style={{ borderTop: '1px dashed #e2e8f0', marginTop: '16px', paddingTop: '10px', textAlign: 'center', fontSize: '11px', color: '#94a3b8' }}>
+            <span>Verified Digital Invoice &bull; Powered by </span>
+            <strong style={{ color: '#0f172a', fontWeight: '700' }}>RetailNode</strong>
+            <span style={{ display: 'block', fontSize: '10px', color: '#cbd5e1', marginTop: '2px' }}>https://bill.retailnode.in</span>
           </div>
         </div>
 
@@ -799,23 +1515,365 @@ export default function BillReceipt() {
         {/* ========================================================= */}
         {/* FOOTER                                                    */}
         {/* ========================================================= */}
-        <footer style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', color: '#64748b', paddingBottom: '28px', paddingTop: '4px' }}>
-          <span>Powered by</span>
-          <a 
-            href="https://retailnode.in" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: '700', color: '#0f172a', textDecoration: 'none' }}
-          >
-            <img 
-              src="https://retailnode.in/logo.svg" 
-              alt="RetailNode Logo" 
-              style={{ width: '18px', height: '18px', display: 'inline-block' }} 
-            />
-            <span>RetailNode</span>
-          </a>
+        <footer style={{ textAlign: 'center', paddingBottom: '32px', paddingTop: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>
+            <span>Powered by</span>
+            <a 
+              href="https://retailnode.in" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: '700', color: '#0f172a', textDecoration: 'none' }}
+            >
+              <img 
+                src="https://retailnode.in/logo.svg" 
+                alt="RetailNode Logo" 
+                style={{ width: '18px', height: '18px', display: 'inline-block' }} 
+              />
+              <span>RetailNode</span>
+            </a>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', fontSize: '11px', color: '#94a3b8' }}>
+            <Link to="/privacy-policy" style={{ color: '#64748b', textDecoration: 'underline' }}>Privacy Policy</Link>
+            <span>&bull;</span>
+            <Link to="/terms-and-conditions" style={{ color: '#64748b', textDecoration: 'underline' }}>Terms &amp; Conditions</Link>
+          </div>
         </footer>
       </div>
+
+      {/* ========================================================= */}
+      {/* FIRST-VISIT CUSTOMER ENGAGEMENT POPUP MODAL               */}
+      {/* Asks for Google Review, Instagram follow, YouTube follow  */}
+      {/* Tracks user clicks and stores in action_logs & Redis      */}
+      {/* ========================================================= */}
+      {showEngagementModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) dismissEngagementModal();
+          }}
+        >
+          <style>{`
+            @keyframes engagementModalFadeIn {
+              from { opacity: 0; transform: scale(0.94) translateY(12px); }
+              to { opacity: 1; transform: scale(1) translateY(0); }
+            }
+          `}</style>
+          <div 
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '24px',
+              maxWidth: '430px',
+              width: '100%',
+              overflow: 'hidden',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              border: '1px solid #e2e8f0',
+              position: 'relative',
+              animation: 'engagementModalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+          >
+            {/* Top Close Button */}
+            <button
+              onClick={dismissEngagementModal}
+              style={{
+                position: 'absolute',
+                top: '14px',
+                right: '14px',
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                border: '1px solid #e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                zIndex: 10,
+                color: '#64748b'
+              }}
+              aria-label="Close dialog"
+            >
+              <X style={{ width: '18px', height: '18px' }} />
+            </button>
+
+            {/* Header Accent Bar with store branding */}
+            <div style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #facc15 100%)', padding: '24px 20px 18px', textAlign: 'center' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', borderRadius: '50%', backgroundColor: '#ffffff', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', marginBottom: '10px', overflow: 'hidden', border: '2px solid #ffffff' }}>
+                {tenant.logo_url ? (
+                  <img src={tenant.logo_url} alt={storeName} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                ) : (
+                  <Sparkles style={{ width: '28px', height: '28px', color: '#d97706' }} />
+                )}
+              </div>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#78350f', margin: '0 0 4px', lineHeight: 1.2 }}>
+                Thank You for Visiting!
+              </h2>
+              <p style={{ fontSize: '13px', color: '#92400e', margin: 0, fontWeight: '600' }}>
+                {storeName} appreciates your support
+              </p>
+            </div>
+
+            {/* Modal Body with Options */}
+            <div style={{ padding: '20px' }}>
+              <p style={{ fontSize: '13px', color: '#475569', margin: '0 0 16px', lineHeight: 1.5, textAlign: 'center' }}>
+                How would you like to stay connected? Choose an option below to support our store:
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {/* 1. GOOGLE REVIEW OPTION */}
+                {googleReviewUrl && (
+                  <div 
+                    style={{
+                      border: engagementActionDone.googleReview ? '1.5px solid #10b981' : '1.5px solid #fde68a',
+                      backgroundColor: engagementActionDone.googleReview ? '#f0fdf4' : '#fffbeb',
+                      borderRadius: '16px',
+                      padding: '12px 14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                      <div style={{ width: '42px', height: '42px', borderRadius: '12px', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.06)', flexShrink: 0 }}>
+                        <svg viewBox="0 0 48 48" style={{ width: '26px', height: '26px' }}>
+                          <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
+                          <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
+                          <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.91l7.35-5.73z"/>
+                          <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontSize: '14px', fontWeight: '700', color: '#1e293b' }}>Google Review</span>
+                          <span style={{ fontSize: '10px', fontWeight: '700', color: '#b45309', backgroundColor: '#fef3c7', padding: '1px 6px', borderRadius: '10px' }}>5 Stars</span>
+                        </div>
+                        <p style={{ fontSize: '11px', color: '#64748b', margin: '2px 0 0' }}>
+                          Takes only 10 seconds to rate us
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleTrackAndOpen('google_review_click', googleReviewUrl, 'modal_card')}
+                      style={{
+                        padding: '8px 14px',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        borderRadius: '10px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        backgroundColor: engagementActionDone.googleReview ? '#10b981' : '#f59e0b',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                      }}
+                    >
+                      {engagementActionDone.googleReview ? (
+                        <><CheckCircle2 style={{ width: '13px', height: '13px' }} /> Opened</>
+                      ) : (
+                        <><Star style={{ width: '13px', height: '13px', fill: '#ffffff' }} /> Review</>
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {/* 2. INSTAGRAM FOLLOW OPTION */}
+                {instagramUrl && (
+                  <div 
+                    style={{
+                      border: engagementActionDone.instagram ? '1.5px solid #10b981' : '1.5px solid #fbcfe8',
+                      backgroundColor: engagementActionDone.instagram ? '#f0fdf4' : '#fdf2f8',
+                      borderRadius: '16px',
+                      padding: '12px 14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                      <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+                        <svg viewBox="0 0 24 24" style={{ width: '22px', height: '22px', color: '#ffffff', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
+                          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontSize: '14px', fontWeight: '700', color: '#1e293b' }}>Instagram</span>
+                          <span style={{ fontSize: '10px', fontWeight: '700', color: '#be185d', backgroundColor: '#fce7f3', padding: '1px 6px', borderRadius: '10px' }}>New Looks</span>
+                        </div>
+                        <p style={{ fontSize: '11px', color: '#64748b', margin: '2px 0 0' }}>
+                          Daily saree arrivals & festive offers
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleTrackAndOpen('instagram_click', instagramUrl, 'modal_card')}
+                      style={{
+                        padding: '8px 14px',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        borderRadius: '10px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        background: engagementActionDone.instagram ? '#10b981' : 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                      }}
+                    >
+                      {engagementActionDone.instagram ? (
+                        <><CheckCircle2 style={{ width: '13px', height: '13px' }} /> Followed</>
+                      ) : (
+                        'Follow Us'
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {/* 3. YOUTUBE SUBSCRIBE OPTION */}
+                {youtubeUrl && (
+                  <div 
+                    style={{
+                      border: engagementActionDone.youtube ? '1.5px solid #10b981' : '1.5px solid #fecaca',
+                      backgroundColor: engagementActionDone.youtube ? '#f0fdf4' : '#fef2f2',
+                      borderRadius: '16px',
+                      padding: '12px 14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                      <div style={{ width: '42px', height: '42px', borderRadius: '12px', backgroundColor: '#FF0000', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 6px rgba(255,0,0,0.2)' }}>
+                        <svg viewBox="0 0 24 24" style={{ width: '22px', height: '22px', fill: '#ffffff' }}>
+                          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontSize: '14px', fontWeight: '700', color: '#1e293b' }}>YouTube</span>
+                          <span style={{ fontSize: '10px', fontWeight: '700', color: '#991b1b', backgroundColor: '#fee2e2', padding: '1px 6px', borderRadius: '10px' }}>Videos</span>
+                        </div>
+                        <p style={{ fontSize: '11px', color: '#64748b', margin: '2px 0 0' }}>
+                          Collection showcases & draping videos
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleTrackAndOpen('youtube_click', youtubeUrl, 'modal_card')}
+                      style={{
+                        padding: '8px 14px',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        borderRadius: '10px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        backgroundColor: engagementActionDone.youtube ? '#10b981' : '#FF0000',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                      }}
+                    >
+                      {engagementActionDone.youtube ? (
+                        <><CheckCircle2 style={{ width: '13px', height: '13px' }} /> Subscribed</>
+                      ) : (
+                        'Subscribe'
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Combined Option: Support Both / All */}
+              {(googleReviewUrl && (instagramUrl || youtubeUrl)) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (googleReviewUrl) handleTrackAndOpen('google_review_click', googleReviewUrl, 'modal_support_both');
+                    if (instagramUrl) {
+                      setTimeout(() => handleTrackAndOpen('instagram_click', instagramUrl, 'modal_support_both'), 400);
+                    } else if (youtubeUrl) {
+                      setTimeout(() => handleTrackAndOpen('youtube_click', youtubeUrl, 'modal_support_both'), 400);
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    marginTop: '12px',
+                    padding: '11px 16px',
+                    borderRadius: '12px',
+                    backgroundColor: '#f8fafc',
+                    border: '1px dashed #cbd5e1',
+                    color: '#334155',
+                    fontSize: '13px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <Sparkles style={{ width: '15px', height: '15px', color: '#f59e0b' }} />
+                  <span>Support on Both (Review + Follow)</span>
+                </button>
+              )}
+
+              {/* Dismiss / Continue to Invoice */}
+              <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                <button
+                  type="button"
+                  onClick={dismissEngagementModal}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#0f766e',
+                    fontSize: '13px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    padding: '6px 12px',
+                    textDecoration: 'underline'
+                  }}
+                >
+                  Continue to Bill Receipt →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

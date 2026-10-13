@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Store, ShieldCheck, ArrowRight, Lock, Mail, Receipt, Smartphone } from 'lucide-react';
 
 export default function UnifiedLogin() {
@@ -317,6 +317,12 @@ export default function UnifiedLogin() {
 
         <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8' }}>
           RetailNode Digital Billing & Customer Messaging Utility &bull; Server: 95.135.166.109
+        </div>
+
+        <div style={{ marginTop: '0.75rem', textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', display: 'flex', justifyContent: 'center', gap: '12px' }}>
+          <Link to="/privacy-policy" style={{ color: '#64748b', textDecoration: 'underline' }}>Privacy Policy</Link>
+          <span>&bull;</span>
+          <Link to="/terms-and-conditions" style={{ color: '#64748b', textDecoration: 'underline' }}>Terms &amp; Conditions</Link>
         </div>
       </div>
     </div>

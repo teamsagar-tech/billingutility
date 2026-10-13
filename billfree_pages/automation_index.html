@@ -1,0 +1,277 @@
+<script type="text/javascript">
+    var BASEURL = '';
+    var AUTH_TOKEN = '';
+    var CURRENCY_SYMBOL = "\u20b9";
+    var CURRENCY_PROFILE = {"symbol":"\u20b9","code":"INR","display":"symbol","grouping":"indian","scale":"indian","decimals":2,"name":"Rupee","namePlural":"Rupees"};
+</script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-130482043-1"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+    gtag('config', 'UA-130482043-1');
+</script>
+
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <link rel="shortcut icon" href="https://billfree-bills.s3.us-west-2.amazonaws.com/public/billfree_logo_blue_icon_only_4x.png" type="image/x-icon" />
+    <title></title>
+    <link href="/assets/9447997a/css/bootstrap.css?v=1691821954" rel="stylesheet">
+<link href="/resources/css/font-awesome.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/dashboard/css/tabler.min.css?v=1765634031" rel="stylesheet">
+<link href="/resources/dashboard/css/tabler-vendors.min.css?v=1761449473" rel="stylesheet">
+<link href="/resources/plugins/line-awesome/css/line-awesome.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/plugins/country-selector/intlTelInput.css?v=1746774834" rel="stylesheet">
+<link href="/resources/dashboard/libs/vanillajs-datepicker/dist/css/datepicker-bs5.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/dashboard/css/styles.css?v=1784526184" rel="stylesheet">
+<script src="/assets/5bab33a3/jquery.js?v=1691821954"></script></head>
+
+
+<body class="layout-fluid p-0">
+
+        <div class="page">
+        <div class="page-wrapper">
+            <div class="page-body mt-0">
+                
+
+<style>
+    .row {
+        --tblr-gutter-x: 0;
+    }
+
+    .input-with-logo {
+        position: relative;
+        display: inline-block;
+    }
+
+    .input-with-logo input,
+    .input-with-logo-2 input {
+        font-size: 16px;
+        padding-left: 46px;
+        width: 100%;
+        /* Adjust according to your logo size */
+    }
+
+    .input-with-logo input::placeholder,
+    .input-with-logo-2 input::placeholder {
+        font-size: 16px;
+    }
+
+    .input-with-logo::before {
+        content: url('/resources/new-website/images/placeholder_1.svg');
+        /* Path to your logo image */
+        position: absolute;
+        left: 16px;
+        /* Adjust for positioning */
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .input-with-logo-2 {
+        position: relative;
+        display: inline-block;
+    }
+
+    .input-with-logo-2::before {
+        content: url('/resources/new-website/images/placeholder_2.svg');
+        /* Path to your logo image */
+        position: absolute;
+        left: 16px;
+        /* Adjust for positioning */
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .login-input,
+    .login-input::placeholder {
+        font-size: 16px;
+        width: 100%;
+    }
+</style>
+<div class="row mobile w-100" style="background-color: white;">
+    <section class="col-md-6 order-md-2">
+        <div class="right-div mx-auto">
+            <div class="w-100">
+                                <form id="login-form" class="login-form mb-0" action="/site/login" method="post">                    <img class="brand-logo" src="/resources/new-website/images/logo_name.png" alt="">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="welcome">Welcome back!</span>
+                        <img src="/resources/new-website/images/hand_wave.png" alt="">
+                    </div>
+                    <div class="login-form-margin">
+                        <div class="d-flex flex-column login-field-margin">
+                            <label class="label-text"><span>Email address</span> <span class="text-danger">*</span></label>
+                            <div class="input-with-logo">
+                                <input type="text" id="loginform-username" class="login-input" name="LoginForm[username]" placeholder="username or email address" autocomplete="off" value="" required>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <label class="label-text"><span>Password</span> <span class="text-danger">*</span></label>
+                            <div class="input-with-logo-2">
+                                <input type="password" id="loginform-password" class="login-input" name="LoginForm[password]" placeholder="Enter Password" autocomplete="off" value="" required>
+                            </div>
+                            <input type="hidden" id="loginform-fresh" class="form-control" name="LoginForm[fresh]" tabindex="-1">
+                            <a href="/site/request-password-reset" class="link-text signup-link-margin">Forgot password?</a>
+                        </div>
+                    </div>
+                    <div class="form-footer">
+                        <button type="submit" id="loginBtn" class="login-button" name="login-button" tabindex="1">Login</button>                                                <input type="hidden" name="dev_token" value="MjIzLjIyOC4xNDIuMw==" />
+                        <input type="hidden" name="dev_info" value="TW96aWxsYS81LjAgKE1hY2ludG9zaDsgSW50ZWwgTWFjIE9TIFggMTBfMTVfNykgQXBwbGVXZWJLaXQvNTM3LjM2" />
+                    </div>
+                </form>                <div class="text-center text-muted">
+                    <span class="account-text">Don't have account yet? </span> <a href="./signup" tabindex="-1" class="link-text">Sign up</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="col-md-6">
+        <div class="left-div">
+            <div>
+                <div class="login-header header-margin">
+                    Powerful customer engagement and <br>
+                    marketing automation platform
+                </div>
+                <div class="paragraph-margin">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <img src="/resources/new-website/images/tick.svg" alt="">
+                        </div>
+                        <div class="login-paragraph">
+                            Automate WhatsApp-driven digital billing 
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <img src="/resources/new-website/images/tick.svg" alt="">
+                        </div>
+                        <div class="login-paragraph">
+                            Reach out to customers with personalised promotions
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <img src="/resources/new-website/images/tick.svg" alt="">
+                        </div>
+                        <div class="login-paragraph">
+                            Easily manage loyalty, rewards and referrals
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <img src="/resources/new-website/images/tick.svg" alt="">
+                        </div>
+                        <div class="login-paragraph">
+                            Drive sales and engagement with marketing automation
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <img src="/resources/new-website/images/tick.svg" alt="">
+                        </div>
+                        <div class="login-paragraph">
+                            Get more Google reviews and start ranking higher
+                        </div>
+                    </div>
+                </div>
+                <div class="login-footer-text">
+                    Trusted by 60K+ businesses in 300+ cities
+                </div>
+                <div class="login-footer-images images-margin">
+                    <img class="nike" src="/resources/new-website/images/nike.png" alt="">
+                    <img class="momo" src="/resources/new-website/images/momo.png" alt="">
+                    <img class="market" src="/resources/new-website/images/market.png" alt="">
+                    <img class="bikaji" src="/resources/new-website/images/bikaji.png" alt="">
+                    <img class="mohanlal" src="/resources/new-website/images/mohanlal.png" alt="">
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+<!-- Verify OTP Modal -->
+<div class="modal modal-blur fade" data-bs-backdrop="static" id="otpBox" role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- <div class="text-danger" id="otpErrorMessage"></div> -->
+                <h5 class="modal-title welcome mb-2">Claim Email</h5>
+                <div class="site-verifyOtp form-group">
+                    <form id="form-otp" action="/site/login" method="post">                    <div class="form-group form-md-line-input has-success">
+                        <input type="text" id="bfotp-otp" class="login-input w-100" name="BfOtp[otp]" placeholder="Enter OTP" required autocomplete="off">                        <div class="form-control-focus"> </div>
+                        <div class="text-danger" id="otpErrorMessage"></div>
+                    </div>
+
+                    <input type="hidden" name="BfOtp[token]" id="token" />
+                    <input type="hidden" name="BfOtp[phone]" id="phone" />
+
+                    <div id="resetPassword" style="display:none" data-backdrop="static">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group form-md-line-input has-success">
+                                    <div class="inputHolder" inputtitle="New Password*">
+                                        <label class="form-label">Enter Password</label>
+                                        <input type="password" id="newPassword" class="login-input w-100" name="password" value="" placeholder="New Password" autocomplete="off" required>                                    </div>
+                                    <div class="form-control-focus"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group form-md-line-input has-success">
+                                    <label class="form-label">Re-enter Password</label>
+                                    <div class="inputHolder" inputtitle="Confirm Password*">
+                                        <input type="password" id="confirmNewPassword" class="login-input w-100" name="confirmPassword" value="" 0="required" placeholder="Confirm Password" required autocomplete="off">                                    </div>
+                                    <div class="form-control-focus"> </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </form>                </div>
+                <button type="submit" id="verifyOtpBtn" class="btn btn-primary" name="verifyOtp-button">Verify OTP</button>                <!-- login-button w-auto -->
+                <button id="resendOtpBtn" style="display: none;" class="btn btn-primary">Resend OTP</button>
+                <button type="button" id="goBack" class="btn" style="display:none">Go Back</button>            </div>
+        </div>
+    </div>
+</div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="/assets/d7c67dda/yii.js?v=1656451257"></script>
+<script src="/resources/dashboard/js/tabler.min.js?v=1738999962"></script>
+<script src="/resources/js/constants.js?v=1746774834"></script>
+<script src="/resources/js/currency-format.js?v=1790566300"></script>
+<script src="/resources/dashboard/libs/tom-select/dist/js/tom-select.base.min.js?v=1738999962"></script>
+<script src="/resources/dashboard/libs/vanillajs-datepicker/dist/js/datepicker.min.js?v=1738999962"></script>
+<script src="/resources/js/billfreeMerchant.js?v=1773472590"></script>
+<script src="/resources/js/billfree.js?v=1773472590"></script>
+<script src="/resources/qfree-backend/js/script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/whatsapp-script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/rcs-script.js?v=1759128504"></script>
+<script src="/resources/dashboard/js/campaign-script.js?v=1759128504"></script>
+<script src="/resources/dashboard/js/chartInit.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/crypto-js.min.js?v=1738999962"></script>
+<script src="/resources/plugins/country-selector/intlTelInput.js?v=1746707187"></script>
+<script src="/resources/dashboard/js/redeem-rewards.js?v=1790566300"></script>
+<script src="/assets/d7c67dda/yii.activeForm.js?v=1656451257"></script>
+<script src="/resources/js/login.js?v=1765634031"></script>
+<script>jQuery(function ($) {
+jQuery('#login-form').yiiActiveForm([], []);
+jQuery('#form-otp').yiiActiveForm([], []);
+});</script></body>
+
+</html>

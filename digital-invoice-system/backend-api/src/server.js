@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const invoiceRoutes = require('./routes/invoiceRoutes');
 const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const setupDatabase = require('./config/setupDb');
 const logger = require('./utils/logger');
 
@@ -26,6 +27,8 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/store', authRoutes);
+app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/invoices', invoiceRoutes);
 
 // Health Check

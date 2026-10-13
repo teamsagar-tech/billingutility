@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#19222aff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="BillFree">
+    <meta name="msapplication-TileColor" content="#19222aff">
+    <!-- Favicon and PWA Icons -->
+    <link rel="apple-touch-icon" href="/img/icon-192.png">
+    <link rel="manifest" href="/manifest.json">
+
+    <link rel="shortcut icon" href="https://billfree-bills.s3.us-west-2.amazonaws.com/public/billfree_logo_blue_icon_only_4x.png" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;700&display=swap" rel="stylesheet">
+    <title>Business at a Glance ✨</title>
+    <script type="text/javascript">
+        var BASEURL = '';
+        var AUTH_TOKEN = 'b5b29d0ce37e0fc2d60c79354a4c1b4c';
+        var CURRENCY_SYMBOL = "\u20b9";
+        var CURRENCY_PROFILE = {"symbol":"\u20b9","code":"INR","display":"symbol","grouping":"indian","scale":"indian","decimals":2,"name":"Rupee","namePlural":"Rupees"};
+        // Merchant's phone dial code settings (bf_merchantinfo.default_dial_code /
+        // allowed_dial_code) — drives initDialCodeInput() in dashboard/js/script.js.
+        var DEFAULT_DIAL_CODE = "91";
+        var ALLOWED_DIAL_CODES = ["91"];
+    </script>
+    <link href="/assets/9447997a/css/bootstrap.css?v=1691821954" rel="stylesheet">
+<link href="/assets/4101ce43/css/daterangepicker.min.css?v=1691824356" rel="stylesheet">
+<link href="/assets/4101ce43/css/daterangepicker-kv.min.css?v=1691824356" rel="stylesheet">
+<link href="/assets/5fc1f4db/css/kv-widgets.min.css?v=1656451282" rel="stylesheet">
+<link href="/resources/css/font-awesome.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/dashboard/css/tabler.min.css?v=1765634031" rel="stylesheet">
+<link href="/resources/dashboard/css/tabler-vendors.min.css?v=1761449473" rel="stylesheet">
+<link href="/resources/plugins/line-awesome/css/line-awesome.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/plugins/country-selector/intlTelInput.css?v=1746774834" rel="stylesheet">
+<link href="/resources/dashboard/libs/vanillajs-datepicker/dist/css/datepicker-bs5.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/dashboard/css/styles.css?v=1784526184" rel="stylesheet">
+<script src="/assets/5bab33a3/jquery.js?v=1691821954"></script>
+<script src="/assets/4101ce43/js/moment.min.js?v=1691824356"></script>
+<script>window.daterangepicker_098ea299 = {"locale":{"format":"DD-MMM-YYYY"},"startDate":"14-Sep-2026","endDate":"14-Oct-2026","autoUpdateInput":false,"opens":"left","ranges":{"Today":[moment().startOf('day'),moment()],"Yesterday":[moment().startOf('day').subtract(1,'days'),moment().endOf('day').subtract(1,'days')],"Last 7 Days":[moment().startOf('day').subtract(6, 'days'),moment()],"Last 30 Days":[moment().startOf('day').subtract(29, 'days'),moment()],"This Month":[moment().startOf('month'),moment().endOf('month')],"Last Month":[moment().subtract(1, 'month').startOf('month'),moment().subtract(1, 'month').endOf('month')]}};
+
+window.daterangepicker_a2ccf828 = {"locale":{"format":"DD-MMM-YYYY"},"parentEl":"#rewards_card","startDate":"14-Sep-2026","endDate":"14-Oct-2026","autoUpdateInput":false,"opens":"left","ranges":{"Today":[moment().startOf('day'),moment()],"Yesterday":[moment().startOf('day').subtract(1,'days'),moment().endOf('day').subtract(1,'days')],"Last 7 Days":[moment().startOf('day').subtract(6, 'days'),moment()],"Last 30 Days":[moment().startOf('day').subtract(29, 'days'),moment()],"This Month":[moment().startOf('month'),moment().endOf('month')],"Last Month":[moment().subtract(1, 'month').startOf('month'),moment().subtract(1, 'month').endOf('month')]}};
+
+window.daterangepicker_5814434e = {"locale":{"format":"DD-MMM-YYYY"},"parentEl":"#campaigns_card","startDate":"14-Sep-2026","endDate":"14-Oct-2026","autoUpdateInput":false,"opens":"left","ranges":{"Today":[moment().startOf('day'),moment()],"Yesterday":[moment().startOf('day').subtract(1,'days'),moment().endOf('day').subtract(1,'days')],"Last 7 Days":[moment().startOf('day').subtract(6, 'days'),moment()],"Last 30 Days":[moment().startOf('day').subtract(29, 'days'),moment()],"This Month":[moment().startOf('month'),moment().endOf('month')],"Last Month":[moment().subtract(1, 'month').startOf('month'),moment().subtract(1, 'month').endOf('month')]}};
+</script></head>
+
+<body class="layout-fluid d-flex flex-column">
+    
+    <div class="page">
+        
+<style>
+    .navbar {
+        overflow-y: auto;
+    }
+
+    .demo-dashboard-link {
+        display: block;
+        width: 100%;
+        padding: 0;
+        border-radius: 20px;
+        text-decoration: none;
+    }
+
+    .demo-dashboard-card {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        padding: 1.25rem 1.15rem;
+        border-radius: 20px;
+        background: #0d47a1;
+        background-image: radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 70%),
+            url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M10 80 Q 30 40, 50 60 T 90 20" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="2"/></svg>');
+        background-size: cover, 140px;
+        background-position: center, calc(100% + 20px) -10px;
+        background-repeat: no-repeat;
+        isolation: isolate;
+        transition: transform 0.25s ease;
+    }
+
+    .demo-dashboard-card-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.38rem;
+        color: #1f2937;
+    }
+
+    .demo-dashboard-title {
+        margin: 0;
+        max-width: 180px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        line-height: 1.25;
+        color: #ffffff;
+        letter-spacing: 0em;
+    }
+
+    .demo-dashboard-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: fit-content;
+        margin-top: 0.65rem;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        background: #ffffff;
+        color: #0d47a1;
+        font-size: 0.7rem;
+        font-weight: 700;
+        line-height: 1;
+        transition: all 0.2s ease;
+    }
+
+    .navbar::-webkit-scrollbar {
+        width: 5px;
+        display: none;
+    }
+
+    .navbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
+
+    .navbar::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 5px;
+    }
+
+    .navbar::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    .navbar:hover::-webkit-scrollbar {
+        display: initial;
+    }
+</style>
+<!-- Sidebar -->
+<aside class="navbar navbar-vertical navbar-expand-lg navbar-light">
+    <div class="container-fluid justify-content-between">
+        <!-- Brand Logo -->
+        <h1 class="navbar-brand navbar-brand-autodark justify-content-start">
+            <a class="navbar-brandname" href="/dashboard-summary/index">
+                <img src="https://billfree-bills.s3.us-west-2.amazonaws.com/public/billfree_logo_blue_icon_only_4x.png" alt="BillFree Labs" width="40">
+                <p class="ms-2 mb-0">V R Pawar Sarees  Chatti Galli |</p>
+            </a>
+        </h1>
+
+        <!-- user toggle -->
+        <a class="p-0 ms-auto d-lg-none" data-bs-toggle="offcanvas" href="#offcanvasStart" role="button" aria-controls="offcanvasStart">
+            <div class="d-flex text-dark">
+                <i class="las la-user-circle p-2" style="font-size:1.6rem;"></i>
+            </div>
+        </a>
+
+        <!-- menu toggle -->
+        <button class="navbar-toggler m-2" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- menu sidebar -->
+        <div class="collapse navbar-collapse" id="sidebar-menu">
+            <ul class="navbar-nav pt-lg-3 pb-5 w-100 mx-0 px-3 px-md-0">
+
+                                    <li class="nav-item active">
+                        <a class="nav-link d-flex w-100" href="/dashboard-summary/index">
+                            <i class="las la-home fs-2 me-2"></i>Home
+                        </a>
+                    </li>
+                
+                <li class="nav-item ">
+                    <a class="nav-link d-flex w-100" href="/home/index">
+                        <i class="las la-paperclip fs-2 me-2"></i> Quick Links
+                    </a>
+                </li>
+
+                <!-- <li class="nav-item active d-flex w-100">
+                    <a class="nav-link" href="/dashboard-summary/index"><i class="las la-home fs-2 me-2"></i> Dashboard</a>
+                </li> -->
+
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/store-comparison/store-comparision">
+                            <i class="las la-chart-bar fs-2 me-2"></i> Analytics
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item  dropdown invoice-header d-flex w-100">
+                        <a class="nav-link" href="/generate-bill/index"><i class="las la-receipt fs-2 me-2"></i> Invoice</a>
+                    </li>
+                
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/campaigns-hub/index">
+                            <i class="las la-bullhorn fs-2 me-2"></i> Campaigns & Automation
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/profiles/customers">
+                            <i class="las la-user-friends fs-2 me-2"></i> Customers
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/roi-explorer/index">
+                            <i class="las la-funnel-dollar fs-2 me-2"></i> ROI
+                        </a>
+                    </li>
+                
+                <!--                     <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/rewards/index">
+                            <i class="lab la-gratipay me-2" style="font-size: 1.5rem;"></i> Rewards
+                        </a>
+                    </li>
+                 -->
+
+                                    <li class="nav-item  ">
+                        <a class="nav-link d-flex w-100" href="/segmentation/list">
+                            <i class="las la-box fs-2 me-2"></i> Segmentation
+                        </a>
+                    </li>
+                
+
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/download-center/index">
+                            <i class="las la-download fs-2 me-2"></i> Download Center
+                        </a>
+                    </li>
+                
+                
+                
+                    <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                    <h4 class="my-1">REWARDS</h4>
+
+                                            <li class="nav-item ">
+                            <a class="nav-link d-flex w-100" href="/loyalty-dashboard/index">
+                                <i class="las la-coins me-2" style="font-size: 1.5rem;"></i> Loyalty
+                            </a>
+                        </li>
+                    
+                                            <li class="nav-item ">
+                            <a class="nav-link d-flex w-100" href="/coupon-dashboard/index">
+                                <i class="las la-tags fs-2 me-2"></i> Coupon
+                            </a>
+                        </li>
+                    
+                    
+                                            <li class="nav-item ">
+                            <a class="nav-link d-flex w-100" href="/redeem-reward/index">
+                                <i class="lab la-gratipay fs-2 me-2"></i> Redeem Reward
+                            </a>
+                        </li>
+                                    
+                                    <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                    <h4 class="my-1">CHANNELS</h4>
+                                                                                <li class="nav-item ">
+                                    <a class="nav-link d-flex w-100" href="/gupshup-ss/index">
+                                        <i class="lab la-whatsapp fs-2 me-2"></i> WhatsApp
+                                    </a>
+                                </li>
+                                                
+                    
+                                    
+                
+                    <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                    <h4 class="my-1">CUSTOMIZATIONS</h4>
+
+                                            <li class="nav-item  d-flex w-100">
+                            <a class="nav-link" href="/digital-bill/index"><i class="las la-mobile fs-2 me-2"></i> Digital Bill</a>
+                        </li>
+                    
+                                            <li class="nav-item ">
+                            <a class="nav-link d-flex w-100" href="/greeting-cards/index">
+                                <i class="las la-handshake fs-2 me-2"></i> CRM
+                            </a>
+                        </li>
+                                    
+
+                <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                <h4 class="my-1">MANAGE</h4>
+
+                                    <li class="nav-item  d-flex w-100">
+                        <a class="nav-link" href="/users/index"><i class="las la-user-cog fs-2 me-2"></i> Users</a>
+                    </li>
+                
+                                <li class="nav-item  d-flex w-100">
+                    <a class="nav-link d-flex w-100" href="/account/index"><i class="las la-cog fs-2 me-2"></i> My Account
+                    </a>
+                </li>
+                
+                
+                
+                
+                                    <li class="nav-item">
+                        <a class="nav-link d-flex w-100" href="/site/my-bills?p=user" target="_blank">
+                            Personal Bills
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item dropdown d-flex w-100 mt-3">
+                        <div class="card demo-dashboard-card">
+                            <div class="demo-dashboard-card-content">
+                                <p class="demo-dashboard-title">Experience the Power of the Billfree Dashboard.</p>
+                                <a class="demo-dashboard-cta text-decoration-none" href="https://demo.billfree.in/dashboard-summary/index?user=n%2Fb7z51%2BhHyad8zIHkdmZjhlMGY5MTkwYjJlYTNjYTRlZDYwNDc3ZDI0YmIyMjUyYjNkZGQ4NzZhMDY4YzQ5MDNiYzRjODBiYzYyOTA1YjCwGyIbH3uV2clgGvpUrlJu4%2BnV9NWn47f2980hvTZbYA%3D%3D" target="_blank" rel="noopener noreferrer">
+                                    View Demo Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                            </ul>
+        </div>
+
+        <!-- user logout button on desktop -->
+        <a class="d-none d-lg-block logout-button-desktop px-2 text-decoration-none" data-bs-toggle="offcanvas" href="#offcanvasStart" role="button" aria-controls="offcanvasStart">
+            <div class="d-flex gap-2 m-2">
+                <i class="las la-user-circle mr-2 mt-1" style="font-size:1.6rem;"></i>
+                <p class="mb-0 logout-button" style="line-height: 1.3;">
+                    Sagar<br>
+                    <small class="d-inline-block">sagarmohite2808@gmail.com</small>
+                </p>
+            </div>
+        </a>
+    </div>
+</aside>
+
+<script>
+    function collapseNavbar() {
+        if (window.innerWidth <= 1024) {
+            var navbarToggle = document.querySelector('.navbar-toggler');
+            navbarToggle.click();
+        }
+    }
+    var dropdownItems = document.querySelectorAll('.dropdown-item');
+    dropdownItems.forEach(function(item) {
+        item.addEventListener('click', collapseNavbar);
+    });
+</script>
+        <aside data-bs-backdrop="true" class="merchant-profile  offcanvas offcanvas-start" tabindex="-1" id="offcanvasStart" aria-labelledby="offcanvasStartLabel">
+    <div class="mb-1 d-flex justify-content-between">
+        <h2 class="page-title p-2">Merchants Profile</h2>
+        <a href="#" data-bs-dismiss="offcanvas"><i style="font-size:1.5rem;" class="las la-times p-2"></i></a>
+    </div>
+
+    <div class="card mb-3 m-2">
+        <div class="card-header card-header-light p-2">
+            <h3 class="card-title">
+                <form class="mb-0" action="/site/logout" method="post"><button type="submit" class="btn logout w-100 p-0 bg-transparent"><div class="card-title"><i class="las la-sign-out-alt mr-2" style="font: size 1.2rem;"></i></div><div class="card-title"><p class="mb-0 mt-0">Logout</p></div></button></form>            </h3>
+        </div>
+        <div class="card-body p-2">
+            <div><b>Name</b><br> Sagar</div>
+            <hr class="m-2">
+            <div><b>Email ID</b><br> sagarmohite2808@gmail.com</div>
+            <hr class="m-2">
+            <div><b>Phone Number</b><br> +91-8857808284</div>
+        </div>
+    </div>
+
+
+            <div class="card mb-3 m-2">
+            <div class="card-header card-header-light p-2 justify-content-between">
+                <h3 class="card-title">Business Details</h3>
+                <a href="#" onclick="editBusinessDetails();" class="edit-business-btn"><i style="font-size:1.1rem;" class="las la-pen"></i></a>
+            </div>
+            <div class="card-body p-2 business-details-container">
+                                    <div><b>Firm Name </b><br> V R Pawar Sarees  Chatti Galli |</div>
+                    <hr class="m-2">
+                                                    <div><b>Display Name </b><br> V R Pawar Sarees  Chatti Galli |</div>
+                    <hr class="m-2">
+                                                    <div><b>Phone Number </b><br> +91-8857808284</div>
+                    <hr class="m-2">
+                                                    <div><b>Email ID </b><br> sagarmohite2808@gmail.com</div>
+                    <hr class="m-2">
+                                                                                                    <div><b>Store Addr. </b><br> Address: 275 ,W.Magalwar Peth, Chatti Galli, Mangalwar Peth, Solapur, Maharashtra 413002</div>
+                    <hr class="m-2">
+                                                    <div><b>Store Country </b><br> India</div>
+                    <hr class="m-2">
+                                <div class="d-flex flex-wrap justify-content-between">
+                                            <div class="w-50"><b>Store State </b><br> Maharashtra</div>
+                                                                <div class="w-50"><b>Store City </b><br> Solapur</div>
+                                    </div>
+                <hr class="m-2">
+                <div class="d-flex flex-wrap justify-content-between">
+                                            <div class="w-50"><b>Store Pincode </b><br> 413002</div>
+                                                                <div class="w-50"><b>POS </b><br> universal</div>
+                                    </div>
+            </div>
+            <div class="loader mx-auto" style="width:30px;height:30px; display: none;" id="businessLoader"></div>
+        </div>
+    
+    <div class="card mb-3 m-2">
+        <div class="card-header card-header-light p-2 justify-content-between">
+            <h3 class="card-title">Active Features</h3>
+        </div>
+
+        <div class="card-body p-2">
+            • Invoice<br>            • Roles<br>                                    • Ad Banner<br>            • Google Review<br>                        • White Label/Branding<br>                    </div>
+
+    </div>
+
+    <div class="card mb-3 m-2">
+        <div class="card-header px-3" style="background:var(--tblr-primary-bg-subtle);border-radius:calc(.37rem - 1px) calc(.37rem - 1px) calc(.37rem - 1px) calc(.37rem - 1px);">
+            <a class="card-title download-integration-files w-100 d-flex justify-content-between align-items-center" href="/merchant/integration-files" target="_blank">Download Integration Files
+                <svg width="15px" height="15px" viewBox="0 0 16 16" class="bi bi-download" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path>
+                    <path fill-rule="evenodd" d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</aside>
+<script>
+    function editBusinessDetails() {
+        $('.edit-business-btn').hide();
+        $('#businessLoader').show();
+        $('.business-details-container').html('');
+
+        $.ajax({
+            type: "GET",
+            url: "/merchant/business-edit",
+            success: function(response) {
+                let resp = JSON.parse(response);
+                if (!resp.error) {
+                    $('.business-details-container').html(resp.data);
+                }
+                $('#businessLoader').hide();
+            },
+            error: function(error) {
+                $('#businessLoader').hide();
+                console.log(error);
+            }
+        });
+    }
+</script>
+        <div class="page-wrapper">
+
+                        <!-- <div id="info">
+                <div class="row" style="background: #1d273b;justify-content: center;">
+                    <div class="col-11 text-light text-center" style="width:90%">Contact us for any query on&nbsp; <a class="text-light" href="mailto:contact@billfree.in">contact@billfree.in</a> &nbsp; or&nbsp;+91 (120) 420 7081
+                    </div>
+                    <button onclick="handleClick()" class="col-1 text-right bg-transparent border-0 text-light text-right px-2"><i class="las la-times fs-2"></i></button>
+                </div>
+            </div> -->
+            <div class="page-body mt-0">
+                <style>
+    .customerActivity {
+        max-height: 200px;
+    }
+
+    @media (max-width: 720px) {
+        .customerActivity {
+            max-height: 250px;
+        }
+    }
+</style>
+<div class="bf-digital-bill-index">
+    <div class="container-fluid mt-3">
+        <h1 class="text-dark mb-3">
+            Business at a Glance ✨        </h1>
+    </div>
+    <div class="row container-fluid">
+        <div class="col-md-3">
+            <div id="offer-scope" class="offer-scope-index mb-3"></div>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="card analytics-card bg-yellow-lt mb-3 text-dark">
+            <div class="card-body pt-2">
+                <div class="row align-items-center mb-2">
+                    <div class="col-md-6 col-12">
+                        <h2 class="mb-0">Sales</h2>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-end align-items-center flex-wrap">
+                            <div id="sales_date_range-container" class="kv-drp-container">        <div class="form-control kv-drp-dropdown">
+            <i class="glyphicon glyphicon-calendar"></i>&nbsp;
+            <span class="range-value">14-Sep-2026 - 14-Oct-2026</span>
+            <span class="pull-right"><b class="caret"></b></span>
+        </div>
+        <input type="hidden" id="sales_date_range" class="form-control form-control-lg" name="sales_date_range" value="14-Sep-2026 - 14-Oct-2026" placeholder="Select range..." data-krajee-daterangepicker="daterangepicker_098ea299"></div>                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="/store-comparison/store-comparision" target="_blank" class="text-decoration-none">
+                            <div class="card analytics-card mb-3">
+                                <div class="card-body pb-2">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <p class="display-6 mb-0">
+                                                <b class="revenueCount text-dark"></b>
+                                            </p>
+                                            <p class="analytics-label">
+                                                Revenue
+                                            </p>
+                                        </div>
+                                        <span class="analytics-icon bg-teal-lt"><i class="emoji-icon">💸</i></span>
+                                    </div>
+                                    <!-- create dynamic width for each progress bar based on thier revenue -->
+                                    <div class="analytics-progress">
+                                        <div class="bar-width newCustomerRevBar">
+                                            <span class="text-muted d-inline-block mb-1"> </span>
+                                            <div class="progress-bar bar-1 w-100" style="background-color: #6348f9;">New</div>
+                                            <div class="progress-value"><small class="d-inline-block mt-1 newCustomerRev"></small><br><small class="d-inline-block mt-1 newCustomerRevPer" style="color: #6348f9;;"></small></div>
+                                        </div>
+                                        <div class="bar-width repeatCustomerRevBar">
+                                            <span class="text-muted d-inline-block mb-1"></span>
+                                            <div class="progress-bar bar-2 w-100" style="background-color: #22d161;">Repeat</div>
+                                            <div class="progress-value text-right">
+                                                <small class="d-inline-block mt-1 repeatCustomerRev"></small><br>
+                                                <small class="d-inline-block mt-1 repeatCustomerRevPer" style="color: #22d161"></small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="/store-comparison/store-comparision" target="_blank" class="text-decoration-none">
+                            <div class="card analytics-card mb-3">
+                                <div class="card-body pb-2">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <p class="display-6 mb-0 text-dark"><b class="billCount"></b></p>
+                                            <p class="analytics-label">
+                                                No. of Bills
+                                            </p>
+                                        </div>
+                                        <span class="analytics-icon bg-indigo-lt" style="line-height: 3.2rem;"><span class="emoji-icon" style="font-size:1.4rem">🚀</span></span>
+                                    </div>
+                                    <div class="analytics-progress">
+                                        <div class="bar-width newCustomerCountBar">
+                                            <span class="text-muted d-inline-block mb-1"> </span>
+                                            <div class="progress-bar bar-1 w-100" style="background-color: #6348f9;">New</div>
+                                            <div class="progress-value"><small class="d-inline-block mt-1 newCustomerCount"></small><br><small class="d-inline-block mt-1 newCustomerCountPer" style="color: #6348f9;;"></small>
+                                            </div>
+                                        </div>
+                                        <div class="bar-width repeatCustomerCountBar">
+                                            <span class="text-muted d-inline-block mb-1"></span>
+                                            <div class="progress-bar bar-2 w-100" style="background-color: #22d161;">Repeat</div>
+                                            <div class="progress-value text-right">
+                                                <small class="d-inline-block mt-1 repeatCustomerCount"></small><br>
+                                                <small class="d-inline-block mt-1 repeatCustomerCountPer" style="color: #22d161;"></small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="/store-comparison/store-comparision" target="_blank" class="text-decoration-none">
+                            <div class="card analytics-card mb-3">
+                                <div class="card-body pb-2">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <p class="display-6 mb-0 text-dark"><b class="avgBillCount"></b></p>
+                                            <p class="analytics-label">
+                                                Avg. Order Value
+                                            </p>
+                                        </div>
+                                        <span class="analytics-icon bg-yellow-lt" style="line-height: 3.2rem;"><span class="emoji-icon" style="font-size:1.4rem">⚖️</span></span>
+                                    </div>
+                                    <div class="analytics-progress">
+                                        <div class="bar-width avgNewCustomerCountBar">
+                                            <span class="text-muted d-inline-block mb-1"> </span>
+                                            <div class="progress-bar bar-1 w-100" style="background-color: #6348f9;">New</div>
+                                            <div class="progress-value"><small class="d-inline-block mt-1 avgNewCustomerCount"></small></div>
+                                        </div>
+                                        <div class="bar-width avgRepeatCustomerCountBar">
+                                            <span class="text-muted d-inline-block mb-1"></span>
+                                            <div class="progress-bar bar-2 w-100" style="background-color: #22d161;">Repeat</div>
+                                            <div class="progress-value text-right"><small class="d-inline-block mt-1 avgRepeatCustomerCount"></small></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="card analytics-card mb-3">
+                            <div class="card-body px-0">
+                                <div id="summaryRevenueChart" style="width:100%; height:431px;display:flex;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <a class="text-decoration-none" href="/loyalty-dashboard/points-transaction" target="_blank">
+                            <div class="card analytics-card text-white mb-3" style="background-color: #b048f9;">
+                                <div class="card-body pb-0">
+                                    <p class="fs-2">
+                                        Loyalty Points Earned
+                                    </p>
+                                    <p class="mt-2 mb-3" style="font-size:24px;"><b class="pointsEarned"></b></p>
+                                </div>
+                            </div>
+                        </a>
+                        <a class="text-decoration-none" href="/loyalty-dashboard/redemption" target="_blank">
+                            <div class="card analytics-card text-white mb-3" style="background-color: #ffc300;">
+                                <div class="card-body pb-0">
+                                    <p class="fs-2">
+                                        Loyalty Points Redeemed
+                                    </p>
+                                    <p class="mt-2 mb-3" style="font-size:24px;"><b class="pointsRedeemed"></b></p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a class="text-decoration-none" href="/feedback/index" target="_blank">
+                            <div class="card analytics-card text-white mb-3" style="background-color: #22d161;">
+                                <div class="card-body pb-0">
+                                    <p class="fs-2">
+                                        Feedback Received
+                                    </p>
+                                    <p class="mt-2 mb-3" style="font-size:24px;"><b class="feedbackCount"></b></p>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a class="text-decoration-none" href="/feedback/index" target="_blank">
+                            <div class="card analytics-card text-white mb-3" style="background-color: #22a2d1;">
+                                <div class="card-body pb-0">
+                                    <p class="fs-2">
+                                        Avg. Feedback Rating
+                                    </p>
+                                    <p class="mt-2 mb-3" style="font-size:24px;"><b class="feedbackRating"></b></p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card analytics-card mb-3">
+                            <div class="card-body pb-0">
+                                <div class="d-flex justify-content-between align-text-bottom">
+                                    <div>
+                                        <p class="fs-2 mb-0">
+                                            Google Page <br> Visited
+                                        </p>
+                                        <p class="display-7 my-2" style="font-size:24px;"><b class="googleVisited"></b></p>
+                                    </div>
+                                    <img src="/resources/images/google-logo-tp.png" height="75px" alt="">
+                                </div>
+                            </div>
+                        </div>
+                        <a href="/profiles/customers" target="_blank" class="text-decoration-none">
+                            <div class="card analytics-card mb-3">
+                                <div class="card-body pb-0 text-dark">
+                                    <div class="d-flex justify-content-between align-text-bottom">
+                                        <div>
+                                            <p class="fs-2 mb-0">
+                                                Customers <br> Visited
+                                            </p>
+                                            <p class="display-7 my-0" style="font-size:24px;"><b class="customersVisited"></b></p>
+                                        </div>
+                                        <img src="/resources/images/dashboard-profile.png" height="88px" alt="">
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/profiles/index" target="_blank" class="text-decoration-none">
+                            <div class="card analytics-card mb-3" style="max-height: 233px;">
+                                <div class="card-body px-0 text-center text-dark">
+                                    <p class="fs-2">
+                                        Profiles Completed
+                                    </p>
+                                    <div id="summaryCustomerPie" style="width:100%; height:280px;display:flex;"></div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="card analytics-card bg-green-lt mb-3 text-dark">
+            <div class="card-body pt-2">
+                <div class="row align-items-center mb-2">
+                    <div class="col-md-6 col-12">
+                        <h2 class="mb-0">Customers</h3>
+                    </div>
+                </div>
+                <div class="row">
+
+                    <div class="col-md-6 col-12">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card analytics-card mb-3">
+                                    <div class="card-body">
+                                        <p class="fs-2">
+                                            Customer Activity
+                                        </p>
+                                        <div class="row">
+                                            <div class="col-md-5 col-12">
+                                                <div class="row">
+                                                    <div class="col-md-12 col-6 mb-3 ms-2">
+                                                        <p class="display-3 mb-0 fs-md-6">
+                                                            Total Customers
+                                                        </p>
+                                                        <div class="d-flex align-items-center justify-content-between">
+                                                            <div>
+                                                                <p class="display-7 mb-0">
+                                                                    <a href="/profiles/customers?dormant_filter=all" target="_blank" class="text-decoration-none">
+                                                                        <b class="allTotalCustomerCount text-dark"></b>
+                                                                    </a>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-12 col-6 mb-3">
+                                                        <p class="display-3 mb-0 fs-md-6">
+                                                            <span class="badge badge-danger" style="background-color: #22d161;"></span> Active in 3 months
+                                                        </p>
+                                                        <p class="display-7 mb-0 ms-3">
+                                                            <a href="/profiles/customers?dormant_filter=3-months-active" target="_blank" class="text-decoration-none">
+                                                                <b class="activeIn3MonthsCount text-dark"></b>
+                                                            </a>
+                                                        </p>
+                                                    </div>
+
+                                                    <div class="col-md-12 col-6 mb-3">
+                                                        <p class="display-3 mb-0 fs-md-6">
+                                                            <span class="badge badge-danger" style="background-color: #b048f9;"></span> Dormant 3-6 months
+                                                        </p>
+                                                        <p class="display-7 mb-0 ms-3">
+                                                            <a href="/profiles/customers?dormant_filter=6-months" target="_blank" class="text-decoration-none">
+                                                                <b class="activeIn3To6MonthsCount text-dark"></b>
+                                                            </a>
+                                                        </p>
+                                                    </div>
+
+                                                    <div class="col-md-12 col-6 mb-3">
+                                                        <p class="display-3 mb-0 fs-md-6">
+                                                            <span class="badge badge-danger" style="background-color: #6209fe;"></span> Dormant 6-12 months
+                                                        </p>
+                                                        <p class="display-7 mb-0 ms-3">
+                                                            <a href="/profiles/customers?dormant_filter=12-months" target="_blank" class="text-decoration-none">
+                                                                <b class="activeIn6To12MonthsCount text-dark"></b>
+                                                            </a>
+                                                        </p>
+                                                    </div>
+
+                                                    <div class="col-md-12 col-6 mb-3">
+                                                        <p class="display-3 mb-0 fs-md-6">
+                                                            <span class="badge badge-danger" style="background-color: #f94848;"></span> Dormant 12+ months
+                                                        </p>
+                                                        <p class="display-7 mb-0 ms-3">
+                                                            <a href="/profiles/customers?dormant_filter=12-plus-months" target="_blank" class="text-decoration-none">
+                                                                <b class="activeIn12PlusMonthsCount text-dark"></b>
+                                                            </a>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-7 customerActivity">
+                                                <div id="activeCustomerChart" style="width:130%; height:370px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Analysis -->
+                    <div class="col-md-6 col-12">
+                        <div class="card analytics-card mb-3">
+                            <div class="card-body pb-0">
+                                <p class="fs-2">
+                                    Customers Frequency
+                                </p>
+                                <!-- <p class="mb-3" style="color: var(--tblr-dark-border-subtle);line-height:1.8">Review how your customer base is grouped by the cumulative times they've visited the business.</p> -->
+                                <div class="customer-frequency-progress">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <a href="/profiles/customers?visit_filter=1" target="_blank" class="d-flex align-items-center text-reset text-decoration-none">
+                                            <span style="width: 118px;">1 Time Visit</span>
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div>
+                                                <p class="display-7 mb-0">
+                                                        <b class="visit-count-1 text-dark"></b>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-4">
+                                        <a href="/profiles/customers?visit_filter=2" target="_blank" class="d-flex align-items-center text-reset w-100 text-decoration-none">
+                                        <span style="width: 105px;">2 Times Visits</span>
+                                        <div class="bar-width">
+                                                <div class="progress-bar visit-bar-2" style="background-color: #ffc300;"></div>
+                                            </div>
+                                            <strong class="visit-count-2"></strong>
+                                        </a>
+                                    </div>
+                                    <div class=" mb-4">
+                                        <a href="/profiles/customers?visit_filter=3" target="_blank" class="d-flex align-items-center text-reset w-100 text-decoration-none">
+                                        <span style="width: 105px;">3 Times Visits</span>
+                                        <div class="bar-width">
+                                                <div class="progress-bar visit-bar-3" style="background-color: #22d161;"></div>
+                                            </div>
+                                            <strong class="visit-count-3"></strong>
+                                        </a>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-4">
+                                        <a href="/profiles/customers?visit_filter=4" target="_blank" class="d-flex align-items-center w-100 text-reset text-decoration-none">
+                                        <span style="width: 105px;">4 Times Visits</span>
+                                        <div class="bar-width">
+                                                <div class="progress-bar visit-bar-4" style="background-color: #22a2d1;"></div>
+                                            </div>
+                                            <strong class="visit-count-4"></strong>
+                                        </a>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-4">
+                                        <a href="/profiles/customers?visit_filter=5" target="_blank" class="d-flex align-items-center w-100 text-reset text-decoration-none">
+                                        <span style="width: 105px;">5+ Times Visits</span>
+                                        <div class="bar-width">
+                                                <div class="progress-bar visit-bar-5" style="background-color: #f94848;"></div>
+                                            </div>
+                                            <strong class="visit-count-5"></strong>
+                                        </a>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-4">
+                                        <a href="/profiles/customers?visit_filter=10" target="_blank" class="d-flex align-items-center w-100 text-reset text-decoration-none">
+                                        <span style="width: 105px;">10+ Times Visits</span>
+                                        <div class="bar-width">
+                                                <div class="progress-bar visit-bar-10" style="background-color: #b048f9;"></div>
+                                            </div>
+                                            <strong class="visit-count-10"></strong>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- <div class="col-md-3 col-12">
+                    </div> -->
+                    <div class="col-md-4 col-12">
+                        <a href="/profiles/index?profile_filter=all" target="_blank" class="text-decoration-none">
+                            <div class="card analytics-card mb-3">
+                                <div class="card-body pb-0 text-dark">
+                                    <p class="fs-2 mb-0">
+                                        Total Profiles Completed
+                                    </p>
+                                    <p class="mb-0"><small><i>Overall</i></small></p>
+                                    <div class="d-flex justify-content-between">
+                                        <p class="display-7 mt-2 mb-0" style="font-size:28px;">
+
+                                            <b class="allProfileCount"></b>
+
+                                        </p>
+                                        <img src="/resources/images/dashboard-profile.png" class="me-3" height="75px" alt="">
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-md-4 col-12">
+                        <a href="/profiles/index?profile_filter=birthday" target="_blank" class="text-decoration-none">
+                            <div class="card analytics-card mb-3">
+                                <div class="card-body pb-0 text-dark">
+                                    <p class="fs-2 mb-0">
+                                        Upcoming Birthdays
+                                    </p>
+                                    <p class="mb-0"><small><i>within next 30 days</i></small></p>
+                                    <div class="d-flex justify-content-between">
+                                        <p class="display-7 mt-2 mb-0" style="font-size:28px;">
+                                            <b class="birthdayCount "></b>
+                                        </p>
+                                        <img src="/resources/images/birthday.png" class="mb-3 me-3" height="60px" alt="">
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <a href="/profiles/index?profile_filter=anniversary" target="_blank" class="text-decoration-none">
+                            <div class="card analytics-card mb-3">
+                                <div class="card-body pb-0 text-dark">
+                                    <p class="fs-2 mb-0">
+                                        Upcoming Anniversaries
+                                    </p>
+                                    <p class="mb-0"><small><i>within next 30 days</i></small></p>
+                                    <div class="d-flex justify-content-between">
+                                        <p class="display-7 mt-2 mb-0" style="font-size:24px;">
+                                            <b class="anniversaryCount"></b>
+                                        </p>
+                                        <img src="/resources/images/anniversary.png" class="mb-3 me-3" height="60px" alt="">
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="card analytics-card bg-blue-lt mb-3 text-dark">
+            <div class="card-body pt-2">
+                <div class="row align-items-center mb-2">
+                    <div class="col-md-3 col-12">
+                        <h2 class="mb-0">Rewards</h2>
+                    </div>
+                    <div class="col-md-9 col-12">
+                        <div class="d-flex justify-content-end align-items-center flex-wrap" id="rewards_card">
+                            <div id="rewards_range-container" class="kv-drp-container">        <div class="form-control kv-drp-dropdown">
+            <i class="glyphicon glyphicon-calendar"></i>&nbsp;
+            <span class="range-value">14-Sep-2026 - 14-Oct-2026</span>
+            <span class="pull-right"><b class="caret"></b></span>
+        </div>
+        <input type="hidden" id="rewards_range" class="form-control form-control-lg" name="rewards_date_range" value="14-Sep-2026 - 14-Oct-2026" placeholder="Select range..." data-krajee-daterangepicker="daterangepicker_a2ccf828"></div>                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="card analytics-card mb-3 h-100">
+                            <div class="card-body px-3 pb-0">
+                                <p class="fs-2 mb-0">
+                                    Loyalty Points
+                                </p>
+                                <!-- <p class="fs-2 mb-3">
+                            <span class="analytics-icon header-icon"><span class="emoji-icon">✨</span></span>
+                            At a Glance
+                        </p> -->
+                                <div class="row">
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="loyaltyEarnedCount"></b></p>
+                                                <p class="title"># Earnings </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="loyaltyRedeemedCount"></b></p>
+                                                <p class="title"># Redemptions </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 d-none d-md-block">
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="pointsEarnedCount"></b></p>
+                                                <p class="title">Points Earned</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="pointsRedeemedCount"></b></p>
+                                                <p class="title">Points Redeemed</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="redemptionRateCount"></b></p>
+                                                <p class="title">Redemption Rate</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="pointsRevenueCount"></b></p>
+                                                <p class="title">Total Bill Value</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="pointsDiscountCount"></b></p>
+                                                <p class="title">Discount Value</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="pointsExpiredCount"></b></p>
+                                                <p class="title">Points Expired</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <a href="/loyalty-dashboard/index" target="_blank" class="px-3 btn btn-ghost-primary">View Details <i class="las la-long-arrow-alt-right fs-2"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex flex-column">
+                            <div class="card analytics-card mb-3">
+                                <div class="card-body px-3 pb-2">
+                                    <p class="fs-2 mb-0">
+                                        Coupons
+                                    </p>
+                                    <div class="row">
+                                        <div class="col-md-4 col-6">
+                                            <div class="card analytics-inner-card">
+                                                <div class="card-body px-3">
+                                                    <p class="display-7 mb-0"><b class="couponEarnedCount"></b></p>
+                                                    <p class="title"># Assigned</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 col-6">
+                                            <div class="card analytics-inner-card">
+                                                <div class="card-body px-3">
+                                                    <p class="display-7 mb-0"><b class="couponRedeemedCount"></b></p>
+                                                    <p class="title"># Redeemed</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 col-6">
+                                            <div class="card analytics-inner-card">
+                                                <div class="card-body px-3">
+                                                    <p class="display-7 mb-0 total-profiles"><b class="couponRedemptionRate"></b></p>
+                                                    <p class="title">Redemption Rate</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- <div class="col-md-4 col-6">
+                                            <div class="card analytics-inner-card">
+                                                <div class="card-body px-3">
+                                                    <p class="display-7 mb-0"><b class="couponRevenueCount"></b></p>
+                                                    <p class="title">On Purchase Value</p>
+                                                </div>
+                                            </div>
+                                        </div> -->
+                                        <div class="col-md-12">
+                                            <a href="/coupon-dashboard/index" target="_blank" class="px-3 btn btn-ghost-primary">View Details <i class="las la-long-arrow-alt-right fs-2"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card analytics-card">
+                                <div class="card-body px-3 pb-2">
+                                    <p class="fs-2 mb-0">
+                                        Referrals
+                                    </p>
+                                    <div class="row">
+                                        <div class="col-md-4 col-6">
+                                            <div class="card analytics-inner-card">
+                                                <div class="card-body px-3">
+                                                    <p class="display-7 mb-0"><b class="referralCount"></b></p>
+                                                    <p class="title">Referrals</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 col-6">
+                                            <div class="card analytics-inner-card">
+                                                <div class="card-body px-3">
+                                                    <p class="display-7 mb-0"><b class="referralDiscountCount"></b></p>
+                                                    <p class="title">Referral Discount</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 col-6">
+                                            <div class="card analytics-inner-card">
+                                                <div class="card-body px-3">
+                                                    <p class="display-7 mb-0"><b class="referralRevenueCount"></b></p>
+                                                    <p class="title">On Purchase Value</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <a href="/coupon-dashboard/index" target="_blank" class="px-3 btn btn-ghost-primary">View Details <i class="las la-long-arrow-alt-right fs-2"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="card analytics-card bg-cyan-lt mb-3 text-dark">
+            <div class="card-body pt-2">
+                <div class="row align-items-center mb-2">
+                    <div class="col-md-3 col-12">
+                        <h3 class="mb-0">Campaigns</h3>
+                    </div>
+                    <div class="col-md-9 col-12">
+                        <div class="d-flex justify-content-end align-items-center flex-wrap" id="campaigns_card">
+                            <div id="whatsapp_campaign_range-container" class="kv-drp-container">        <div class="form-control kv-drp-dropdown">
+            <i class="glyphicon glyphicon-calendar"></i>&nbsp;
+            <span class="range-value">14-Sep-2026 - 14-Oct-2026</span>
+            <span class="pull-right"><b class="caret"></b></span>
+        </div>
+        <input type="hidden" id="whatsapp_campaign_range" class="form-control form-control-lg" name="whatsapp_campaign_date_range" value="14-Sep-2026 - 14-Oct-2026" placeholder="Select range..." data-krajee-daterangepicker="daterangepicker_5814434e"></div>                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Campaign Section -->
+                    <div class="col-md-6 col-12">
+                        <div class="card analytics-card mb-3">
+                            <div class="card-body px-3">
+                                <p class="fs-2 mb-0">
+                                    Manual Campaigns
+                                </p>
+                                <div class="row">
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="campaignsCount"></b></p>
+                                                <p class="title">Campaigns</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="campaignMessagesSentCount"></b></p>
+                                                <p class="title">Messages Sent</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="campaignCostCount"></b></p>
+                                                <p class="title">Cost</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="campaignSalesCount"></b></p>
+                                                <p class="title">No. of sales</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="campaignRevenueCount"></b></p>
+                                                <p class="title">Revenue</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="campaignRoiCount"></b></p>
+                                                <p class="title">ROI</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <a href="/roi-explorer/index" target="_blank" class="px-3 btn btn-ghost-primary">View Details <i class="las la-long-arrow-alt-right fs-2"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Campaign Section End -->
+
+                    <!-- Marketing Automation Section -->
+                    <div class="col-md-6 col-12">
+                        <div class="card analytics-card mb-3">
+                            <div class="card-body">
+                                <p class="fs-2 mb-0">
+                                    Automatic Campaigns
+                                </p>
+                                <div class="row">
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="activeAutomationCount"></b></p>
+                                                <p class="title">Active Automation</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="automationMessageSentCount"></b></p>
+                                                <p class="title">Message Sent</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="automationSalesCount"></b></p>
+                                                <p class="title">No. of Sales</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="automationRevenueCount"></b></p>
+                                                <p class="title">Revenue</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="automationCostCount"></b></p>
+                                                <p class="title">Cost</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="card analytics-inner-card">
+                                            <div class="card-body px-3">
+                                                <p class="display-7 mb-0"><b class="automationRoiCount"></b></p>
+                                                <p class="title">ROI</p>
+                                            </div>
+                                        </div>
+                                    </div> -->
+                                    <div class="col-md-12">
+                                        <a href="/sms-ledger/index" target="_blank" class="px-3 btn btn-ghost-primary">View Details <i class="las la-long-arrow-alt-right fs-2"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Marketing Automation Section End -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const MINIMUM_SALES_WIDTH = 15; // minimum width percentage for bars
+    const MINIMUM_VISIT_WIDTH = 5;
+    const LOADER_SMALL = `<div class="loader" id="loader" style="width:20px !important;height:20px !important;margin: 0 !important;"></div>`;
+    let S_ID = 60646;
+    $(document).ready(function() {
+        let mIds = [];
+        // console.log ('here0',S_ID);
+        renderCoverage([S_ID], '', 'dashboard-summary', mIds);
+        salesDataReload();
+        customersDataReload();
+        rewardsReload();
+        CampaignsReload();
+        getCustomerVisit();
+        birthdayAnniversaryData();
+        // forallCustomercount();
+    });
+
+    function filterAnalytics(merchantIds) {
+        if (merchantIds.length == 0) {
+            S_ID = 60646;
+        } else {
+            S_ID = JSON.stringify(merchantIds);
+        }
+        salesDataReload();
+        customersDataReload();
+        rewardsReload();
+        CampaignsReload();
+        getCustomerVisit();
+        birthdayAnniversaryData();
+        // forallCustomercount();
+    }
+
+    function salesDataReload() {
+        let storeId = S_ID;
+        let dateRange = $('#sales_date_range').val();
+        let startDate = endDate = null;
+
+        if (dateRange && !(startDate && endDate)) {
+            let dates = dateRange.split(' - ');
+            startDate = dates[0];
+            endDate = dates[1];
+        }
+
+        // get the data and reload the chart
+        getSalesRevenueChart(storeId, startDate, endDate);
+
+        // getting the values of sales cards
+        getSalesSummaryData(storeId, startDate, endDate);
+    }
+
+    function customersDataReload() {}
+
+    function rewardsReload() {
+        let storeId = S_ID;
+        let dateRange = $('#rewards_range').val();
+        let startDate = endDate = null;
+
+        if (dateRange && !(startDate && endDate)) {
+            let dates = dateRange.split(' - ');
+            startDate = dates[0];
+            endDate = dates[1];
+        }
+        // get the data and reload the reward program
+        getRewards(storeId, startDate, endDate);
+    }
+
+    function CampaignsReload() {
+        let storeId = S_ID;
+        let dateRange = $('#whatsapp_campaign_range').val();
+        let startDate = endDate = null;
+
+        if (dateRange && !(startDate && endDate)) {
+            let dates = dateRange.split(' - ');
+            startDate = dates[0];
+            endDate = dates[1];
+        }
+        // get the data and reload the whatsapp campaign
+        CampaignsProgram(storeId, startDate, endDate);
+    }
+
+    function getRewards(storeId, startDate, endDate) {
+        // reward program counts
+        $('.loyaltyEarnedCount, .loyaltyRedeemedCount, .pointsEarnedCount, .pointsRedeemedCount, .pointsExpiredCount, .redemptionRateCount, .pointsDiscountCount, .pointsRevenueCount, .couponEarnedCount, .couponRedeemedCount, .couponRedemptionRate, .couponRevenueCount, .referralCount, .referralDiscountCount, .referralRevenueCount').html(LOADER_SMALL);
+        $.ajax({
+            type: "POST",
+            url: "/dashboard-summary/get-rewards",
+            data: {
+                startDate: startDate,
+                endDate: endDate,
+                storeId: storeId,
+            },
+            dataType: "json",
+            success: function(response) {
+                let rewardProgram = response.data;
+                $('.loyaltyEarnedCount').html(formatIndianNumber(rewardProgram.loyaltyEarned));
+                $('.loyaltyRedeemedCount').html(formatIndianNumber(rewardProgram.loyaltyRedeemed));
+                $('.pointsEarnedCount').html(formatIndianNumber(rewardProgram.pointsEarned));
+                $('.pointsRedeemedCount').html(formatIndianNumber(rewardProgram.pointsRedeemed));
+                $('.pointsExpiredCount').html(formatIndianNumber(rewardProgram.pointsExpired));
+                $('.redemptionRateCount').html(formatIndianNumber(rewardProgram.redemptionRate) + '%');
+                $('.pointsDiscountCount').html(formatIndianNumber(rewardProgram.pointsDiscount));
+                $('.pointsRevenueCount').html(formatIndianNumber(rewardProgram.revenueWithLoyalty));
+                $('.couponRedeemedCount').html(formatIndianNumber(rewardProgram.couponRedeemed));
+                $('.couponEarnedCount').html(formatIndianNumber(rewardProgram.couponEarned));
+                let redemptionRate = rewardProgram.couponEarned > 0 ? (rewardProgram.couponRedeemed / rewardProgram.couponEarned * 100).toFixed(0) : 0;
+                $('.couponRedemptionRate').html(formatIndianNumber(redemptionRate) + '%');
+                $('.couponRevenueCount').html(formatIndianNumber(rewardProgram.revenueWithCoupon));
+                $('.referralCount').html(formatIndianNumber(rewardProgram.referralCount));
+                $('.referralDiscountCount').html(formatIndianNumber(rewardProgram.referralDiscount));
+                $('.referralRevenueCount').html(formatIndianNumber(rewardProgram.revenueWithReferral));
+            }
+        })
+    }
+
+    //campaign counts
+    function CampaignsProgram(storeId, startDate, endDate) {
+        $('.campaignsCount, .campaignMessagesSentCount, .campaignCostCount, .campaignSalesCount, .campaignRevenueCount, .campaignRoiCount, .campaignRoiCount, .activeAutomationCount, .automationMessageSentCount, .automationCostCount, .automationSalesCount, .automationRevenueCount, .automationRoiCount').html(LOADER_SMALL);
+        $.ajax({
+            type: "POST",
+            url: "/dashboard-summary/get-campaigns",
+            data: {
+                startDate: startDate,
+                endDate: endDate,
+                storeId: storeId,
+            },
+            dataType: "json",
+            success: function(response) {
+                let campaign = response.data;
+                campaign.campaignRoiCount = campaign.campaignRoiCount.toFixed(0);
+                $('.campaignsCount').html(formatIndianNumber(campaign.campaignsCount));
+                $('.campaignMessagesSentCount').html(formatIndianNumber(campaign.campaignMessagesSentCount));
+                $('.campaignCostCount').html(formatIndianNumber(campaign.campaignCostCount));
+                $('.campaignSalesCount').html(formatIndianNumber(campaign.campaignSalesCount));
+                $('.campaignRevenueCount').html(formatIndianNumber(campaign.campaignRevenueCount));
+                $('.campaignRoiCount').html(formatIndianNumber(campaign.campaignRoiCount) + '%');
+                $('.activeAutomationCount').html(formatIndianNumber(campaign.activeAutomationCount));
+                $('.automationMessageSentCount').html(formatIndianNumber(campaign.automationMessageSentCount));
+                // $('.automationCostCount').html(formatIndianNumber(campaign.automationCostCount));
+                // $('.automationSalesCount').html(formatIndianNumber(campaign.automationSalesCount));
+                // $('.automationRevenueCount').html(formatIndianNumber(campaign.automationRevenueCount));
+                // $('.automationRoiCount').html(formatIndianNumber(campaign.automationRoiCount) + '%');
+            }
+        })
+    }
+
+    function getCustomerVisit() {
+        $('.allTotalCustomerCount, .activeIn3MonthsCount, .activeIn3To6MonthsCount, .activeIn6To12MonthsCount, .activeIn12PlusMonthsCount, .visit-count-1, .visit-count-2, .visit-count-3, .visit-count-4, .visit-count-5, .visit-count-10').html(LOADER_SMALL);
+        $.ajax({
+            type: "POST",
+            url: "/dashboard-summary/get-customers-data",
+            data: {
+                storeId: S_ID,
+            },
+            dataType: "json",
+            success: function(response) {
+                let activeCustomer = response.data.lastBillDateCount;
+                let totalCustomer = 0;
+                totalCustomer = activeCustomer['total'];
+                $('.activeIn3MonthsCount').html(formatIndianNumber(activeCustomer['3 Months']));
+                $('.activeIn3To6MonthsCount').html(formatIndianNumber(activeCustomer['6 Months']));
+                $('.activeIn6To12MonthsCount').html(formatIndianNumber(activeCustomer['12 Months']));
+                $('.activeIn12PlusMonthsCount').html(formatIndianNumber(activeCustomer['12+ Months']));
+
+                $('.allTotalCustomerCount').html(formatIndianNumber(totalCustomer));
+                $('.allProfileCount').html(formatIndianNumber(response.data.totalProfiles));
+
+                const visitors = response.data.visitorsCount;
+                $('.visit-count-1').html(formatIndianNumber(visitors['1 Time']));
+                $('.visit-count-2').html(formatIndianNumber(visitors['2 Times']));
+                $('.visit-count-3').html(formatIndianNumber(visitors['3 Times']));
+                $('.visit-count-4').html(formatIndianNumber(visitors['4 Times']));
+                $('.visit-count-5').html(formatIndianNumber(visitors['5+ Times']));
+                $('.visit-count-10').html(formatIndianNumber(visitors['10+ Times']));
+
+                // let visit1 = (visitors['1 Time'] / (totalCustomer ? totalCustomer : 1) * 100).toFixed(2);
+                // visit1 = visit1 > MINIMUM_VISIT_WIDTH ? visit1 : (visit1 > 0 ? MINIMUM_VISIT_WIDTH : 0);
+                // $('.visit-bar-1').css('width', visit1 + '%');
+                let biggestCount = Math.max(
+                    visitors['2 Times'],
+                    visitors['3 Times'],
+                    visitors['4 Times'],
+                    visitors['5+ Times'],
+                    visitors['10+ Times']
+                );
+
+                let visit2 = (visitors['2 Times'] / (biggestCount ? biggestCount : 1) * 100).toFixed(2);
+                visit2 = visit2 > MINIMUM_VISIT_WIDTH ? visit2 : (visit2 > 0 ? MINIMUM_VISIT_WIDTH : 0);
+                $('.visit-bar-2').css('width', visit2 + '%');
+
+                let visit3 = (visitors['3 Times'] / (biggestCount ? biggestCount : 1) * 100).toFixed(2);
+                visit3 = visit3 > MINIMUM_VISIT_WIDTH ? visit3 : (visit3 > 0 ? MINIMUM_VISIT_WIDTH : 0);
+                $('.visit-bar-3').css('width', visit3 + '%');
+
+                let visit4 = (visitors['4 Times'] / (biggestCount ? biggestCount : 1) * 100).toFixed(2);
+                visit4 = visit4 > MINIMUM_VISIT_WIDTH ? visit4 : (visit4 > 0 ? MINIMUM_VISIT_WIDTH : 0);
+                $('.visit-bar-4').css('width', visit4 + '%');
+
+                let visit5 = (visitors['5+ Times'] / (biggestCount ? biggestCount : 1) * 100).toFixed(2);
+                visit5 = visit5 > MINIMUM_VISIT_WIDTH ? visit5 : (visit5 > 0 ? MINIMUM_VISIT_WIDTH : 0);
+                $('.visit-bar-5').css('width', visit5 + '%');
+
+                let visit10 = (visitors['10+ Times'] / (biggestCount ? biggestCount : 1) * 100).toFixed(2);
+                visit10 = visit10 > MINIMUM_VISIT_WIDTH ? visit10 : (visit10 > 0 ? MINIMUM_VISIT_WIDTH : 0);
+                $('.visit-bar-10').css('width', visit10 + '%');
+
+                let existingInactiveChart = echarts.getInstanceByDom(document.getElementById('activeCustomerChart'));
+                if (existingInactiveChart) {
+                    existingInactiveChart.dispose();
+                }
+
+                if (response.data.lastBillDateCount != []) {
+                    const activeData = response.data.lastBillDateCount;
+                    inactiveCustomerDonutChart(
+                        'activeCustomerChart',
+                        '',
+                        activeData,
+                        ['#22d161', '#b048f9', '#6209fe', '#f94848']
+                    );
+                } else {
+                    console.log("No active customer data found or all values are zero");
+                }
+            }
+        });
+    }
+
+    function birthdayAnniversaryData() {
+        $.ajax({
+            type: "POST",
+            url: "/dashboard/get-birthday-anniversary-count",
+            data: {
+                storeId: S_ID,
+            },
+            dataType: "json",
+            success: function(response) {
+                let birthdayAnniversary = response.data;
+                $('.birthdayCount').html(formatIndianNumber(birthdayAnniversary.birthdayCount));
+                $('.anniversaryCount').html(formatIndianNumber(birthdayAnniversary.anniversaryCount));
+            }
+        });
+    }
+
+
+    function pageRedirection(page, filterType, filterValue, dateRangeId) {
+        let url = '';
+        if (dateRangeId) {
+
+            // date_range=18-Nov-2025 - 18-Dec-2025
+            let dateRange = $('#' + dateRangeId).val();
+            let startDate = endDate = null;
+            if (dateRange) {
+                let dates = dateRange.split(' - ');
+                startDate = dates[0];
+                endDate = dates[1];
+            }
+            url = `/${page}/index?startDate=${startDate}&endDate=${endDate}`;
+        }
+
+        if (url.includes('?')) {
+            url += `&${filterType}=${filterValue}`;
+        } else {
+            url += `?${filterType}=${filterValue}`;
+        }
+
+        window.open(url, '_blank');
+    }
+</script>            </div>
+
+
+        </div>
+    </div>
+    <footer class="mt-auto">
+    <div class="page-wrapper-bottom">
+        <div class="page-footer text-center text-muted mb-3" style="background-color: var(--tblr-body-bg);">
+            <div><a href="https://billfree.in" class="text-muted" title="BillFree Labs" target="">BillFree Labs</a> Pvt Ltd, 2026 &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; <a href="mailto:contact@billfree.in?subject=Billfree-backend query" class="text-muted"><i class="las la-envelope"></i> contact@billfree.in</a> &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; <a class="text-muted" href="tel:+01204207081"><i class="las la-phone"></i> 0120-4207081</a></div>
+            <!-- <div style='float:right;'><a  href="https://bit.ly/BilFree">BillFree</a></div> -->
+        </div>
+    </div>
+</footer>    <script src="/assets/d7c67dda/yii.js?v=1656451257"></script>
+<script src="/resources/dashboard/js/apachechart.min.js?v=1765634031"></script>
+<script src="/assets/4101ce43/js/daterangepicker.min.js?v=1691824355"></script>
+<script src="/assets/5fc1f4db/js/kv-widgets.min.js?v=1656451282"></script>
+<script src="/resources/dashboard/js/tabler.min.js?v=1738999962"></script>
+<script src="/resources/js/constants.js?v=1746774834"></script>
+<script src="/resources/js/currency-format.js?v=1790566300"></script>
+<script src="/resources/dashboard/libs/tom-select/dist/js/tom-select.base.min.js?v=1738999962"></script>
+<script src="/resources/dashboard/libs/vanillajs-datepicker/dist/js/datepicker.min.js?v=1738999962"></script>
+<script src="/resources/js/billfreeMerchant.js?v=1773472590"></script>
+<script src="/resources/js/billfree.js?v=1773472590"></script>
+<script src="/resources/qfree-backend/js/script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/whatsapp-script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/rcs-script.js?v=1759128504"></script>
+<script src="/resources/dashboard/js/campaign-script.js?v=1759128504"></script>
+<script src="/resources/dashboard/js/chartInit.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/crypto-js.min.js?v=1738999962"></script>
+<script src="/resources/plugins/country-selector/intlTelInput.js?v=1746707187"></script>
+<script src="/resources/dashboard/js/redeem-rewards.js?v=1790566300"></script>
+<script>jQuery(function ($) {
+jQuery("#sales_date_range").off('change.kvdrp').on('change.kvdrp', function() {
+    var drp = jQuery("#sales_date_range-container").find('.kv-drp-dropdown').data('daterangepicker'), fm, to;
+    if ($(this).val() || !drp) {
+        return;
+    }
+    fm = moment().startOf('day').format('DD-MMM-YYYY') || '';
+    to = moment().format('DD-MMM-YYYY') || '';
+    drp.setStartDate(fm);
+    drp.setEndDate(to);
+    
+});
+if (jQuery('#sales_date_range').data('daterangepicker')) { jQuery('#sales_date_range').daterangepicker('destroy'); }
+jQuery("#sales_date_range-container").find('.kv-drp-dropdown').daterangepicker(daterangepicker_098ea299, function(start,end,label){var val=start.format('DD-MMM-YYYY') + ' - ' + end.format('DD-MMM-YYYY');jQuery("#sales_date_range-container").find('.kv-drp-dropdown').find('.range-value').html(val);jQuery("#sales_date_range").val(val).trigger('change');});
+jQuery("#sales_date_range-container").find('.kv-drp-dropdown').on('apply.daterangepicker', salesDataReload);
+
+jQuery("#rewards_range").off('change.kvdrp').on('change.kvdrp', function() {
+    var drp = jQuery("#rewards_range-container").find('.kv-drp-dropdown').data('daterangepicker'), fm, to;
+    if ($(this).val() || !drp) {
+        return;
+    }
+    fm = moment().startOf('day').format('DD-MMM-YYYY') || '';
+    to = moment().format('DD-MMM-YYYY') || '';
+    drp.setStartDate(fm);
+    drp.setEndDate(to);
+    
+});
+if (jQuery('#rewards_range').data('daterangepicker')) { jQuery('#rewards_range').daterangepicker('destroy'); }
+jQuery("#rewards_range-container").find('.kv-drp-dropdown').daterangepicker(daterangepicker_a2ccf828, function(start,end,label){var val=start.format('DD-MMM-YYYY') + ' - ' + end.format('DD-MMM-YYYY');jQuery("#rewards_range-container").find('.kv-drp-dropdown').find('.range-value').html(val);jQuery("#rewards_range").val(val).trigger('change');});
+jQuery("#rewards_range-container").find('.kv-drp-dropdown').on('apply.daterangepicker', rewardsReload);
+
+jQuery("#whatsapp_campaign_range").off('change.kvdrp').on('change.kvdrp', function() {
+    var drp = jQuery("#whatsapp_campaign_range-container").find('.kv-drp-dropdown').data('daterangepicker'), fm, to;
+    if ($(this).val() || !drp) {
+        return;
+    }
+    fm = moment().startOf('day').format('DD-MMM-YYYY') || '';
+    to = moment().format('DD-MMM-YYYY') || '';
+    drp.setStartDate(fm);
+    drp.setEndDate(to);
+    
+});
+if (jQuery('#whatsapp_campaign_range').data('daterangepicker')) { jQuery('#whatsapp_campaign_range').daterangepicker('destroy'); }
+jQuery("#whatsapp_campaign_range-container").find('.kv-drp-dropdown').daterangepicker(daterangepicker_5814434e, function(start,end,label){var val=start.format('DD-MMM-YYYY') + ' - ' + end.format('DD-MMM-YYYY');jQuery("#whatsapp_campaign_range-container").find('.kv-drp-dropdown').find('.range-value').html(val);jQuery("#whatsapp_campaign_range").val(val).trigger('change');});
+jQuery("#whatsapp_campaign_range-container").find('.kv-drp-dropdown').on('apply.daterangepicker', CampaignsReload);
+
+});</script>
+    <!-- Modal HTML for Bootstrap 5 -->
+    <div id="accessDeniedModal" class="modal modal-blur fade" tabindex="-1" aria-labelledby="accessDeniedModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="accessDeniedModalLabel">Access Denied</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex flex-column align-items-center justify-content-center">
+                        <img class="w-25" src="/resources/images/access_denied.png" alt="img">
+                        <div class="mt-3">
+                            <p class="fs-3" id="">You do not have access to the requested feature.</p>
+                            <p class="fs-3" id="accessDeniedMessage">Please buy a subscription to use this feature.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-primary" href="/account/index?tab=subscriptions"
+                        style="margin-top: 14px;">Buy Subscription</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+<script>
+    function handleClick() {
+        $('#info').hide();
+    }
+</script>
+
+<!-- PWA JavaScript -->
+<script src="/js/pwa-app.js"></script>
+

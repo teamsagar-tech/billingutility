@@ -1,0 +1,481 @@
+
+<script type="text/javascript">
+    var BASEURL = '';
+    var AUTH_TOKEN = 'a324e1299ed6e9b781b89bb1506d8a87';
+    var CURRENCY_SYMBOL = "\u20b9";
+    var CURRENCY_PROFILE = {"symbol":"\u20b9","code":"INR","display":"symbol","grouping":"indian","scale":"indian","decimals":2,"name":"Rupee","namePlural":"Rupees"};
+</script>
+
+
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <link rel="shortcut icon" href="https://billfree-bills.s3.us-west-2.amazonaws.com/public/billfree_logo_blue_icon_only_4x.png" type="image/x-icon" />
+    <link rel="stylesheet" href="/resources/css/layout.css" />
+    <link rel="stylesheet" href="/resources/personal-bills/style.css" />
+    <title>BillFree</title>
+    <meta name="Billfree" content="Never lose your bills">
+<link href="/assets/9447997a/css/bootstrap.css?v=1691821954" rel="stylesheet">
+<link href="/resources/css/font-awesome.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/dashboard/css/tabler.min.css?v=1765634031" rel="stylesheet">
+<link href="/resources/dashboard/css/tabler-vendors.min.css?v=1761449473" rel="stylesheet">
+<link href="/resources/plugins/line-awesome/css/line-awesome.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/plugins/country-selector/intlTelInput.css?v=1746774834" rel="stylesheet">
+<link href="/resources/dashboard/libs/vanillajs-datepicker/dist/css/datepicker-bs5.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/dashboard/css/styles.css?v=1784526184" rel="stylesheet">
+<script src="/assets/5bab33a3/jquery.js?v=1691821954"></script></head>
+
+
+<body class="layout-fluid p-0">
+
+        <div class="page" style="max-width: 480px; margin: auto; height: 100%;">
+            
+<!-- Header -->
+<aside class="layout-fluid">
+    <header class="navbar navbar-expand-md navbar-light justify-content-center p-0">
+        <div class="row flex-row container-xl">
+            <div class="col-6 navbar-brand navbar-brand-autodark align-baseline p-0">
+                <a class="navbar-brandname" href="/gobillfree">
+                    <img src="https://billfree-bills.s3.us-west-2.amazonaws.com/public/billfree_logo_blue_icon_only_4x.png" alt="BillFree Labs" class="m-2" width="40">
+                </a>
+            </div>
+            <div class="col-6 navbar-nav d-flex flex-row p-2 pb-profile align-items-center justify-content-end">
+                <a class"btn" href="/site/contact" target="_blank" rel="noreferrer">
+                    <div class="d-flex flex-row gap-2 align-items-center text-dark">
+                        <i class="las la-phone fs-3"></i>
+                        <span>Contact</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </header>
+</aside>    
+        <div class="page-wrapper">
+            <div class="page-body mt-0">
+                <div class="pb-content mb-5">
+
+    <!-- List of Bills -->
+    <div class="text-center mt-2" id="listing">
+        <center><span class="loader" id="loader"></span>Loading your bills...</center>
+    </div>
+    <div>
+        <center><span class="loader d-none" id="p-loader"></span></center>
+    </div>
+
+    <!-- Google invite Button -->
+    <div class="google-invite-button px-3">
+        <a class="btn btn-github btn-icon p-2" style="border-radius: 50%; background: #ffffff; overflow: hidden;" data-bs-toggle="offcanvas" href="#offcanvasGoogle" role="button" aria-controls="offcanvasGoogle">
+            <img src="/resources/images/ReviewUs.png" style="width: 60px;" alt="">
+        </a>
+    </div>
+
+    <!-- Search-Button -->
+    <div class="search-button px-3">
+        <a class="btn btn-github btn-icon p-3" style="border-radius: 50%; background: #1d273b;" data-bs-toggle="offcanvas" href="#offcanvasStart" role="button" aria-controls="offcanvasStart">
+            <i class="las la-search fs-2"></i>
+        </a>
+    </div>
+            <!-- Footer -->
+        <aside class="layout-fluid pb-footer">
+
+            <header class="navbar navbar-expand-md navbar-dark justify-content-center p-0">
+                <div class="row flex-row container-xl">
+                    <div class="col-6 navbar-nav d-flex flex-row p-2 pb-profile">
+                        <a class="btn" href="#home" id="homeTab">
+                            <div class="d-flex flex-row gap-2 align-items-center text-light">
+                                <i class="las la-receipt fs-2"></i>
+                                <span>My Bills</span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-6 navbar-nav d-flex flex-row p-2 pb-profile justify-content-end">
+                        <a class="btn" data-bs-toggle="offcanvas" href="#offcanvasEnd" role="button" aria-controls="offcanvasEnd">
+                            <div class="d-flex flex-row gap-2 align-items-center text-light">
+                                <i class="las la-user-circle fs-1"></i>
+                                <span>Profile</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </aside>
+
+        <!-- Profile Offcanvas -->
+        <div class="offcanvas offcanvas-end w-100" tabindex="-1" id="offcanvasEnd" aria-labelledby="offcanvasEndLabel">
+            <div class="offcanvas-header p-3">
+                <h2 class="offcanvas-title" id="offcanvasEndLabel">My Profile</h2>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <div class="card">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item"><b>Name</b><br> Sagar</div>
+                        <div class="list-group-item">
+                            <b>Email ID</b><br>
+                            <div class="d-flex justify-content-between">
+                                sagarmohite2808@gmail.com                                                            </div>
+                        </div>
+                        <div class="list-group-item"><b>Phone Number</b><br>
+                            <div class="d-flex justify-content-between">
+                                +918857808284                                                                    <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" data-name="Layer 1" viewBox="0 0 122.88 116.87" style="width:1rem;">
+                                        <defs>
+                                            <style>
+                                                .cls-1 {
+                                                    fill: #10a64a;
+                                                    fill-rule: evenodd;
+                                                }
+
+                                                .cls-2 {
+                                                    fill: #fff;
+                                                }
+                                            </style>
+                                        </defs>
+                                        <title>verified-symbol</title>
+                                        <polygon class="cls-1" points="61.37 8.24 80.43 0 90.88 17.79 111.15 22.32 109.15 42.85 122.88 58.43 109.2 73.87 111.15 94.55 91 99 80.43 116.87 61.51 108.62 42.45 116.87 32 99.08 11.73 94.55 13.73 74.01 0 58.43 13.68 42.99 11.73 22.32 31.88 17.87 42.45 0 61.37 8.24 61.37 8.24" />
+                                        <path class="cls-2" d="M37.92,65c-6.07-6.53,3.25-16.26,10-10.1,2.38,2.17,5.84,5.34,8.24,7.49L74.66,39.66C81.1,33,91.27,42.78,84.91,49.48L61.67,77.2a7.13,7.13,0,0,1-9.9.44C47.83,73.89,42.05,68.5,37.92,65Z" />
+                                    </svg>
+                                                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br>
+                <div class="card w-33 bg-danger">
+                    <div class="card-header card-header-light justify-content-center p-2">
+                        <h3 class="card-title">
+                            <form class="mb-0" action="/site/logout" method="post"><button type="submit" class="btn logout w-100 p-0 bg-transparent gap-1"><div class="card-title text-light"><i class="las la-sign-out-alt mr-2" style="font: size 1.2rem;"></i></div><div class="card-title text-light"><p class="mb-0 mt-0">Logout</p></div></button></form>                        </h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    
+    <!-- Google Offcanvas -->
+    <div class="offcanvas offcanvas-end w-100" tabindex="-1" id="offcanvasGoogle" aria-labelledby="offcanvasGoogleLabel">
+        <div class="offcanvas-body">
+            <button type="button" style="display:block; margin-left: auto;" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            <div class="text-center">
+                <img src="/resources/images/ReviewUs.png" style="width: 195px;" alt="">
+            </div>
+            <br>
+            <!-- Customer Phone -->
+            <div class="mb-3">
+                <label class="form-label">Customer Phone Number <small>(10 digit number)</small></label>
+                <input type="number" class="form-control country-code" id="cust_phone" name="cust_phone" placeholder="Customer Phone Number">
+                                <input type="hidden" name="dial_code" id="dial_code-1" value="91">
+            </div>
+
+            <button type="submit" class="btn btn-primary ms-auto" onclick="SendReviewLink(this);">Send Review Link</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.getElementById('homeTab').addEventListener('click', function(e) {
+        e.preventDefault(); // Prevent the default link behavior
+        location.reload(); // Reload the page
+    });
+
+    // Global variables to track pagination state
+    let lastBillDate = null;
+    let hasMoreBills = true;
+    let isLoading = false;
+
+    $(document).ready(function() {
+        loadUserBills();
+    });
+
+    function loadUserBills() {
+        $.ajax({
+            url: '/api/filter-list',
+            type: 'POST',
+            data: {
+                mode: 'fetch',
+                auth_token: AUTH_TOKEN,
+                // 'BfBills[id]': 0,
+                // bill_id: 0
+            },
+            success: function(response) {
+                $('#loader').hide();
+                response = JSON.parse(response);
+                if (response.status) {
+                    $('#listing').html(response.data);
+                    // Extract lastBillDate from response if available
+                    if (response.lastBillDate) {
+                        lastBillDate = response.lastBillDate;
+                    } else {
+                        hasMoreBills = false;
+                    }
+                } else {
+                    $('#listing').html(response.message);
+                    hasMoreBills = false;
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log(error);
+            },
+            complete: function() {
+                $('#loader').hide();
+            }
+        });
+    }
+
+    function SendReviewLink(elem) {
+        let custPhone = $('#cust_phone').val();
+        let dialCode = $('#dial_code-1').val();
+
+        if (custPhone.length < 8) {
+            alert('Please enter a valid phone number');
+            return;
+        }
+
+        $(elem).html('sending...');
+        $(elem).prop('disabled', true);
+
+        $.ajax({
+            url: '/api/send-intro',
+            type: 'POST',
+            data: {
+                cust_phone: custPhone,
+                dial_code: dialCode,
+                auth_token: AUTH_TOKEN
+            },
+            success: function(response) {
+                response = JSON.parse(response);
+                if (!response.error) {
+                    alert('Review Link Sent to ' + custPhone);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log(error);
+            },
+            complete: function() {
+                $(elem).html('Send Review Link');
+                $(elem).prop('disabled', false);
+            }
+        });
+    }
+
+    $('body').on('scroll', function() {
+        let scrollTop = $(this).scrollTop();
+        let windowHeight = $(this).innerHeight();
+        let docHeight = $(this)[0].scrollHeight;
+        if (!isLoading && hasMoreBills && scrollTop + windowHeight >= docHeight - 200) {
+            isLoading = true;
+            loadMoreBills();
+        }
+    });
+
+
+    function loadMoreBills() {
+        $('#p-loader').removeClass('d-none');
+        if (!lastBillDate || !hasMoreBills) {
+            console.log("No more bills to load");
+            $('#p-loader').addClass('d-none');
+            isLoading = false;
+            return;
+        }
+
+        $.ajax({
+            url: '/api/filter-list',
+            method: 'POST',
+            data: {
+                mode: 'fetch',
+                auth_token: AUTH_TOKEN,
+                lastBillDate: lastBillDate
+            },
+            success: function(response) {
+                response = JSON.parse(response);
+                if (response.status) {
+                    $('#p-loader').addClass('d-none');
+                    const newData = response.data;
+
+                    // Check if we received any new bills
+                    if (!newData || newData.trim() === '' || newData.includes('No Bill found')) {
+                        hasMoreBills = false;
+                        return;
+                    }
+                    $('#listing').append(newData);
+
+                    // Update lastBillDate for next pagination
+                    if (response.lastBillDate) {
+                        lastBillDate = response.lastBillDate;
+                    } else {
+                        // No lastBillDate means we've reached the end
+                        hasMoreBills = false;
+                    }
+
+                    // Additional check: if we got less than expected results, likely end of data
+                    // const billElements = $(newData).find('.bill-item, .list-group-item, [data-bill]');
+                    // if (billElements.length < 20) { 
+                    //     hasMoreBills = false;
+                    // }
+
+                } else {
+                    // No more bills found
+                    hasMoreBills = false;
+                    $('#p-loader').addClass('d-none');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log(error);
+            },
+            complete: function() {
+                $('#p-loader').addClass('d-none');
+                isLoading = false;
+            }
+        });
+
+    }
+</script>                
+<div class="pb-filter">
+    <div class="offcanvas offcanvas-start w-100 overflow-auto" tabindex="-1" id="offcanvasStart" aria-labelledby="offcanvasStartLabel">
+        <div class="offcanvas-header" style="height:56.8px">
+            <button type=" button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+
+            <!-- Amount -->
+            <div class="mb-3">
+                <label class="form-label">Amount</label>
+                <input type="number" class="form-control" id="billAmount" name="Total Bill Amount" placeholder="Enter the amount">
+            </div>
+
+            <!-- Start Date -->
+            <div class="mb-3">
+                <label class="form-label" for="billDate">From</label>
+                <div class="input-icon">
+                    <input class="form-control lite-picker w-100" placeholder="Search from" id="startDate" name="Check from" title="from" autocomplete="off" />
+                    <span class="input-icon-addon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M4 5m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" />
+                            <path d="M16 3l0 4" />
+                            <path d="M8 3l0 4" />
+                            <path d="M4 11l16 0" />
+                            <path d="M11 15l1 0" />
+                            <path d="M12 15l0 3" />
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+            <!--End Date -->
+            <div class="mb-3">
+                <label class="form-label" for="billDate">To</label>
+                <div class="input-icon">
+                    <input class="form-control lite-picker w-100" placeholder="Search till" id="endDate" name="Check till" title="till" autocomplete="off" />
+                    <span class="input-icon-addon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M4 5m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" />
+                            <path d="M16 3l0 4" />
+                            <path d="M8 3l0 4" />
+                            <path d="M4 11l16 0" />
+                            <path d="M11 15l1 0" />
+                            <path d="M12 15l0 3" />
+                        </svg>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Category -->
+            <!-- <div class="mb-3">
+                <div class="form-label">Category</div>
+            </div> -->
+            <select id="categoryFilter" class="form-select tom-select d-none" multiple>
+            </select>
+
+            <!-- Company -->
+            <div class="mb-3">
+                <div class="form-label">Company</div>
+                <select id="merchantFilter" class="form-select tom-select" multiple>
+                                            <option value="Bill Free">Bill Free</option>
+                                            <option value="BillFree">BillFree</option>
+                                            <option value="SAINATH WHOLESALE TEXTILE MARKET">SAINATH WHOLESALE TEXTILE MARKET</option>
+                                            <option value="V R Pawar Sarees  Chatti Galli |">V R Pawar Sarees  Chatti Galli |</option>
+                                            <option value="V R Pawar Sarees  Chatti Galli |">V R Pawar Sarees  Chatti Galli |</option>
+                                    </select>
+            </div>
+
+
+            <div class="d-flex">
+                <button type="submit" id="fetchmybills" class="btn btn-primary ms-auto" data-bs-dismiss="offcanvas">Fetch Bills</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#fetchmybills').click(function() {
+            $('#listing').html('<center><span class="loader" id="loader"></span>Filtering your bills...</center>');
+            filterBills();
+        });
+    });
+
+    function filterBills() {
+        var catFilter = Array.from(document.getElementById('categoryFilter').selectedOptions, option => option.value);
+        var merchFilter = Array.from(document.getElementById('merchantFilter').selectedOptions, option => option.value);
+        var dataToFilter = {
+            start_date: $('#startDate').val(),
+            end_date: $('#endDate').val(),
+            categories: catFilter,
+            merchants: merchFilter,
+            amount: $('#billAmount').val(),
+            auth_token: AUTH_TOKEN,
+            mode: 'fetch',
+            // 'BfBills[id]': 0,
+            // bill_id: 0,
+        }
+        $.ajax({
+            url: '/api/filter-list',
+            type: 'POST',
+            data: dataToFilter,
+
+            success: function(response) {
+                $('#loader').hide();
+                response = JSON.parse(response);
+                if (response.status) {
+                    $('#listing').html(response.data);
+                    $('body').css('overflow', 'hidden');
+                    $('#listing').css('height', '86vh').css('padding-bottom', '1rem').css('overflow-y', 'auto');
+                } else {
+                    $('#listing').html(response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log(error);
+            },
+            complete: function() {
+                $('#loader').hide(); // Hide the loader after the AJAX request completes
+            }
+        });
+    }
+</script>            </div>
+        </div>
+    </div>
+
+    <script src="/assets/d7c67dda/yii.js?v=1656451257"></script>
+<script src="/resources/dashboard/js/tabler.min.js?v=1738999962"></script>
+<script src="/resources/js/constants.js?v=1746774834"></script>
+<script src="/resources/js/currency-format.js?v=1790566300"></script>
+<script src="/resources/dashboard/libs/tom-select/dist/js/tom-select.base.min.js?v=1738999962"></script>
+<script src="/resources/dashboard/libs/vanillajs-datepicker/dist/js/datepicker.min.js?v=1738999962"></script>
+<script src="/resources/js/billfreeMerchant.js?v=1773472590"></script>
+<script src="/resources/js/billfree.js?v=1773472590"></script>
+<script src="/resources/qfree-backend/js/script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/whatsapp-script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/rcs-script.js?v=1759128504"></script>
+<script src="/resources/dashboard/js/campaign-script.js?v=1759128504"></script>
+<script src="/resources/dashboard/js/chartInit.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/crypto-js.min.js?v=1738999962"></script>
+<script src="/resources/plugins/country-selector/intlTelInput.js?v=1746707187"></script>
+<script src="/resources/dashboard/js/redeem-rewards.js?v=1790566300"></script></body>
+
+</html>

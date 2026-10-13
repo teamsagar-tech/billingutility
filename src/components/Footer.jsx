@@ -59,8 +59,8 @@ const Footer = () => {
             © 2026 RetailBill Labs. All Rights Reserved.
           </p>
           <div style={{ display: 'flex', gap: '1.5rem' }}>
-            <a href="#" style={{ color: '#64748b', fontSize: '0.875rem' }}>Terms & Conditions</a>
-            <a href="#" style={{ color: '#64748b', fontSize: '0.875rem' }}>Privacy Policy</a>
+            <Link to="/terms-and-conditions" style={{ color: '#94a3b8', fontSize: '0.875rem', textDecoration: 'none' }}>Terms &amp; Conditions</Link>
+            <Link to="/privacy-policy" style={{ color: '#94a3b8', fontSize: '0.875rem', textDecoration: 'none' }}>Privacy Policy</Link>
           </div>
         </div>
       </div>

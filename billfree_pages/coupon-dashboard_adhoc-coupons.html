@@ -1,0 +1,4238 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#19222aff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="BillFree">
+    <meta name="msapplication-TileColor" content="#19222aff">
+    <!-- Favicon and PWA Icons -->
+    <link rel="apple-touch-icon" href="/img/icon-192.png">
+    <link rel="manifest" href="/manifest.json">
+
+    <link rel="shortcut icon" href="https://billfree-bills.s3.us-west-2.amazonaws.com/public/billfree_logo_blue_icon_only_4x.png" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;700&display=swap" rel="stylesheet">
+    <title>Adhoc Coupons</title>
+    <script type="text/javascript">
+        var BASEURL = '';
+        var AUTH_TOKEN = 'a324e1299ed6e9b781b89bb1506d8a87';
+        var CURRENCY_SYMBOL = "\u20b9";
+        var CURRENCY_PROFILE = {"symbol":"\u20b9","code":"INR","display":"symbol","grouping":"indian","scale":"indian","decimals":2,"name":"Rupee","namePlural":"Rupees"};
+        // Merchant's phone dial code settings (bf_merchantinfo.default_dial_code /
+        // allowed_dial_code) — drives initDialCodeInput() in dashboard/js/script.js.
+        var DEFAULT_DIAL_CODE = "91";
+        var ALLOWED_DIAL_CODES = ["91"];
+    </script>
+    <link href="/assets/9447997a/css/bootstrap.css?v=1691821954" rel="stylesheet">
+<link href="/resources/css/font-awesome.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/dashboard/css/tabler.min.css?v=1765634031" rel="stylesheet">
+<link href="/resources/dashboard/css/tabler-vendors.min.css?v=1761449473" rel="stylesheet">
+<link href="/resources/plugins/line-awesome/css/line-awesome.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/plugins/country-selector/intlTelInput.css?v=1746774834" rel="stylesheet">
+<link href="/resources/dashboard/libs/vanillajs-datepicker/dist/css/datepicker-bs5.min.css?v=1738999962" rel="stylesheet">
+<link href="/resources/dashboard/css/styles.css?v=1784526184" rel="stylesheet">
+<link href="/assets/9135b6b9/ui/trumbowyg.css?v=1691822137" rel="stylesheet">
+<link href="/assets/eb112df/css/select2.min.css?v=1656451284" rel="stylesheet">
+<link href="/assets/eb112df/css/select2-addl.min.css?v=1656451284" rel="stylesheet">
+<link href="/assets/eb112df/css/select2-krajee.min.css?v=1656451284" rel="stylesheet">
+<link href="/assets/5fc1f4db/css/kv-widgets.min.css?v=1656451282" rel="stylesheet">
+<link href="/assets/5c82dce2/css/activeform.min.css?v=1715677042" rel="stylesheet">
+<link href="/assets/36646495/css/fileinput.min.css?v=1656451282" rel="stylesheet">
+<script src="/assets/5bab33a3/jquery.js?v=1691821954"></script>
+<script>var s2options_d6851687 = {"themeCss":".select2-container--krajee","sizeCss":"","doReset":true,"doToggle":false,"doOrder":false};
+window.select2_7fade4b7 = {"tags":false,"tokenSeparators":[","],"maximumInputLength":255,"theme":"krajee","width":"100%","placeholder":"Select Customers ...","language":"en-US"};
+
+window.fileinput_f1b116c5 = {"showUpload":false,"language":"en","purifyHtml":true};
+</script></head>
+
+<body class="layout-fluid d-flex flex-column">
+    
+    <div class="page">
+        
+<style>
+    .navbar {
+        overflow-y: auto;
+    }
+
+    .demo-dashboard-link {
+        display: block;
+        width: 100%;
+        padding: 0;
+        border-radius: 20px;
+        text-decoration: none;
+    }
+
+    .demo-dashboard-card {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        padding: 1.25rem 1.15rem;
+        border-radius: 20px;
+        background: #0d47a1;
+        background-image: radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 70%),
+            url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M10 80 Q 30 40, 50 60 T 90 20" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="2"/></svg>');
+        background-size: cover, 140px;
+        background-position: center, calc(100% + 20px) -10px;
+        background-repeat: no-repeat;
+        isolation: isolate;
+        transition: transform 0.25s ease;
+    }
+
+    .demo-dashboard-card-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.38rem;
+        color: #1f2937;
+    }
+
+    .demo-dashboard-title {
+        margin: 0;
+        max-width: 180px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        line-height: 1.25;
+        color: #ffffff;
+        letter-spacing: 0em;
+    }
+
+    .demo-dashboard-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: fit-content;
+        margin-top: 0.65rem;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        background: #ffffff;
+        color: #0d47a1;
+        font-size: 0.7rem;
+        font-weight: 700;
+        line-height: 1;
+        transition: all 0.2s ease;
+    }
+
+    .navbar::-webkit-scrollbar {
+        width: 5px;
+        display: none;
+    }
+
+    .navbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
+
+    .navbar::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 5px;
+    }
+
+    .navbar::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    .navbar:hover::-webkit-scrollbar {
+        display: initial;
+    }
+</style>
+<!-- Sidebar -->
+<aside class="navbar navbar-vertical navbar-expand-lg navbar-light">
+    <div class="container-fluid justify-content-between">
+        <!-- Brand Logo -->
+        <h1 class="navbar-brand navbar-brand-autodark justify-content-start">
+            <a class="navbar-brandname" href="/dashboard-summary/index">
+                <img src="https://billfree-bills.s3.us-west-2.amazonaws.com/public/billfree_logo_blue_icon_only_4x.png" alt="BillFree Labs" width="40">
+                <p class="ms-2 mb-0">V R Pawar Sarees  Chatti Galli |</p>
+            </a>
+        </h1>
+
+        <!-- user toggle -->
+        <a class="p-0 ms-auto d-lg-none" data-bs-toggle="offcanvas" href="#offcanvasStart" role="button" aria-controls="offcanvasStart">
+            <div class="d-flex text-dark">
+                <i class="las la-user-circle p-2" style="font-size:1.6rem;"></i>
+            </div>
+        </a>
+
+        <!-- menu toggle -->
+        <button class="navbar-toggler m-2" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- menu sidebar -->
+        <div class="collapse navbar-collapse" id="sidebar-menu">
+            <ul class="navbar-nav pt-lg-3 pb-5 w-100 mx-0 px-3 px-md-0">
+
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/dashboard-summary/index">
+                            <i class="las la-home fs-2 me-2"></i>Home
+                        </a>
+                    </li>
+                
+                <li class="nav-item ">
+                    <a class="nav-link d-flex w-100" href="/home/index">
+                        <i class="las la-paperclip fs-2 me-2"></i> Quick Links
+                    </a>
+                </li>
+
+                <!-- <li class="nav-item  d-flex w-100">
+                    <a class="nav-link" href="/dashboard-summary/index"><i class="las la-home fs-2 me-2"></i> Dashboard</a>
+                </li> -->
+
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/store-comparison/store-comparision">
+                            <i class="las la-chart-bar fs-2 me-2"></i> Analytics
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item  dropdown invoice-header d-flex w-100">
+                        <a class="nav-link" href="/generate-bill/index"><i class="las la-receipt fs-2 me-2"></i> Invoice</a>
+                    </li>
+                
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/campaigns-hub/index">
+                            <i class="las la-bullhorn fs-2 me-2"></i> Campaigns & Automation
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/profiles/customers">
+                            <i class="las la-user-friends fs-2 me-2"></i> Customers
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/roi-explorer/index">
+                            <i class="las la-funnel-dollar fs-2 me-2"></i> ROI
+                        </a>
+                    </li>
+                
+                <!--                     <li class="nav-item active">
+                        <a class="nav-link d-flex w-100" href="/rewards/index">
+                            <i class="lab la-gratipay me-2" style="font-size: 1.5rem;"></i> Rewards
+                        </a>
+                    </li>
+                 -->
+
+                                    <li class="nav-item  ">
+                        <a class="nav-link d-flex w-100" href="/segmentation/list">
+                            <i class="las la-box fs-2 me-2"></i> Segmentation
+                        </a>
+                    </li>
+                
+
+                                    <li class="nav-item ">
+                        <a class="nav-link d-flex w-100" href="/download-center/index">
+                            <i class="las la-download fs-2 me-2"></i> Download Center
+                        </a>
+                    </li>
+                
+                
+                
+                    <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                    <h4 class="my-1">REWARDS</h4>
+
+                                            <li class="nav-item ">
+                            <a class="nav-link d-flex w-100" href="/loyalty-dashboard/index">
+                                <i class="las la-coins me-2" style="font-size: 1.5rem;"></i> Loyalty
+                            </a>
+                        </li>
+                    
+                                            <li class="nav-item active">
+                            <a class="nav-link d-flex w-100" href="/coupon-dashboard/index">
+                                <i class="las la-tags fs-2 me-2"></i> Coupon
+                            </a>
+                        </li>
+                    
+                    
+                                            <li class="nav-item ">
+                            <a class="nav-link d-flex w-100" href="/redeem-reward/index">
+                                <i class="lab la-gratipay fs-2 me-2"></i> Redeem Reward
+                            </a>
+                        </li>
+                                    
+                                    <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                    <h4 class="my-1">CHANNELS</h4>
+                                                                                <li class="nav-item ">
+                                    <a class="nav-link d-flex w-100" href="/gupshup-ss/index">
+                                        <i class="lab la-whatsapp fs-2 me-2"></i> WhatsApp
+                                    </a>
+                                </li>
+                                                
+                    
+                                    
+                
+                    <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                    <h4 class="my-1">CUSTOMIZATIONS</h4>
+
+                                            <li class="nav-item  d-flex w-100">
+                            <a class="nav-link" href="/digital-bill/index"><i class="las la-mobile fs-2 me-2"></i> Digital Bill</a>
+                        </li>
+                    
+                                            <li class="nav-item ">
+                            <a class="nav-link d-flex w-100" href="/greeting-cards/index">
+                                <i class="las la-handshake fs-2 me-2"></i> CRM
+                            </a>
+                        </li>
+                                    
+
+                <hr class="mt-3 mb-2" style="border: 1px dashed #000;">
+                <h4 class="my-1">MANAGE</h4>
+
+                                    <li class="nav-item  d-flex w-100">
+                        <a class="nav-link" href="/users/index"><i class="las la-user-cog fs-2 me-2"></i> Users</a>
+                    </li>
+                
+                                <li class="nav-item  d-flex w-100">
+                    <a class="nav-link d-flex w-100" href="/account/index"><i class="las la-cog fs-2 me-2"></i> My Account
+                    </a>
+                </li>
+                
+                
+                
+                
+                                    <li class="nav-item">
+                        <a class="nav-link d-flex w-100" href="/site/my-bills?p=user" target="_blank">
+                            Personal Bills
+                        </a>
+                    </li>
+                
+                                    <li class="nav-item dropdown d-flex w-100 mt-3">
+                        <div class="card demo-dashboard-card">
+                            <div class="demo-dashboard-card-content">
+                                <p class="demo-dashboard-title">Experience the Power of the Billfree Dashboard.</p>
+                                <a class="demo-dashboard-cta text-decoration-none" href="https://demo.billfree.in/dashboard-summary/index?user=7%2B3qRcIuceMYcPBEY9KGBTYzYzk5ZjU2MGZlZWVmMTgxMTkzYTRhZDkxNDYzYjdjMDM0M2IxOGI1NzJjODFiZDIxYjI4MmIwYWFjODAwZGSJRs0VAOIZDXEeR7KihAASZskW2CPdAiwfraqPHgXJDA%3D%3D" target="_blank" rel="noopener noreferrer">
+                                    View Demo Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                            </ul>
+        </div>
+
+        <!-- user logout button on desktop -->
+        <a class="d-none d-lg-block logout-button-desktop px-2 text-decoration-none" data-bs-toggle="offcanvas" href="#offcanvasStart" role="button" aria-controls="offcanvasStart">
+            <div class="d-flex gap-2 m-2">
+                <i class="las la-user-circle mr-2 mt-1" style="font-size:1.6rem;"></i>
+                <p class="mb-0 logout-button" style="line-height: 1.3;">
+                    Sagar<br>
+                    <small class="d-inline-block">sagarmohite2808@gmail.com</small>
+                </p>
+            </div>
+        </a>
+    </div>
+</aside>
+
+<script>
+    function collapseNavbar() {
+        if (window.innerWidth <= 1024) {
+            var navbarToggle = document.querySelector('.navbar-toggler');
+            navbarToggle.click();
+        }
+    }
+    var dropdownItems = document.querySelectorAll('.dropdown-item');
+    dropdownItems.forEach(function(item) {
+        item.addEventListener('click', collapseNavbar);
+    });
+</script>
+        <aside data-bs-backdrop="true" class="merchant-profile  offcanvas offcanvas-start" tabindex="-1" id="offcanvasStart" aria-labelledby="offcanvasStartLabel">
+    <div class="mb-1 d-flex justify-content-between">
+        <h2 class="page-title p-2">Merchants Profile</h2>
+        <a href="#" data-bs-dismiss="offcanvas"><i style="font-size:1.5rem;" class="las la-times p-2"></i></a>
+    </div>
+
+    <div class="card mb-3 m-2">
+        <div class="card-header card-header-light p-2">
+            <h3 class="card-title">
+                <form class="mb-0" action="/site/logout" method="post"><button type="submit" class="btn logout w-100 p-0 bg-transparent"><div class="card-title"><i class="las la-sign-out-alt mr-2" style="font: size 1.2rem;"></i></div><div class="card-title"><p class="mb-0 mt-0">Logout</p></div></button></form>            </h3>
+        </div>
+        <div class="card-body p-2">
+            <div><b>Name</b><br> Sagar</div>
+            <hr class="m-2">
+            <div><b>Email ID</b><br> sagarmohite2808@gmail.com</div>
+            <hr class="m-2">
+            <div><b>Phone Number</b><br> +91-8857808284</div>
+        </div>
+    </div>
+
+
+            <div class="card mb-3 m-2">
+            <div class="card-header card-header-light p-2 justify-content-between">
+                <h3 class="card-title">Business Details</h3>
+                <a href="#" onclick="editBusinessDetails();" class="edit-business-btn"><i style="font-size:1.1rem;" class="las la-pen"></i></a>
+            </div>
+            <div class="card-body p-2 business-details-container">
+                                    <div><b>Firm Name </b><br> V R Pawar Sarees  Chatti Galli |</div>
+                    <hr class="m-2">
+                                                    <div><b>Display Name </b><br> V R Pawar Sarees  Chatti Galli |</div>
+                    <hr class="m-2">
+                                                    <div><b>Phone Number </b><br> +91-8857808284</div>
+                    <hr class="m-2">
+                                                    <div><b>Email ID </b><br> sagarmohite2808@gmail.com</div>
+                    <hr class="m-2">
+                                                                                                    <div><b>Store Addr. </b><br> Address: 275 ,W.Magalwar Peth, Chatti Galli, Mangalwar Peth, Solapur, Maharashtra 413002</div>
+                    <hr class="m-2">
+                                                    <div><b>Store Country </b><br> India</div>
+                    <hr class="m-2">
+                                <div class="d-flex flex-wrap justify-content-between">
+                                            <div class="w-50"><b>Store State </b><br> Maharashtra</div>
+                                                                <div class="w-50"><b>Store City </b><br> Solapur</div>
+                                    </div>
+                <hr class="m-2">
+                <div class="d-flex flex-wrap justify-content-between">
+                                            <div class="w-50"><b>Store Pincode </b><br> 413002</div>
+                                                                <div class="w-50"><b>POS </b><br> universal</div>
+                                    </div>
+            </div>
+            <div class="loader mx-auto" style="width:30px;height:30px; display: none;" id="businessLoader"></div>
+        </div>
+    
+    <div class="card mb-3 m-2">
+        <div class="card-header card-header-light p-2 justify-content-between">
+            <h3 class="card-title">Active Features</h3>
+        </div>
+
+        <div class="card-body p-2">
+            • Invoice<br>            • Roles<br>                                    • Ad Banner<br>            • Google Review<br>                        • White Label/Branding<br>                    </div>
+
+    </div>
+
+    <div class="card mb-3 m-2">
+        <div class="card-header px-3" style="background:var(--tblr-primary-bg-subtle);border-radius:calc(.37rem - 1px) calc(.37rem - 1px) calc(.37rem - 1px) calc(.37rem - 1px);">
+            <a class="card-title download-integration-files w-100 d-flex justify-content-between align-items-center" href="/merchant/integration-files" target="_blank">Download Integration Files
+                <svg width="15px" height="15px" viewBox="0 0 16 16" class="bi bi-download" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path>
+                    <path fill-rule="evenodd" d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</aside>
+<script>
+    function editBusinessDetails() {
+        $('.edit-business-btn').hide();
+        $('#businessLoader').show();
+        $('.business-details-container').html('');
+
+        $.ajax({
+            type: "GET",
+            url: "/merchant/business-edit",
+            success: function(response) {
+                let resp = JSON.parse(response);
+                if (!resp.error) {
+                    $('.business-details-container').html(resp.data);
+                }
+                $('#businessLoader').hide();
+            },
+            error: function(error) {
+                $('#businessLoader').hide();
+                console.log(error);
+            }
+        });
+    }
+</script>
+        <div class="page-wrapper">
+
+                        <!-- <div id="info">
+                <div class="row" style="background: #1d273b;justify-content: center;">
+                    <div class="col-11 text-light text-center" style="width:90%">Contact us for any query on&nbsp; <a class="text-light" href="mailto:contact@billfree.in">contact@billfree.in</a> &nbsp; or&nbsp;+91 (120) 420 7081
+                    </div>
+                    <button onclick="handleClick()" class="col-1 text-right bg-transparent border-0 text-light text-right px-2"><i class="las la-times fs-2"></i></button>
+                </div>
+            </div> -->
+            <div class="page-body mt-0">
+                <style>
+	html,
+	body {
+		height: auto;
+	}
+
+	[type='checkbox']:not(:checked),
+	[type='checkbox']:checked {
+		position: unset;
+		pointer-events: initial;
+		opacity: 1;
+	}
+
+	.form-control:disabled,
+	.form-control[readonly] {
+		background-color: #f9f9f9;
+		opacity: 1;
+	}
+
+	.list-group-item {
+		padding: .5rem 0;
+	}
+
+	.form-control:disabled,
+	.form-control[readonly] {
+		background-color: var(--tblr-border-color-light);
+		opacity: 1;
+	}
+
+	.input-group-addon,
+	.input-group-btn {
+		width: auto;
+	}
+
+	.input-group-addon .btn,
+	.input-group-btn .btn {
+		height: 100%;
+	}
+
+	.modal-dialog {
+		/* display: block; */
+		height: auto;
+	}
+
+	.list-group-item {
+		padding: 1rem 1.5rem;
+	}
+
+	.list-group-item:hover {
+		background-color: transparent;
+	}
+
+	.text-truncate>a {
+		/* text-decoration: none; */
+		color: var(--tblr-dark);
+	}
+
+	.list-group-item>a {
+		color: var(--tblr-dark);
+	}
+
+	.text-truncate>a:hover {
+		text-decoration: underline;
+	}
+
+	a>code {
+		color: #e83e8c;
+		background-color: #fff0f7;
+	}
+
+
+	.whatsapp-preview {
+		background: var(--plan-white);
+		border-radius: 6px;
+		position: relative;
+		padding: 20px;
+		box-shadow: 0px 2px 8px rgba(12, 12, 13, 0.1);
+		border: 2px solid var(--light);
+	}
+
+	.whatsapp-preview>p.Body {
+		white-space: pre-wrap;
+		line-height: 1.5;
+		margin-top: 8px;
+		margin-bottom: 0;
+	}
+
+	.whatsapp-preview-btn-group {
+		display: grid;
+		gap: 4px;
+		margin-top: 4px;
+		grid-auto-columns: minmax(50%, 100%);
+	}
+
+	.wa-template-text .card-header {
+		background-color: var(--tblr-secondary-border-subtle);
+	}
+</style>
+<script>
+	//whatsapp template preparation
+	var waTemplates = [];
+	var waOperator = 'gupshup';
+
+	var realPayload = waTemplateObj = gupshupPayload = null;
+</script>
+<div class="bf-coupon-config-index">
+
+	<div class="container-fluid mt-3">
+		<div class="row align-items-center">
+			<div class="col-md-3 col-12">
+				<h2 class="mb-0 text-dark">Adhoc Coupons</h2>
+				<ul class="breadcrumb"><li><a href="/rewards/index">Rewards</a></li> &nbsp; / &nbsp; 
+<li><a href="/coupon-dashboard/index">Coupons</a></li> &nbsp; / &nbsp; 
+<li class="active">Adhoc Coupons</li>
+</ul>			</div>
+		</div>
+	</div>
+	<hr style="margin: 1rem 0;">
+
+	<div class="container-fluid">
+		<div class="navigation-btn-group mb-3">
+			<a href="/coupon-dashboard/index" class="btn py-2 px-3 sub-nav-btn"><span class="fs-2">📊</span> Summary</a>
+			<a href="/coupon-dashboard/redeemed-coupons" class="btn py-2 px-3 sub-nav-btn"><span class="fs-2">🎟️</span> Redeemed</a>
+			<a href="/coupon-dashboard/adhoc-coupons" class="btn py-2 px-3 sub-nav-btn btn-primary"><span class="fs-2">🎫</span> Adhoc Coupons</a>
+		</div>
+		<div class="row">
+			<div class="col-lg-12 ">
+				<div class="row">
+					<div class="col-lg-7 mb-3">
+						<!-- Coupon Config -->
+							<div class="card h-100">
+		<div class="card-body">
+			<div class="d-flex justify-content-between coupon-credits-bar">
+				<div>
+					<span class="h4 text-primary align-middle">
+						<span class="font-weight-lighter">SMS Credits: </span>
+						<span class="sms-credits">100</span>
+											</span>
+					|
+					<span class="h4 text-success align-middle">
+						<span class="font-weight-lighter">Whatsapp Credits: </span>
+						<span class="wa-credits">100.00</span>
+											</span>
+				</div>
+				&nbsp;&nbsp;&nbsp;<a class="btn btn-primary px-3" href="javascript:void(0)" onclick="buyCredits();">Buy Credits</a>
+
+			</div>
+			<hr style="margin: 1rem 0">
+			<div class="row align-items-start">
+				<div class="col-md-6">
+					<div class="form-group mb-3">
+						<label class="form-label" for="rewardType">Coupon Type</label>
+						<select type="text" class="form-select tom-select mb-2" name="deno_id" onchange="fetchDenoData($(this).val());" placeholder="Select Coupon Type" required="true" id="denoId" value="">
+							<option class="tom-select-item" value=""></option>
+															<option class="tom-select-item" value="2504">test</option>
+													</select>
+						<a href="#" id="createDenomination" onclick="popupDenomination()">Create Denomination</a>
+						<div class="modal fade" tabindex="-1" id="denominationModal">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header justify-content-start">
+				<h5 class="modal-title">Create Denomination</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<input type="hidden" readonly id="displayCommonCouponSection" value="n">
+				<div class="container-fluid">
+					<div class="row">
+						<div class="col-md-12">
+							<label class="control-label" for="denomination-field">Denomination Title</label>							<input type="text" id="denomination-field" class="form-control" name="denomination">						</div>
+					</div>
+					<div class="row mt-3">
+						<div class="col-md-6">
+							<label class="control-label" for="otp-required-field">OTP Required</label>							<select id="otp-required-field" class="form-control" name="otp_required">
+<option value="n">No</option>
+<option value="y">Yes</option>
+</select>						</div>
+						<div class="col-md-6">
+							<label class="control-label" for="title-field">Coupon Title</label>							<input type="text" id="title-field" class="form-control" name="coupon-title" maxlength>						</div>
+					</div>
+					<div class="row mt-3">
+						<div class="col-md-6">
+							<label class="control-label" for="disc-type-field">Discount Type</label>							<select id="disc-type-field" class="form-control" name="disc_type">
+<option value="">Select Discount Type</option>
+<option value="a">Amount</option>
+<option value="p">Percentage</option>
+<option value="bg">Buy Some Get Some</option>
+</select>						</div>
+						<div class="col-md-6">
+							<label class="control-label" for="disc-value-field">Discount Values</label>							<input type="text" id="disc-value-field" class="form-control" name="disc_value">						</div>
+					</div>
+					<div class="row mt-3">
+						<div class="col-md-6">
+							<label class="control-label" for="min-order-value-field">Min Order Value</label>							<input type="text" id="min-order-value-field" class="form-control" name="min_order_value">						</div>
+						<div class="col-md-6">
+							<label class="control-label" for="max-order-value-field">Max Discount Value</label>							<input type="text" id="max-order-value-field" class="form-control" name="max_order_value">						</div>
+					</div>
+					<div class="row mt-3">
+						<div class="col-md-6">
+							<label class="control-label" for="start-date">Activation Date</label>							<input type="text" id="start-date" class="form-control lite-picker" name="start_date" value="2026-10-14">						</div>
+						<div class="col-md-6">
+							<label class="control-label" for="validity-date">Validity Date</label>							<input type="text" id="validity-date" class="form-control lite-picker" name="validity_date" value="2027-04-12">						</div>
+					</div>
+					<div class="row mt-3">
+						<div class="col-md-12">
+							<label class="control-label" for="common-coupon">Set as Common Coupon</label>							<select id="common-coupon" class="form-control" name="common_coupon">
+<option value="n">No</option>
+<option value="y">Yes</option>
+</select>						</div>
+					</div>
+
+					<div id='common-coupon-section' style="display: none;">
+						<div class="row mt-3">
+							<div class="col-md-6">
+								<label class="control-label" for="coupon-code">Coupon Code</label>								<input type="text" id="coupon-code" class="form-control" name="coupon_code" onchange="checkCouponCodeIsExists($(this).val());">							</div>
+							<div class="col-md-6">
+								<label class="control-label" for="customer-type">Customer Type</label>								<select id="customer-type" class="form-control" name="customer_type">
+<option value="all" selected>All</option>
+<option value="new">New</option>
+<option value="repeat">Repeated</option>
+</select>							</div>
+						</div>
+						<div class="row mt-3">
+							<div class="col-md-6">
+								<label class="control-label" for="max-redemption-count">Maximum Redemption Count</label>								<input type="number" id="max-redemption-count" class="form-control" name="redemption_count" value="500">							</div>
+							<div class="col-md-6">
+								<label class="control-label" for="max-per-customer-redemption-count">Maximum Per Customer Redemption Count</label>								<input type="number" id="max-per-customer-redemption-count" class="form-control" name="customer_redemption_count" value="1">							</div>
+
+						</div>
+					</div>
+
+					<div class="row mt-3">
+						<div class="col-md-6">
+							<label class="control-label" for="status-field">Status</label>							<select id="status-field" class="form-control" name="status">
+<option value="a">Active</option>
+<option value="i">Inactive</option>
+</select>						</div>
+					</div>
+					<div class="row mt-3">
+						<div class="col-md-12">
+							<label class="control-label" for="desc-field">Description</label>							<textarea id="descriptionField" name="desc"></textarea>						</div>
+					</div>
+
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-orange" id="submitBtn" onclick="submitDenomination()">Submit</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	function submitDenomination() {
+		var formData = {
+			'denomination': $('#denomination-field').val(),
+			'otp_required': $('#otp-required-field').val(),
+			'coupon_title': $('#title-field').val(),
+			'disc_type': $('#disc-type-field').val(),
+			'disc_value': $('#disc-value-field').val(),
+			'min_order_value': $('#min-order-value-field').val(),
+			'max_order_value': $('#max-order-value-field').val(),
+			'max_coupons_to_assign': $('#max-coupons-field').val(),
+			'common_coupon': $('#common-coupon').val(),
+			'coupon_code': $('#coupon-code').val(),
+			'customer_type': $('#customer-type').val(),
+			'redemption_count': $('#max-redemption-count').val(),
+			'customer_redemption_count': $('#max-per-customer-redemption-count').val(),
+			'start_date': $('#start-date').val(),
+			'validity_date': $('#validity-date').val(),
+			'status': $('#status-field').val(),
+			'description': $('#descriptionField').val()
+		};
+		$.ajax({
+			type: "POST",
+			url: "/automation/denomination",
+			data: formData,
+			success: function(response) {
+				response = JSON.parse(response);
+				console.log(response);
+				if (response.success == true) {
+					alert('Coupon Denomination created successfully.');
+					location.reload();
+				} else {
+					alert('Something went wrong while creating the denomination.');
+				}
+			}
+		});
+	}
+
+	$(document).ready(function() {
+		// Prevent non-positive numbers from being entered
+		$('#max-coupons-field, #min-order-value-field, #max-order-value-field, #disc-value-field').on('input', function() {
+			var value = $(this).val();
+			if (value !== '' && parseFloat(value) <= 0) {
+				$(this).val('');
+			}
+		});
+
+		// Prevent non-numeric characters from being entered
+		$('#max-coupons-field, #min-order-value-field, #max-order-value-field, #disc-value-field').on('keypress', function(event) {
+			var keyCode = event.keyCode || event.which;
+			var keyValue = String.fromCharCode(keyCode);
+			if (isNaN(keyValue) || parseFloat($(this).val() + keyValue) <= 0) {
+				event.preventDefault();
+			}
+		});
+	});
+
+	function popupDenomination() {
+		$('#denominationModal').modal('show');
+	}
+
+	// Add event listener for the common coupon dropdown
+	$('#common-coupon').on('change', function() {
+		changeCommonCouponSection($(this).val());
+	});
+
+	function changeCommonCouponSection(val = null) {
+		const commonCouponSection = (val == null) ? $('#displayCommonCouponSection').val() : val;
+		if (commonCouponSection == 'y') {
+			$('#common-coupon-section').show();
+			$('#common-coupon').val('y');
+			$('#validity-date').val('2027-04-12');
+
+		} else {
+			$('#common-coupon-section').hide();
+		}
+	}
+
+	$('#common-coupon').on('change', function() {
+		changeCommonCouponSection($(this).val());
+	});
+
+	function checkCouponCodeIsExists(value) {
+		$.ajax({
+			url: '/coupon-dashboard/check-common-coupon-code-exists?code=' + value,
+			type: 'get',
+			data: {},
+			success: function(response) {
+				response = JSON.parse(response);
+				if (response.error == true) {
+					alert(response.message);
+					$('#coupon-code').val('');
+					$('#coupon-code').focus();
+				}
+			}
+		});
+	}
+</script>					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
+						<label class="form-label" for="valCoupon">Validity <small>(in days)</small></label>
+						<input type="number" class="form-control" name="val_coupon" id="valCoupon" placeholder="Coupon Validity" maxlength="10" required onchange="dateCalculation(this.value)">
+					</div>
+					<small class="text-info available-coupon-content d-none">
+						<span class="coupon-count-content d-none">Available Coupons : <strong class="coupon-count"></strong></span> &nbsp;
+						<span class="coupon-expiry-content d-none">Expiring On : <strong class="coupon-expiry"></strong></span>
+					</small>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
+						<label class="form-label" for="channelType">Channel Type</label>
+												<select type="text" name="channelType" class="form-select tom-select mb-2" onchange="toggleChannelInstances()" placeholder="Select a channel" required="true" id="channelType" value="">
+															<option class="tom-select-item" value="s">SMS</option>
+															<option class="tom-select-item" value="w">Whatsapp</option>
+													</select>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
+						<label class="form-label">&nbsp;</label>
+						<div>
+							<input type="hidden" class="form-control" name="merchant_id" value="60646">
+							<button type="button" class="btn btn-primary sms-text" onclick="setChannelTemplate('s')">Set SMS</button>
+							<button type="button" class="btn btn-success wa-text" style="display: none;" onclick="setChannelTemplate('w')">Set Whatsapp</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="row my-2">
+				<div class="col-md-12">
+					<!-- SMS Preview Dom -->
+					<div class="form-group" id="sms-text-container" style="display: none;">
+						<label class="form-label" for="smsText">SMS Preview</label>
+						<textarea class="form-control" id="smsText" rows="4" readonly></textarea>
+					</div>
+					<div class="form-group field-templateVar">
+						<input type="hidden" id="templateVar" class="form-control">
+					</div>
+					<div class="form-group field-templateId">
+						<input type="hidden" id="smsTemplateId" class="form-control">
+					</div>
+				</div>
+				<div class="col-md-6" id="wa-text-container" style="display: none;">
+					<!-- Whatsapp Preview Dom -->
+					<div id="whatsapp-preview-container"></div>
+					<input type="hidden" id="waPayload" class="form-control">
+					<input type="hidden" id="var_list" class="form-control">
+					<input type="hidden" id="waTemplateId" class="form-control">
+				</div>
+			</div>
+		</div>
+	</div>					</div>
+
+					<!-- Cost Estimate -->
+					<div class="col-lg-5 mb-3">
+						<div class="card" id="smsCalculator">
+							<div class="card-header px-3 py-2">
+								<h3 class="mb-0">Cost Estimate</h3>
+							</div>
+							<div class="card-body py-1 px-3">
+								<ul class="list-group list-group-flush">
+									<li class="list-group-item d-flex justify-content-between align-items-center">
+										<span>SMS credit charge</span>
+										<span>
+											<b id="credCount" class="text-danger" style="font-size: 22px;">1</b>
+											<span style="font-size: 22px;">/</span>
+											<span>sms</span>
+										</span>
+									</li>
+									<li class="list-group-item d-flex justify-content-between align-items-center">
+										<span>Whatsapp credit charge</span>
+										<span>
+											<b id="waCredCount" class="text-danger" style="font-size: 22px;">1</b>
+											<span style="font-size: 22px;">/</span>
+											<span>whatsapp</span>
+										</span>
+									</li>
+									<li class="list-group-item charct-count d-flex justify-content-between align-items-center">
+										<span>Characters Count</span>
+										<span>
+											<b id="charCount" class="text-danger" style="font-size: 22px;">0</b>
+											<span style="font-size: 22px;">/</span>
+											<small><span id="totalCount" style="font-size: 22px;">160</span> Max</small>
+										</span>
+									</li>
+									<li class="list-group-item d-flex justify-content-between align-items-center">
+										<span>Total Users Reached</span>
+										<span style="font-size: 1.25rem;" id="tempUsers"></span>
+									</li>
+									<li class="list-group-item d-flex justify-content-between align-items-center">
+										<span>Total Credits to be used</span>
+										<span class="text-success" style="font-size: 1.25rem;" id="tempCredits"></span>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Coupon Details -->
+				<div class="card mb-3">
+	<div class="card-header px-3">
+		<h3 class="mb-0">Coupon Details</h3>
+	</div>
+	<div class="card-body">
+		<div class="row">
+			<div class="col-md">
+				<div class="form-group">
+					<label class="control-label form-label">Deno Code</small></label>
+					<input type="text" class="form-control" id="denoCode" readonly style="background-color: var(--tblr-border-color-light);" value="">
+				</div>
+			</div>
+			<div class="col-md">
+				<div class="form-group">
+					<label class="control-label form-label">Title</small></label>
+					<input type="text" class="form-control" id="denoTitle" readonly style="background-color: var(--tblr-border-color-light);" value="">
+				</div>
+			</div>
+			<div class="col-md">
+				<div class="form-group">
+					<label class="control-label form-label">Discount Type</small></label>
+					<input type="text" class="form-control " id="denoDiscType" readonly value="">
+				</div>
+			</div>
+			<div class="col-md">
+				<div class="form-group">
+					<label class="control-label form-label">Discount Value</small></label>
+					<input type="text" class="form-control " id="denoDiscVal" readonly value="">
+				</div>
+			</div>
+			<div class="col-md">
+				<div class="form-group">
+					<label class="control-label form-label">Min Order Value</small></label>
+					<input type="text" class="form-control " id="denoMinVal" readonly value="">
+				</div>
+			</div>
+			<div class="col-md">
+				<div class="form-group">
+					<label class="control-label form-label">Max Order Price</small></label>
+					<input type="text" class="form-control" id="denoMaxVal" readonly value="">
+				</div>
+			</div>
+			<div class="col-md">
+				<div class="form-group">
+					<label class="control-label form-label">Coupon Type</small></label>
+					<input type="text" class="form-control" id="denoCouponType" readonly value="">
+				</div>
+			</div>
+			<div class="col-md-12">
+				<div class="form-group">
+					<label class="control-label form-label">Description</small></label>
+					<textarea class="form-control" id="denoDesc" readonly rows="3"></textarea>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+				<div class=" card mb-3">
+					<div class="card-header p-2 justify-content-between">
+						<h3 class="mb-0 ms-3">Customers</h3>
+						<div>
+							<span class="btn btn-ghost-success" data-bs-toggle='modal' data-bs-target="#addModal">Add Phone Numbers</span>
+							<span class="btn btn-ghost-primary" data-bs-toggle='modal' data-bs-target="#bulkUploadNos">Upload Phone Numbers</span>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="row">
+							<div class="col-md-12">
+								<!-- <input type="hidden" id="activateOwnPromotion" name="activatePromotion" value="ownPromotion" checked> -->
+								<input type="hidden" id="storeids" name="store_ids" />
+
+								
+<div class="customer-segment-list">
+    <div class="card card-active mb-3">
+        <div class="card-body">
+            <h3 class="card-title">Filter Customers by Segmentation</h3>
+            <div class="d-flex mb-2">
+                <div class="form-input w-50">
+                    <input type='hidden' id="query_id" name="query_id" />
+                    <div class="kv-plugin-loading loading-selectInputOfChooseCustomerSegmentation">&nbsp;</div><select id="selectInputOfChooseCustomerSegmentation" class="form-control" name="selectInputOfChooseCustomerSegmentation" style="z-index: 0; display: none;" onchange="changeCustomerSegmentation(this.value, &#039;hidden_selected_segmentation_id&#039;)" data-s2-options="s2options_d6851687" data-krajee-select2="select2_7fade4b7">
+<option value="">Select Customers ...</option>
+<option value="all" selected>All Customers</option>
+</select>                </div>
+                                    <div class="w-50">
+                        <a type="button" class="btn btn-outline-warning bg-orange-lt px-3 border-0 mb-2 mx-2" data-bs-toggle='modal' data-bs-target="#customer_segmentation_model" onclick="changeCreateAndAdd();">+ Create New </a>
+                        <a type="button" class="ms-2 mb-2" onclick="editCustomerSegmentation(document.getElementById('hidden_selected_segmentation_id').value)" id="editSegBtn" style="display: none;"> Edit </a>
+                        <a type="button" class="ms-2 mb-2" onclick="previewCustomerSegmentation(document.getElementById('hidden_selected_segmentation_id').value)" id="previewSegBtn" style="display: none;"> Preview </a>
+                    </div>
+                            </div>
+        </div>
+    </div>
+
+    <div id="customer_profile_filter">
+        <div class="card card-active mb-3">
+            <div class="card-body">
+                <h4 class="card-title">Filter By Customer Profile</h4>
+                <div class="row align-items-center">
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label" for="startDate">Start Date</label>
+                        <div class="input-icon">
+                            <input class="form-control lite-picker w-100" autocomplete="off" placeholder="Start Date" id="startDate" value="" name="startDate" title="from" />
+                        </div>
+
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label" for="endDate">End Date</label>
+                        <div class="input-icon">
+                            <input class="form-control lite-picker w-100" autocomplete="off" placeholder="End Date" id="endDate" value="" name="endDate" title="end" />
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <div class="form-group">
+                            <label for="profile">Include Profiles</label>
+                                                        <select type="text" class="form-select tom-select" onchange="Filters()" placeholder="Select Parent" name="profile" id="profile" value="n">
+                                                                    <option class="tom-select-item" value="n">No</option>
+                                                                    <option class="tom-select-item" value="y">Yes</option>
+                                                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mt-1 mb-2">
+                        <button type="button" class="btn btn-primary px-4 mt-2" onclick="Filters();">Filter</button>
+                    </div>
+                </div>
+                <div class="" id="hiddenInputes">
+                    <input type="hidden" onchange="inputCustomerCountChanged(); " class="form-control mb-2" readonly id="hidden_selected_segmentation_id" placeholder="hidden_selected_segmentation_id">
+                    <input type="hidden" class="form-control mb-2" value="" readonly id="refresh_segmentation_list" placeholder="refresh_segmentation_list">
+                    <input type="hidden" class="form-control mb-2" value="60646" readonly id="mid" placeholder="mid">
+                    <input type="hidden" class="form-control mb-2" value="" readonly id="offer_id_c" placeholder="offerid" title="Offer ID">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3 card-active">
+        <div class="card-body">
+            <label class="form-label d-flex justify-content-between align-items-center" for="allowResendFailed">
+                <h3 class="mb-0 d-flex align-items-center card-title">
+                    Retries Your Failed Message
+                    <span>
+                        <img src="/resources/images/retry.gif" class="img-fluid rounded-circle ms-2" alt="" style="width: 2rem;">
+                    </span>
+                </h3>
+                <label class="custom-switch form-check form-switch">
+                    <input class="check custom-switch-input form-check-input" id="allowResendFailed" name="allow_resend_failed" value="1" type="checkbox" onchange="toggleResendDaysContainer()" checked>
+                    <span class="custom-switch-indicator"></span>
+                </label>
+            </label>
+            <div class="row" id="resendDaysContainer">
+                <div class="col-md-6">
+                    <label for="resendDays" class="form-label mb-1">Maximum Retires</label>
+                    <select class="form-select tom-select" id="resendDays" name="max_retry">
+                        <option value="1" selected>1 Day</option>
+                        <option value="2">2 Days</option>
+                        <option value="3">3 Days</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function changeCustomerSegmentation(val, hiddenInputId) {
+        let selectEle = document.getElementById(hiddenInputId);
+        selectEle.value = val;
+        const custSegStartDate = $('#startDate').val();
+        const custSegEndDate = $('#endDate').val();
+        if (val === "all") {
+            // All customer without segmentation
+            $('#editSegBtn').hide(300);
+            $('#previewSegBtn').hide(300);
+            $('#customer_profile_filter').show(300);
+            $('#query_id').val("");
+            $('#startDate').val("");
+            $('#endDate').val("");
+            Filters();
+        } else if (val === "none") {
+            // Segmentation None
+            $('#editSegBtn').hide(300);
+            $('#previewSegBtn').hide(300);
+            $('#moNosCount').val(0);
+            document.getElementById('moNosCount').value = 0;
+            $('#query_id').val("");
+            Filters();
+        } else {
+            // Segmentation Queries & Static Segmentation
+            $('#editSegBtn').show(300);
+            $('#previewSegBtn').show(300);
+            $('#query_id').val(val);
+            runCustomerSegQuery({
+                id: val,
+                withDate: true,
+                date_from: custSegStartDate,
+                date_to: custSegEndDate
+            }, true);
+        }
+        calculateEstimate();
+    }
+
+    function toggleResendDaysContainer() {
+        if ($('#allowResendFailed').is(':checked')) {
+            $('#resendDaysContainer').show(300);
+        } else {
+            $('#resendDaysContainer').hide(300);
+        }
+    }
+</script>
+								<div class="container">
+									<div class="row">
+
+										<div class="col-md-6 ps-0">
+											<div class="card p-0 mb-3">
+												<div class="card-header px-3" style="background: var(--tblr-secondary-border-subtle);">
+													<h4 class="mb-0">Your Customers</h4>
+												</div>
+												<div class="card-body p-0" style="background-color: var(--tblr-code-bg);">
+													<label class="custom-switch mb-0 p-3 form-check form-switch" style="justify-content:unset; margin-left:2.5rem">
+														<input class="check custom-switch-input form-check-input" id="checkAll" type="checkbox" name="checkAll">
+														<span class="custom-switch-indicator"></span>
+														&nbsp;
+														Select All
+													</label>
+													<hr style="margin: 0">
+													<div id="loader" class="loader mx-auto" style="width:30px !important;height:30px !important;"></div>
+													<div id="moNos" class="mobileNosList"></div>
+													<input type="hidden" id="moNosCount" name="moNosCount">
+												</div>
+											</div>
+										</div>
+
+										<div class="col-md-6">
+											<div class="audience">
+												<div class="card p-0" id="addPhoneNos" style="display:none; padding:16px">
+													<div class="card-header px-3" style="background: var(--tblr-secondary-border-subtle);">
+														<h4 class="mb-0">Uploaded Mobile Numbers</h4>
+													</div>
+													<div class="card-body p-0" style="background-color: var(--tblr-code-bg);">
+														<label class="custom-switch mb-0 p-3 form-check form-switch" style="justify-content:unset; margin-left:2.5rem">
+															<input class="check custom-switch-input form-check-input" id="checkAllAdded" type="checkbox" name="checkAllAdded" checked>
+															<span class="custom-switch-indicator"></span>
+															&nbsp;
+															Select All
+														</label>
+														<hr style="margin: 0">
+														<div id="addedMoNos" class="mobileNosList h-100"></div>
+														<input type="hidden" id="addedMoNosCount" name="addedMoNosCount" value="">
+													</div>
+												</div>
+											</div>
+										</div>
+
+																					
+
+<style>
+    .input-group-text {
+        line-height: 1.5 !important;
+    }
+
+    .modal-header.premium-gradient {
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        border-bottom: none;
+        border-top-left-radius: inherit;
+        border-top-right-radius: inherit;
+    }
+
+    .selection-card {
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 2px solid #f1f5f9;
+        border-radius: 12px;
+        background: #ffffff;
+        padding: 20px !important;
+        text-align: center;
+    }
+
+    .selection-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        border-color: #6366f1;
+    }
+
+    .selection-card.active {
+        border-color: #6366f1;
+        background: #f8fafc;
+        box-shadow: 0 0 0 1px #6366f1;
+    }
+
+    .selection-card .icon-wrapper {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        margin: 0 auto 15px auto;
+    }
+
+    .custom-filter-card {
+        cursor: pointer;
+        padding: 12px 16px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s;
+        flex: 1;
+        text-align: center;
+    }
+
+    .custom-filter-card:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    .custom-filter-card.active {
+        border-color: #6366f1;
+        background: #eef2ff;
+        color: #4338ca;
+        font-weight: 600;
+    }
+
+    .query-row {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .plus-minus-btn {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s;
+    }
+
+    .plus-minus-btn:hover {
+        transform: scale(1.1);
+        background: #f1f5f9;
+        color: #ef4444;
+    }
+
+    .preview-table-container {
+        max-height: 400px;
+        overflow-y: auto;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+</style>
+
+<!-- Create Form -->
+<div class="modal modal-blur fade" id="customer_segmentation_model" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-primary text-white p-2">
+                <h5 class="modal-title d-flex align-items-center" id="mod_heading">
+                    <i class="las la-users-cog fs-1 me-2"></i> Create Segmentation
+                </h5>
+                <button type="button" class="btn-close btn-close-white" id="close_create_btn" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Loader for Edit Process -->
+                <div id="edit_form_loader" style="display:none; text-align:center; padding:50px 0;">
+                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                        <!-- <span class="visually-hidden">Loading...</span> -->
+                    </div>
+                    <!-- <div class="text-muted mt-3">Fetching segment data...</div> -->
+                </div>
+                <form id="query_builder_form" action="/coupon-dashboard/adhoc-coupons" method="post">                <input type="hidden" value="add" class="form-control" name="modal_case" id="modal_case">
+                <div class="row g-3 mb-2" id="initial_selection_view">
+                    <div class="col-sm-12">
+                        <label class="form-label mb-2 fw-bold text-muted">Select Segmentation Type</label>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="selection-card p-2 h-100" onclick="currentBase('s')" id="card_s">
+                            <div class="icon-wrapper bg-primary-lt">
+                                <i class="las la-box-open fs-1 text-primary"></i>
+                            </div>
+                            <h5 class="mb-1">SKU Based</h5>
+                            <p class="text-muted small mb-0">Products, categories & purchase history.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="selection-card p-2 h-100" onclick="currentBase('p')" id="card_p">
+                            <div class="icon-wrapper bg-warning-lt">
+                                <i class="las la-user-tag fs-1 text-warning"></i>
+                            </div>
+                            <h5 class="mb-1">Customer Based</h5>
+                            <p class="text-muted small mb-0">Loyalty, relationship value & visits.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="selection-card p-2 h-100" onclick="currentBase('b')" id="card_b">
+                            <div class="icon-wrapper bg-teal-lt">
+                                <i class="las la-file-invoice-dollar fs-1 text-teal"></i>
+                            </div>
+                            <h5 class="mb-1">Bill Based</h5>
+                            <p class="text-muted small mb-0">Transaction values, dates & items count.</p>
+                        </div>
+                    </div>
+                    <!-- Hidden select for form compatibility if needed, though we rely on ID based_type -->
+                    <select class="form-select d-none" name="choose_base_type" id="segmentation_type_select">
+                        <option value="">--Select--</option>
+                        <option value="s">SKU Based Segmentation</option>
+                        <option value="p">Customer Based Segmentation</option>
+                        <option value="b">Bill Based Segmentation</option>
+                    </select>
+                </div>
+                <input type="hidden" value="" class="form-control" name="based_type" readonly id="based_type">
+
+                <div class="card mb-3" id="segmentation_card" style="display:none">
+                    <div class="card-body">
+                        <!-- SKU Based Segmentation -->
+                        <div id="sku_base_container" style="display:none">
+                            <div class="row mb-3">
+                                <div class="col-sm-12 mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="bg-primary-lt p-2 rounded-circle me-3">
+                                            <i class="las la-box-open fs-1 text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="mb-0 text-primary">SKU Based Segmentation</h4>
+                                            <p class="text-muted mb-0 small">Filter customers by their purchase history and product preferences.</p>
+                                        </div>
+                                    </div>
+                                    <hr class="my-2">
+                                </div>
+                                <div class="col-md-12 p-0">
+                                    <label class="form-label mb-2 fw-bold text-muted">Filter By Preference:</label>
+                                    <div class="d-flex gap-1">
+                                        <div class="custom-filter-card" onclick="triggerFilterSelect('product_description')">
+                                            <input type="radio" value="product_description" name="customer_base_on" class="d-none" id="customer_base_on_pd">
+                                            <i class="las la-search fs-3 mb-1 d-block"></i>
+                                            <span class="small">Item Description</span>
+                                        </div>
+                                        <div class="custom-filter-card" onclick="triggerFilterSelect('custom_tags')">
+                                            <input type="radio" value="custom_tags" name="customer_base_on" class="d-none" id="customer_base_on_ct">
+                                            <i class="las la-tags fs-3 mb-1 d-block"></i>
+                                            <span class="small">Custom Tags</span>
+                                        </div>
+                                        <div class="custom-filter-card" onclick="triggerFilterSelect('billfree_tags')">
+                                            <input type="radio" value="billfree_tags" name="customer_base_on" class="d-none" id="customer_base_on_bft">
+                                            <i class="las la-award fs-3 mb-1 d-block"></i>
+                                            <span class="small">BillFree Tags</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Extra Columns -->
+                            <div class="row mb-2" id="product_description_box" style="display:none">
+                                <div class="col-sm-3" id="des_select_container_col">
+                                    <div class="form-group">
+                                                                                <select type="text" class="form-select  mb-2" onchange='createItemList()' name="exact_like" id="exact_like">
+                                            <option class="tom-select-item" value="all" selected>All</option>
+                                            <option class="tom-select-item" value="like" selected>Contains</option>
+                                            <option class="tom-select-item" value="exact">Exact Match</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-9">
+                                    <div class="form-group" id="des_select_container"> </div>
+                                </div>
+                            </div>
+
+                            <!-- Custom Tags -->
+                            <div class="row mb-2" id="custom_tags_box" style="display:none">
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <select type="text" class="form-select tom-select mb-2" name="custom_tag" placeholder="Choose.." id="custom_tag" multiple>
+                                            <option class="tom-select-item" value="">Choose..</option>
+                                                                                    </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Billfree Tags -->
+                            <div class="row mb-2" id="bf_tags_box" style="display:none">
+                                <div class="col-sm-3">
+                                    <div class="form-group">
+                                                                                <label class="control-label">Category<span style="color:red">*</span></label>
+                                        <select type="text" class="form-select tom-select mb-2" name="category" placeholder="Category" id="category" required>
+                                            <option class="tom-select-item" value="">Choose..</option>
+                                                                                    </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="form-group">
+                                                                                <label class="control-label">Sub Category</label>
+                                        <select type="text" class="form-select tom-select mb-2" name="sub_category" placeholder="Sub Category" id="sub_category" required>
+                                            <option class="tom-select-item" value="">Choose..</option>
+                                                                                    </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="form-group">
+                                                                                <label class="control-label">Brand</label>
+                                        <select type="text" class="form-select tom-select mb-2" name="brand" placeholder="Brand" id="brand" required>
+                                            <option class="tom-select-item" value="">Choose..</option>
+                                                                                    </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="form-group">
+                                                                                <label class="control-label">Model</label>
+                                        <select type="text" class="form-select tom-select mb-2" name="model" placeholder="Model" id="model" required>
+                                            <option class="tom-select-item" value="">Choose..</option>
+                                                                                    </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Multi-Row Query Builder -->
+                            <div id="s_query_builder_rows">
+
+                            </div>
+                        </div>
+
+                        <!-- Customer Based Segmentation -->
+                        <div class="row align-items-center mb-2" id="customer_base_container" style="display:none">
+                            <div class="col-sm-12 mb-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="bg-warning-lt p-2 rounded-circle me-3">
+                                        <i class="las la-user-tag fs-1 text-warning"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="mb-0 text-warning">Customer Based Segmentation</h4>
+                                        <p class="text-muted mb-0 small">Filter by relationship value, bill value, and loyalty status.</p>
+                                    </div>
+                                </div>
+                                <hr class="my-2">
+                            </div>
+
+                            <!-- Multi-row Query Builder -->
+                            <div id="p_query_builder_rows">
+                            </div>
+
+                        </div>
+
+                        <!-- Bill Based Segmentation -->
+                        <div id="bill_base_container" style="display:none">
+                            <div class="row">
+                                <div class="col-sm-12 mb-2">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="bg-teal-lt p-2 rounded-circle me-3">
+                                            <i class="las la-file-invoice-dollar fs-1 text-teal"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="mb-0 text-teal">Bill Based Segmentation</h4>
+                                            <p class="text-muted mb-0 small">Filter customers based on their specific transaction values and dates.</p>
+                                        </div>
+                                    </div>
+                                    <hr class="my-2">
+                                </div>
+
+                                <!-- Multi-row Query Builder -->
+                                <div id="b_query_builder_rows">
+                                </div>
+
+
+                            </div>
+                        </div>
+
+                        <!-- Reload Customre Count Button -->
+                        <div class="row">
+                            <div class="col-md-12 d-flex justify-content-end gap-2 w-100">
+                                <button type="reset" class="btn btn-danger" style="display: none;" id="configreset" value="Reset">Reset</button>
+                                <button type="button" class="btn btn-outline-primary" id="get_count_btn" onclick="getCustomerSegmentation(null, 'preview')">Fetch Customers<i class="las la-redo-alt" style="font-size: 1.5rem; margin-left: 10px"></i></button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Errors -->
+                <div id="errCustBasedOn" class="mt-2 mb-2"></div>
+
+                <!-- SKU Container Close -->
+                <div class="form-group mt-3">
+                    <div class="row">
+                        <div class="loader_sku loader d-none" style="width:40px;height:40px; display:block; margin:0 auto;"></div>
+                        <input type="hidden" value="0" id="addAndSelect" readonly>
+                        <div class="col-sm-12 my-2" id="customers_list">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h1 id="cust_found" class="mb-0 text-dark"></h1>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <div id="query_save_response"></div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-12" id="qry_nm" style="display:none">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="form-label mb-2" for="query_name">Segmentation Name <span class="text-danger">*</span></label>
+                                                <input type="text" name="query_name" placeholder="Enter the name of segmentation" onpaste="checkQueryNameIsExist(this.value)" onchange="checkQueryNameIsExist(this.value)" class="form-control" id="query_name" autocomplete="off">
+                                                <div id="saveQueryError" style="min-height:22px;" class="mt-1 mb-1"></div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                    <!-- Save -->
+                                    <div class="row" id="add_button_row" style="display: none;">
+                                        <div class="col-md-6">
+                                            <span class="text-primary cursor-pointer" id="add_data_btn" onclick="getCustomerSegmentation(true, 'add-data')">
+                                                Save Customers
+                                            </span>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="d-flex justify-content-end">
+                                                <button type="button" class='btn btn-success d-flex' id="add_btn" onclick="getCustomerSegmentation(true, 'add')">
+                                                    <i class="las la-save fs-2 me-1"></i> Save as Dynamic Query
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Edit Buttons -->
+                                    <div class="row" id="edit_button_row" style="display: none;">
+                                        <div class="col-md-12">
+                                            <div class="d-flex justify-content-end">
+                                                <button type="button" class='btn btn-success d-flex' id="edit_btn" onclick="getCustomerSegmentation(true, 'edit')">
+                                                    <i class="las la-save fs-2 me-1"></i> Update Segmentation
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        </form>                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal modal-blur fade" id="view_customers" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="display: flex; justify-content: flex-start;">
+                <div class="row">
+                    <div class="col-12">
+                        <h5 class="modal-title">Preview Customer Segmentation</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-body">
+
+                <!-- Table -->
+                <table class="table table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">Definition</th>
+                            <th scope="col">Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="preview_name"></td>
+                            <td id="preview_defination"></td>
+                            <td id="preview_counts"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Customer List Section -->
+                <div id="seg_customer_list_section" style="display:none;" class="mt-3">
+                    <div class="card my-2">
+                        <div class="card-header">
+                            <!-- Header Row -->
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-semibold text-dark fs-3">Customers</span>
+                                    <span id="seg_customer_count_badge" class="badge bg-primary rounded-pill fs-4" style="display:none;"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div style="height:210px; overflow-y:auto; border:1px solid #dee2e6; border-radius:6px; background:#fff;">
+                                <!-- Loader -->
+                                <div id="seg_customer_list_loader" style="display:none; text-align:center; padding:60px 0;">
+                                    <div class="spinner-border text-primary" style="width:1.4rem; height:1.4rem;" role="status" aria-hidden="true"></div>
+                                    <div class="text-muted mt-2" style="font-size:13px;">Loading customers...</div>
+                                </div>
+
+                                <!-- Empty State -->
+                                <div id="seg_customer_list_empty" style="display:none; text-align:center; padding:55px 0; color:#adb5bd;">
+                                    <i class="las la-user-slash" style="font-size:2.2rem;"></i>
+                                    <div style="font-size:13px; margin-top:6px;">No customers found.</div>
+                                </div>
+
+                                <!-- Table -->
+                                <table class="table table-striped table-hover mb-0" id="seg_customer_list_table" style="display:none;">
+                                    <thead>
+                                        <tr>
+                                            <th class="border-0 text-muted" style="width:50px; font-size:12px; font-weight:600; padding:8px 12px; text-transform:uppercase; letter-spacing:.4px;">#</th>
+                                            <th class="border-0 text-muted" style="font-size:12px; font-weight:600; padding:8px 12px; text-transform:uppercase; letter-spacing:.4px;">Phone Number</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="seg_customer_list_body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- <br>
+                <table class="table table-striped" style="display:none">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">User Phone</th>
+                        </tr>
+                    </thead>
+                    <tbody id="preview_customers_list">
+                        <tr>
+                            <th scope="col"></th>
+                            <td scope="col"></td>
+                        </tr>
+                    </tbody>
+                </table> -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" value="" id="selected_update_id" name="selected_update_id" placeholder="Selected UPDATE ID">
+
+<script>
+    // Function to set the current base type
+    function currentBase(val, action = 'add', editQuery = null) {
+
+        // Handle card highlighting
+        $('.selection-card').removeClass('active');
+        if (val) {
+            $('#card_' + val).addClass('active');
+        }
+
+        // Hide all containers quickly
+        $('#sku_base_container').hide(150);
+        $('#customer_base_container').hide(150);
+        $('#common_segmentation').hide(150);
+        $('#bill_base_container').hide(150);
+        $('#based_type').val(val);
+
+        // Setting the select of segmentation based value
+        $('#segmentation_type_select').val(val);
+
+        $('#segmentation_card').show(200);
+        // Customer Based
+        if (val === "p") $('#customer_base_container').show(200);
+
+        // SKU Based
+        if (val === "s") $('#sku_base_container').show(200);
+
+        // Bill Based
+        if (val === "b") $('#bill_base_container').show(200);
+
+        // Initialize query builder
+        if (action == 'add') queryBuilder(val);
+
+    }
+
+    // New function to handle the chip-style radio button selection
+    function triggerFilterSelect(val) {
+        // Find the radio button and check it
+        let radio = $('#customer_base_on_' + (val === 'product_description' ? 'pd' : (val === 'custom_tags' ? 'ct' : 'bft')));
+        radio.prop('checked', true);
+
+        // Highlight the active card
+        $('.custom-filter-card').removeClass('active');
+        radio.closest('.custom-filter-card').addClass('active');
+
+        // Trigger the original filter option logic
+        showFilterOptions(val);
+    }
+
+    // Building the dynamic query rows
+    function queryInit(type, index = 0, column = null, operator = null, value = null, logic = null, value_from = null, value_to = null) {
+        let cols = '';
+        switch (type) {
+            case 's':
+                // Initialize query for customer-based segmentation
+                cols = `
+                <option value="amt" ${column === 'amt' ? 'selected' : ''}>Amount</option>
+                <option value="bill_date" ${column === 'bill_date' ? 'selected' : ''}>Bill Date</option>
+                <option value="extended_warranty" ${column === 'extended_warranty' ? 'selected' : ''}>Extended Warranty</option>
+                `
+                // Clear previous query rows
+                $('#p_query_builder_rows').html('');
+                $('#b_query_builder_rows').html('');
+                break;
+            case 'p':
+                // Initialize query for customer-based segmentation
+                cols = `<option value="total_bill_value" ${column === 'total_bill_value' ? 'selected' : ''}>Relationship Value</option>
+                    <option value="max_bill_value" ${column === 'max_bill_value' ? 'selected' : ''}>Maximum Bill Value</option>
+                    <option value="loyalty_card_no" ${column === 'loyalty_card_no' ? 'selected' : ''}>Loyalty Card No</option>
+                    <option value="last_bill_date" ${column === 'last_bill_date' ? 'selected' : ''}>Last Bill Date</option>
+                    <option value="loyalty_date_added" ${column === 'loyalty_date_added' ? 'selected' : ''}>Loyalty Date Added</option>
+                    <option value="point_balance" ${column === 'point_balance' ? 'selected' : ''}>Point Balance</option>`
+
+                // Clear previous query rows
+                $('#s_query_builder_rows').html('');
+                $('#b_query_builder_rows').html('');
+
+                break;
+            case 'b':
+                // Initialize query for customer-based segmentation
+                cols = `
+                <option value="bill_amount" ${column === 'bill_amount' ? 'selected' : ''}>Bill Amount</option>
+                <option value="date_added_date" ${column === 'date_added_date' ? 'selected' : ''}>Bill Date Added</option>
+                `
+                // Clear previous query rows
+                $('#p_query_builder_rows').html('');
+                $('#s_query_builder_rows').html('');
+                break;
+            default:
+                break;
+        }
+
+        // Build the query builder row HTML
+        let valueHtml = '';
+        if (column === 'created_at' || column === 'bill_date' || column === 'last_bill_date' || column === 'loyalty_date_added' || column === 'date_added' || column === 'custom_date' || column === 'date_added_date') {
+            if (operator === 'between') {
+                valueHtml = `<input type="date" class="form-control mb-1" name="query[${index}][value_from]" value="${value_from || ''}" placeholder="From" required>
+                             <input type="date" class="form-control" name="query[${index}][value_to]" value="${value_to || ''}" placeholder="To" required>`;
+            } else {
+                valueHtml = `<input type="date" class="form-control" name="query[${index}][value]" value="${value || ''}" required>`;
+            }
+        } else if (column === 'extended_warranty') {
+            valueHtml = `
+            <select class="form-select form-control" name="query[${index}][value]" required>
+                <option value="">--Select--</option>
+                <option value="y" ${value === 'y' ? 'selected' : ''}>Yes</option>
+                <option value="n" ${value === 'n' ? 'selected' : ''}>No</option>
+            </select>
+            `;
+        } else {
+            if (operator === 'between') {
+                valueHtml = `<input type="text" class="form-control mb-1" name="query[${index}][value_from]" value="${value_from || ''}" placeholder="From" required>
+                             <input type="text" class="form-control" name="query[${index}][value_to]" value="${value_to || ''}" placeholder="To" required>`;
+            } else {
+                valueHtml = `<input type="text" class="form-control" name="query[${index}][value]" value="${value || ''}" required>`;
+            }
+        }
+
+        // Build the initial query builder row HTML in a readable format
+        let html = `
+            <div id="query_builder_rows_${type}">
+            <div class="mb-2">
+                <div class="row align-items-center query-row">
+                <div class="col-md-12 mb-2 text-end">
+                    <a class="plus-minus-btn text-danger remove-row float-end ms-2" href="javascript:void(0);">
+                    <i class="las la-minus-circle fs-2"></i>
+                    </a>
+                    <a class="plus-minus-btn add-row float-end" href="javascript:void(0);">
+                    <i class="las la-plus-circle fs-2"></i>
+                    </a>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <select class="form-select" name="query[${index}][column]" required>
+                    <option value="">Select Column</option>
+                    ${cols}
+                    </select>
+                </div>
+                <div class="col-md-4 mb-2">
+                        <select class="form-select" name="query[${index}][operator]" required>
+                        <optgroup label="Basic Checks">
+                            <option value="">--Select Operation--</option>
+                            <option value="IS NULL" ${operator === 'IS NULL' ? 'selected' : ''}>Empty</option>
+                            <option value="IS NOT NULL" ${operator === 'IS NOT NULL' ? 'selected' : ''}>Not Empty</option>
+                        </optgroup>
+                        <optgroup label="Value Matching">
+                            <option value="=" ${operator === '=' ? 'selected' : ''}>Exact Match</option>
+                            <option value="!=" ${operator === '!=' ? 'selected' : ''}>Not Equal</option>
+                            <option value="like" ${operator === 'like' ? 'selected' : ''}>Contains</option>
+                        </optgroup>
+                        <optgroup label="Range Checks">
+                            <option value="between" ${operator === 'between' ? 'selected' : ''}>Between</option>
+                            <option value=">" ${operator === '>' ? 'selected' : ''}>Greater Than</option>
+                            <option value=">=" ${operator === '>=' ? 'selected' : ''}>Greater Than or Equal To</option>
+                            <option value="<" ${operator === '<' ? 'selected' : ''}>Less Than</option>
+                            <option value="<=" ${operator === '<=' ? 'selected' : ''}>Less Than or Equal To</option>
+                        </optgroup>
+                        </select>
+                </div>
+                <div class="col-md-4 mb-2 query-value-container">
+                        ${valueHtml}
+                    </div>
+                <div class="col-md-12 mb-2">
+                    <select class="form-select" name="query[${index}][logic]" required>
+                    <option value="" selected>NONE</option>
+                    <option value="AND">(AND)</option>
+                    <option value="OR">(OR)</option>
+                    </select>
+                </div>
+                </div>
+            </div>
+            </div>
+        `;
+        $(`#${type}_query_builder_rows`).html(html);
+    }
+
+    // Building the dynamic query options and rows ui
+    function queryBuilder(selectedType, rowIndex = 1, queryRows = null) {
+
+        if (Array.isArray(queryRows) && queryRows.length > 0) {
+            $(`#${selectedType}_query_builder_rows`).html('');
+            queryRows.forEach(function(row, idx) {
+                // Initialize the query row with existing data
+                queryInit(
+                    selectedType,
+                    idx,
+                    row.column || null,
+                    row.operator || null,
+                    row.value || null,
+                    row.logic || null,
+                    row.value_from || null,
+                    row.value_to || null
+                );
+            });
+        } else {
+            $(`#${selectedType}_query_builder_rows`).html('');
+            queryInit(selectedType, 0); // Start index at 0
+        }
+
+        // Add new row
+        $('#query_builder_rows_' + selectedType).on('click', '.add-row', function() {
+            let $lastRow = $('#query_builder_rows_' + selectedType + ' .query-row:last');
+            let $newRow = $lastRow.clone();
+            $newRow.find('input, select').each(function() {
+                let name = $(this).attr('name');
+                if (name) {
+                    let newName = name.replace(/\[\d+\]/, '[' + rowIndex + ']');
+                    $(this).attr('name', newName);
+                    $(this).val('');
+                }
+            });
+            $newRow.find('.remove-row').show();
+            $('#query_builder_rows_' + selectedType).append($newRow);
+            // Increment index correctly based on number of existing query rows
+            rowIndex = $('#query_builder_rows_' + selectedType + ' .query-row').length;
+        });
+
+        // Remove row
+        $('#query_builder_rows_' + selectedType).on('click', '.remove-row', function() {
+            if ($('#query_builder_rows_' + selectedType + ' .query-row').length > 1) {
+                $(this).closest('.query-row').remove();
+            }
+        });
+
+        // Change input type for date/between
+        $('#query_builder_rows_' + selectedType).on('change', 'select[name$="[column]"], select[name$="[operator]"]', function() {
+            let $row = $(this).closest('.query-row');
+            let column = $row.find('select[name$="[column]"]').val();
+            let operator = $row.find('select[name$="[operator]"]').val();
+            let $container = $row.find('.query-value-container');
+            if (column === 'created_at' || column === 'bill_date' || column === 'last_bill_date' || column === 'loyalty_date_added' || column === 'date_added' || column === 'custom_date' || column === 'date_added_date') {
+                if (operator === 'between') {
+                    $container.html('<input type="date" class="form-control mb-1" name="' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_from]') + '" placeholder="From" required><input type="date" class="form-control" name="' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_to]') + '" placeholder="To" required>');
+                } else {
+                    $container.html('<input type="date" class="form-control" name="' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value]') + '" required>');
+                }
+            } else if (column === 'extended_warranty') {
+                $container.html(`
+                <select class="form-select form-control" name="${$row.find('input,select').eq(0).attr('name').replace('[column]', '[value]')}" required>
+                    <option value="">--Select--</option>
+                    <option value="y">Yes</option>
+                    <option value="n">No</option>
+                </select>
+                `);
+            } else {
+                if (operator === 'between') {
+                    $container.html('<input type="text" class="form-control mb-1" name="' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_from]') + '" placeholder="From" required><input type="text" class="form-control" name="' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value_to]') + '" placeholder="To" required>');
+                } else {
+                    $container.html('<input type="text" class="form-control" name="' + $row.find('input,select').eq(0).attr('name').replace('[column]', '[value]') + '" required>');
+                }
+            }
+        });
+    }
+
+    // Function to create item list based on selected value
+    function err_alert(strongMsg, Msg, displayAt) {
+        let html = `<div style="position: inherit; width: 100%; max-width: 100%; color: #ff0000">
+                        <strong>${strongMsg}</strong> ${Msg}
+                </div>`;
+        $(displayAt).html(html);
+        $('.loader_sku').addClass('d-none'); // Ensure loader is hidden on alert
+        $('.btn-outline-primary, .btn-success, .btn-primary, .btn-outline-success').prop('disabled', false); // Enable buttons
+    }
+
+    // Create
+    function showFilterOptions(val) {
+        $('#errCustBasedOn').html("");
+        $('#product_description_box').hide();
+        $('#custom_tags_box').hide();
+        $('#bf_tags_box').hide();
+        if (val == "product_description") $('#product_description_box').fadeIn(200);
+        if (val == "custom_tags") $('#custom_tags_box').fadeIn(200);
+        if (val == "billfree_tags") $('#bf_tags_box').fadeIn(200);
+    }
+
+    function saveCustomerSegmentation() {
+        $('#qry_nm').fadeIn(200);
+    }
+
+    function getCustomerSegmentation(save_query = null, save_type = null) {
+        $('.loader_sku').removeClass('d-none');
+        $('#customers_list').hide();
+        $('.btn-outline-primary, .btn-success, .btn-primary').prop('disabled', true); // Disable buttons during check
+
+        let customer_base_on, type = null;
+        let selected_update_id = "";
+
+        // Mode
+        modeChange();
+
+        $('#errCustBasedOn').html("");
+
+        if (save_type == "edit" || save_type == "edit-static-data") {
+            selected_update_id = $('#selected_update_id').val();
+            $('#modal_case').val('edit');
+        }
+
+        if (save_type == "add" || save_type == "add-static-data") {
+            selected_update_id = null;
+            $('#modal_case').val('add');
+        }
+
+        modeChange(); // Ensure correct button row is shown
+
+        const selectInputElementId = "";
+        const exact_like = $('#exact_like').val();
+        const item = $('#item').val();
+        const custom_tag = $('#custom_tag').val();
+        const category = $('#category').val();
+        const sub_category = $('#sub_category').val();
+        const brand = $('#brand').val();
+        const model = $('#model').val();
+        const amount_from = $('#amount_from').val();
+        const amount_to = $('#amount_to').val();
+        const query_name = $('#query_name').val();
+        const based_type = $('#based_type').val();
+        const relationship_value_from = $('#relationship_value_from').val();
+        const relationship_value_to = $('#relationship_value_to').val();
+
+        // New relationship value from/to for the unified query rows
+        // Note: These will be captured within the 'query' array now via queryInit
+
+
+        // Collecting query rows
+        let query = [];
+        $('#' + based_type + '_query_builder_rows .query-row').each(function(index) {
+            let row = {};
+            $(this).find('select, input').each(function() {
+                let name = $(this).attr('name');
+                if (name && name.match(/query\[\d+\]\[(.*?)\]/)) {
+                    let key = name.match(/query\[\d+\]\[(.*?)\]/)[1];
+                    row[key] = $(this).val();
+                }
+            });
+            query.push(row);
+        });
+
+        if (document.getElementById('customer_base_on_pd').checked) {
+            customer_base_on = "product_description";
+        } else if (document.getElementById('customer_base_on_ct').checked) {
+            customer_base_on = "custom_tags";
+        } else if (document.getElementById('customer_base_on_bft').checked) {
+            customer_base_on = "billfree_tags";
+        }
+
+        // Validations
+        if (save_query != null && query_name == "") return err_alert("Query name is required.", "", "#errCustBasedOn");
+        if (based_type.trim() == "") return err_alert("Please select Segmentation Based type", "", "#errCustBasedOn");
+
+        type = based_type.trim();
+        if (!customer_base_on && type == "s") return err_alert("Error! Customer based required!", "", "#errCustBasedOn");
+        if (customer_base_on == "product_description" && (exact_like == 'like' || exact_like == 'exact') && item.length == 0 && type == "s") return err_alert("Error! Item Description required!", "", "#errCustBasedOn");
+        if (customer_base_on == "custom_tags" && custom_tag == "" && type == "s") return err_alert("Custom Tags required!",
+            "", "#errCustBasedOn");
+        if (customer_base_on == "billfree_tags" && (category == "" && type == "s")) return err_alert("Category Required!",
+            "", "#errCustBasedOn");
+        if (type == "") return err_alert("Error! Segmentation Based type is required!", "", "#errCustBasedOn");
+
+        $.ajax({
+            type: "post",
+            url: "/segmentation/get-customer",
+            data: {
+                query,
+                customer_base_on,
+                exact_like,
+                item,
+                custom_tag,
+                category,
+                sub_category,
+                brand,
+                model,
+                amount_from,
+                amount_to,
+                save_query,
+                query_name,
+                type,
+                relationship_value_from,
+                relationship_value_to,
+                selected_update_id,
+                id: selected_update_id,
+                count_only: true,
+                return_sample: true,
+                save_type
+            },
+            success: function(response) {
+                $('.loader_sku').addClass('d-none');
+                $('.btn-outline-primary, .btn-success, .btn-primary').prop('disabled', false);
+                $('#customers_list').show();
+                let res = JSON.parse(response);
+                let err = {
+                    sgc0: "Success",
+                    sgc1: "Error! Query name required.",
+                    sgc2: "Error! Query name already exist, Please choose another name.",
+                    sgc3: "Error! Query name required.",
+                    sgc4: "Error! Only post request acceptable",
+                }
+
+                if (save_type != "preview") {
+                    if (res.error && res.response == "sgc1") return showQueryNameError(err.sgc1);
+                    if (res.error && res.response == "sgc2") return showQueryNameError(err.sgc2);
+                }
+
+                if (res.error == false) {
+                    $('#customers_list').fadeIn(200);
+                    const countNumber = res.count;
+                    const formattedCount = countNumber.toLocaleString();
+                    $('#cust_found').html(`<span class="text-primary fw-bold">${formattedCount}</span> matching customers found.`);
+
+                    $('#qry_nm').fadeIn(200); // Show name field and final actions immediately
+
+                    if ($('#addAndSelect').val() !== 0) {
+                        getCustomerSegmentationslist();
+                        $('#selectInputOfChooseCustomerSegmentation').val(res.id);
+                    }
+
+                    modeChange(); // Ensure only correct buttons are shown
+
+                    if (res.sqlQuerySaved == "Query saved successfully") {
+                        const success_html = `<div class="mt-3 w-100 alert alert-success alert-dismissible fade show " style="width:100%;position: initial;" role="alert">
+                        <strong>Success!</strong> Your segmentation has been ${save_type.includes('edit') ? 'updated' : 'saved'} successfully.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>`
+
+                        $('#query_save_response').html(success_html);
+
+                        setTimeout(() => {
+                            $('#customer_segmentation_model').modal('hide');
+                            if (window.location.pathname.includes('/segmentation/list')) {
+                                location.reload();
+                            } else {
+                                // For other pages, just reload the list if available
+                                if (typeof getCustomerSegmentationslist === 'function') getCustomerSegmentationslist();
+                                $('#query_save_response').html('');
+                                setModelToAdd(); // Reset the model
+                            }
+                        }, 1000);
+                    }
+                } else {
+                    // Handle backend errors
+                    const errorMsg = res.message || "An unexpected error occurred.";
+                    $('#errCustBasedOn').html(`<div class="alert alert-danger p-2">${errorMsg}</div>`);
+                }
+            },
+            error: function(error) {
+                $('.loader_sku').addClass('d-none');
+                $('.btn-outline-primary, .btn-success, .btn-primary').prop('disabled', false);
+                $('#errCustBasedOn').html(`<div class="alert alert-danger d-flex align-items-center p-2 mb-3">
+                    <i class="las la-exclamation-circle fs-2 me-2"></i>
+                    <div>Failed to process request. Server error.</div>
+                </div>`);
+            }
+        });
+    }
+
+    // Update
+    function showFilterOptionsForUpdate(val) {
+        $('#errCustBasedOn_update').html("");
+        $('#product_description_box_update').hide();
+        $('#custom_tags_box_update').hide();
+        $('#bf_tags_box_update').hide();
+
+        if (val == "product_description") {
+            $('#product_description_box_update').fadeIn(200);
+        }
+        if (val == "custom_tags") {
+            $('#custom_tags_box_update').fadeIn(200);
+        }
+        if (val == "billfree_tags") {
+            $('#bf_tags_box_update').fadeIn(200);
+        }
+    }
+
+    function modeChange() {
+        let currentMode = $('#modal_case').val();
+
+        if (currentMode == "edit") {
+            $('#add_button_row').hide();
+            $('#edit_button_row').show();
+            $('#mod_heading').html('Update Customer Segmentation');
+            $('#add_btn').hide();
+            $('#update_btn').show();
+            $('#errCustBasedOn').hide();
+        }
+
+        if (currentMode == "add") {
+            $('#edit_button_row').hide();
+            $('#add_button_row').show();
+            $('#mod_heading').html('Create Customer Segmentation');
+            $('#add_btn').show();
+            $('#update_btn').hide();
+            $('#errCustBasedOn').hide();
+        }
+    }
+
+    function deleteSegmentation(id) {
+        if (!confirm('Are you sure you want to delete this segmentation? This action cannot be undone.')) {
+            return;
+        }
+        window.location.href = "/segmentation/customer-delete?id=" + id;
+    }
+
+    function editCustomerSegmentation(id) {
+
+        $('#selected_update_id').val(id);
+        $('#modal_case').val('edit');
+        $('#initial_selection_view').hide(); // Hide selection cards during edit
+        $('#qry_nm').hide();
+        $('#loader_sku loader').hide()
+        $('#customers_list').hide();
+
+        modeChange(); // Apply mode styling (Update vs Save)
+
+        // For Update Model Only
+        $('#customers_list').modal('hide');
+        $('#customer_segmentation_model').modal('show');
+
+        // Show loader and hide form
+        $('#edit_form_loader').show();
+        $('#query_builder_form').hide();
+
+        // Get Data of Segmentation
+        const url = "/segmentation/get-segment-query";
+        $.ajax({
+            type: "post",
+            url: url,
+            data: {
+                id: id
+            },
+            dataType: "json",
+            success: function(response) {
+                // Hide loader and show form
+                $('#edit_form_loader').hide();
+                $('#query_builder_form').show();
+
+                var obj = response;
+                if (obj.error == false) {
+
+                    const id = obj.data.id;
+                    const payload = JSON.parse(obj.data.request_payload) // JSON Decode of Payload
+
+                    // Setting the current based on payload type
+                    currentBase(payload.type, 'edit');
+
+                    // If payload type is sku based
+                    if (payload.type == "s") {
+                        const customer_based_on = payload.customer_base_on;
+                        const exact_like = payload.exact_like;
+
+                        if (exact_like == "like") {
+                            $('#exact_like').val("like");
+                        } else if (exact_like == "exact") {
+                            $('#exact_like').val("exact");
+                        } else {
+                            $('#exact_like').val("all");
+                        }
+
+                        createItemList();
+
+                        if (customer_based_on == "product_description") {
+                            document.getElementById('customer_base_on_pd').click();
+                            showFilterOptionsForUpdate("product_description");
+                            if (payload.item && document.querySelector('#item').tomselect) {
+                                document.querySelector('#item').tomselect.setValue(payload.item);
+                            }
+                        } else if (customer_based_on == "custom_tags") {
+                            document.getElementById('customer_base_on_ct').click();
+                            showFilterOptionsForUpdate("custom_tags");
+                            if (payload.custom_tag && document.querySelector('#custom_tag').tomselect) {
+                                document.querySelector('#custom_tag').tomselect.setValue(payload.custom_tag);
+                            }
+                        } else if (customer_based_on == "billfree_tags") {
+                            document.getElementById('customer_base_on_bft').click();
+                            showFilterOptionsForUpdate("billfree_tags");
+
+                            if (payload.category && document.querySelector('#category').tomselect) {
+                                document.querySelector('#category').tomselect.setValue(payload.category);
+                            }
+                            if (payload.sub_category && document.querySelector('#sub_category').tomselect) {
+                                document.querySelector('#sub_category').tomselect.setValue(payload.sub_category);
+                            }
+                            if (payload.brand && document.querySelector('#brand').tomselect) {
+                                document.querySelector('#brand').tomselect.setValue(payload.brand);
+                            }
+                            if (payload.model && document.querySelector('#model').tomselect) {
+                                document.querySelector('#model').tomselect.setValue(payload.model);
+                            }
+                        }
+                    }
+
+                    // If query exists, build the query builder rows for edit
+                    if (payload.query && payload.query.length > 0) {
+                        queryBuilder(payload.type, 0, payload.query);
+                    }
+
+                    $('#query_name').val(payload.query_name)
+
+                    // Show name field during edit
+                    $('#qry_nm').fadeIn(200);
+
+                    // Trigger a preview automatically to show the current matching count
+                    // Using 'preview' instead of 'edit' to avoid automatic submission/saving
+                    getCustomerSegmentation(null, 'preview');
+                }
+            },
+            error: function() {
+                // Hide loader even on error
+                $('#edit_form_loader').hide();
+                $('#query_builder_form').show();
+            }
+        });
+    }
+
+
+
+    // Preview or View
+    function previewCustomerSegmentation(id, withDate = false, showModal = true) {
+
+        if (showModal == true) $('#view_customers').modal('show');
+
+        $('#preview_counts').html("")
+        $('#preview_defination').html("")
+        $('#preview_name').html("")
+        $('#seg_customer_list_section').hide();
+        $('#seg_customer_list_body').html('');
+        $('#seg_customer_list_table').hide();
+        $('#seg_customer_list_empty').hide();
+
+        if (id == null) id = $('#preview_id_input').val();
+        $('#preview_id_input').val(id)
+
+        let data = {};
+        if (withDate == true) {
+            data = {
+                id,
+                withDate: true,
+                date_from: custSegStartDate,
+                date_to: custSegEndDate
+            };
+        } else {
+            data = {
+                id,
+                withDate: false
+            };
+        }
+        runCustomerSegQuery(data);
+    }
+
+    function getCustomerSegmentationslist() {
+        let selectEle = document.getElementById('selectInputOfChooseCustomerSegmentation');
+        if (selectEle) {
+            const url = "/api/customer-segmentation-list";
+            $.ajax({
+                type: "get",
+                url: url,
+                success: function(response) {
+                    let page = document.getElementById('page');
+                    let res = JSON.parse(response);
+                    let option_html = "";
+
+                    // Automation update set id.
+                    let qid = null;
+                    if (selectEle.length && selectEle.value > 0) {
+                        qid = selectEle.value;
+                    }
+
+                    if (qid != null && qid != "") {
+                        // FOR SKU AUTOMATION - UPDATE
+                        res.forEach(element => {
+                            if (qid == element.id) {
+                                option_html += "<option value='" + element.id + "' selected>" + element.query_name +
+                                    "</option>"
+                            } else {
+                                option_html += "<option value='" + element.id + "'>" + element.query_name +
+                                    "</option>"
+                            }
+                        });
+
+                    } else {
+                        if (page && page.value != undefined && page.value == "automation") {
+                            // FOR SKU SEGMENTATION AUTOMATION
+                            option_html += "<option value='' selected > --Select Segmentation-- </option>";
+                        } else {
+                            // FOR SKU SEGMENTATION CAMPAIGN
+                            option_html += "<option value='none'> None </option><option value='all' selected > All Customers </option>";
+                        }
+
+                        res.forEach(element => {
+                            option_html += "<option value='" + element.id + "'>" + element.query_name +
+                                "</option>"
+                        });
+                    }
+
+                    selectEle.innerHTML = option_html;
+                },
+            })
+        }
+
+    }
+
+    function changeCreateAndAdd() {
+        $('#addAndSelect').val('selectInputOfChooseCustomerSegmentation');
+        setModelToAdd();
+    }
+
+    function setModelToAdd() {
+        $('#selected_update_id').val('');
+        $('#modal_case').val('add');
+        $('#initial_selection_view').show(); // Show selection cards for adding
+        $('.selection-card').removeClass('active');
+        $('#qry_nm').hide();
+        $('#customers_list').hide();
+        $('#segmentation_card').hide(); // Hide filters until a type is selected
+
+        modeChange(); // Apply mode styling (Create vs Save)
+
+        // Reset query form
+        $('#query_builder_form').trigger("reset");
+        $('#configreset').click();
+    }
+
+    function showQueryNameError(msg) {
+        $('#query_name').addClass('is-invalid').removeClass('is-valid');
+        $('#saveQueryError').html(
+            '<span style="color:#d63939; font-size:12px; display:inline-flex; align-items:center; gap:5px;">' +
+            '<i class="las la-times-circle" style="font-size:14px;"></i>' +
+            '<strong>' + msg + '</strong></span>'
+        );
+        $('#add_btn, #add_data_btn, #edit_btn, #edit_data_btn').prop('disabled', true).css('pointer-events', 'none').css('opacity', '0.5');
+    }
+
+    function resetQueryNameCheck() {
+        $('#query_name').removeClass('is-invalid is-valid');
+        $('#saveQueryError').html('');
+        $('#add_btn, #add_data_btn, #edit_btn, #edit_data_btn').prop('disabled', false).css('pointer-events', '').css('opacity', '');
+    }
+
+    function checkQueryNameIsExist(queryName) {
+        if (queryName.trim() == "") return resetQueryNameCheck();
+        let id = $('#selected_update_id').val();
+
+        $('#query_name').removeClass('is-invalid is-valid');
+        $('#saveQueryError').html(
+            '<span class="text-muted" style="font-size:12px;">' +
+            '<span class="spinner-border spinner-border-sm me-1" style="width:.75rem;height:.75rem;" role="status"></span>' +
+            'Checking name...</span>'
+        );
+
+        $.get('/segmentation/is-query-name-exits', {
+            qry_name: queryName.trim(),
+            id: id
+        }, function(response) {
+            if (parseInt(response) === 1) {
+                showQueryNameError('Name already exists. Please choose a different name.');
+            } else {
+                $('#query_name').removeClass('is-invalid');
+                $('#saveQueryError').html('');
+                $('#add_btn, #add_data_btn, #edit_btn, #edit_data_btn').prop('disabled', false).css('pointer-events', '').css('opacity', '');
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        createItemList();
+        getCustomerSegmentationslist();
+    });
+
+
+    function createItemList(options) {
+        let val = $('#exact_like').val();
+        const opt = ``;
+        const selectStart = `<select type="text" class="form-select mb-2" name="item" placeholder="Item Description" id="item" multiple="true">
+            ${opt}
+        </select>`;
+
+        // For all match, all items should be allowed, so we can keep the select with create option enabled
+        if (val == "all") {
+            $('#item').remove("");
+            $('#des_select_container').html(selectStart);
+            $('#des_select_container').hide();
+            $('#des_select_container_col').addClass('col-sm-12').removeClass('col-sm-3'); // Make it full width when shown
+            new TomSelect("#item", {
+                create: false
+            });
+        }
+
+        // For like match, we can show the select with multiple selection and create option to allow users to add custom values as well
+        if (val == "like") {
+            $('#item').remove("");
+            $('#des_select_container').html(selectStart);
+            $('#des_select_container').show();
+            $('#des_select_container_col').addClass('col-sm-3').removeClass('col-sm-12'); // Make it smaller
+            new TomSelect("#item", {
+                create: true
+            });
+        }
+
+        // For exact match, we can show the select but with single selection and without create option
+        if (val == "exact") {
+            $('#item').remove("");
+            $('#des_select_container').show();
+            $('#des_select_container').html(selectStart);
+            $('#des_select_container_col').addClass('col-sm-3').removeClass('col-sm-12'); // Make it smaller
+            new TomSelect("#item", {
+                create: false
+            });
+        }
+    }
+
+    setModelToAdd();
+</script>										
+										<input type="hidden" name="segmantation_query_id" id="segmantation_query_id">
+
+										<div class="form-submit-button d-flex justify-content-between">
+											<div class="text-danger text-center" id="sms_warning" style=""></div><br>
+											<div class="text-right">
+												<span class="align-middle">Total Credits to be used:
+													<span id="totalCredits" class="text-primary font-weight-bold" style="font-size: 1.6rem;">0</span>/<span class="creditLabel">sms</span>&nbsp;&nbsp;
+												</span>
+												&nbsp; | &nbsp;
+												<button type="submit" class="btn btn-success hidden submitBtn" disabled="">Send</button> <span class="btn btn-primary" id="test-message-btn" onclick="testMessageModalCleanup('Message', '8857808284');" title="before sending to bigger audience">
+													Test Message
+												</span>
+												<button class="btn btn-success px-3" id="myBtn" onclick="$(this).attr('disabled', 'disabled')" disabled="">Send</button>
+											</div>
+										</div>
+
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<form action="" enctype="multipart/form-data" id="waMediaFile"></form>
+<div id="file_upload_forms_container" style="display:none"></div>
+<div id="carousel_forms" style="display:none"></div>
+<input type="hidden" id="waMediaId" data-index="0">
+<input type="hidden" id="waMediaId_filename" data-index="0">
+
+<!--Final send Modal -->
+<div class="modal modal-blur fade" data-bs-backdrop="static" data-bs-keyboard="false" id="myModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header" style="display: flex; justify-content: flex-start;">
+				<h4 class="modal-title">Alert!</h4>
+				<button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+
+			</div>
+			<div class="modal-body px-4">
+				<p class="text-center" style="font-size: 1.2rem;">
+					Total credit Balance in Account <br>
+					SMS - <strong><span class="sms-credits text-primary" style="font-size: 1.8rem;">100</span> &nbsp; &nbsp; &nbsp;</strong>
+					WhatsApp - <strong><span class="wa-credits text-success" style="font-size: 1.8rem;">100.00</span></strong>
+				</p>
+				<hr />
+				<p class="text-center" style="font-size: 1.2rem;">
+					Total expenditure Credits <br>
+					<span class="creditLabel">SMS</span> - <strong class="text-danger"><span class="expenditure" style="font-size: 1.8rem;"></span> Credits &nbsp; &nbsp; &nbsp;</strong>
+				</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default mb-0" data-bs-dismiss="modal">Go Back</button>
+				<button type="button" class="btn btn-success" onclick='sendMessage(this);'>Continue</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!--Buy Credits Modal -->
+<div class="modal modal-blur fade" data-bs-backdrop="static" data-bs-keyboard="false" id="myModalLowCredit" role="dialog">
+	<div class="modal-dialog modal-lg modal-dialog-centered">
+
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header" style="display: flex; justify-content: flex-start;">
+				<h4 class="modal-title">Alert!</h4>
+				<button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+			</div>
+			<div class="modal-body">
+				<p class="text-center" style="font-size: 1.2rem;">
+					Total credit Balance in Account <br>
+					SMS - <strong><span class="sms-credits text-primary" style="font-size: 1.8rem;">100</span> &nbsp; &nbsp; &nbsp;</strong>
+					WhatsApp - <strong><span class="wa-credits text-success" style="font-size: 1.8rem;">100.00</span></strong>
+				</p>
+				<hr />
+				<p class="text-center" style="font-size: 1.2rem;">
+					Total expenditure Credits <br>
+					<span class="creditLabel">SMS</span> - <strong class="text-danger"><span class="expenditure" style="font-size: 1.8rem;"></span> Credits &nbsp; &nbsp; &nbsp;</strong>
+				</p>
+				<p class="text-danger text-center p-2 bg-red-lt mb-0" id="errMsg"> You don't have enough credits to continue. Click 'Go Back' to change the distribution or click on 'Buy credits' To purchase more credits</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-bs-dismiss="modal">Go Back</button>
+				<button type="button" class="btn btn-primary" id="buyCreditsBtn" onclick="buyCredits();">Buy Credits</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- SMS Template Modal -->
+
+<div class="modal modal-blur fade" data-bs-backdrop="static" data-bs-keyboard="false" id="sms-template-modal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header" style="display: flex; justify-content: flex-start;">
+				<h3 class="modal-title">Choose SMS Template (Flow List)</h3>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body p-0">
+							</div>
+		</div>
+	</div>
+</div>
+
+
+<script>
+	function addSmsTemplateVar(elem, base_url) {
+		$('.sms-template-text').html('');
+		$(elem).siblings('.sms-template-text').html('<div class="loader m-auto" style="width: 40px;height: 40px;" id="loader"></div>').slideDown('fast');
+
+		$.ajax({
+			type: "GET",
+			url: base_url + $(elem).parents('.list-group-item').data('id'),
+			success: function(response) {
+				let res = JSON.parse(response);
+				if (!res.error) {
+					var varHtml = '';
+					var dom = `<textarea class="form-control  disabled template-text" rows="3"  readonly>${res.data.sms_text}</textarea>
+                                <div class="row template-var mt-2"></div>`;
+
+					res.varList.forEach((variable) => {
+						varHtml += `<div class="form-group col-md-4">
+                                <label class="form-label" for="${variable}" style="margin-right:10px">${variable}</label>
+                                <input type="text" class="form-control  sms-vars" name="${variable}" id="${variable}" placeholder="${variable}" maxlength="29" required>
+                            </div>`;
+					});
+					varHtml += `<div class="form-group col-md-12">
+                                    <span class="text-muted text-wrap"><strong>NOTE :</strong> Use </span>
+									<div class="list-group list-group-flush mt-2">
+										<div class="row">
+										<div class="col-6 p-0 ps-1 pb-1">
+													<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem; background: var(--tblr-border-color-light)">
+														<div class="row">
+															<div class="col-6 p-0 ps-2">
+																<b>code</b>
+															</div>
+															<div class="col-6 p-0">
+																<b>Attribute</b>
+															</div>
+														</div>
+													</div>
+												</div><div class="col-6 p-0 ps-1 pb-1">
+													<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem; background: var(--tblr-border-color-light)">
+														<div class="row">
+															<div class="col-6 p-0 ps-2">
+																<b>code</b>
+															</div>
+															<div class="col-6 p-0">
+																<b>Attribute</b>
+															</div>
+														</div>
+													</div>
+												</div>											<div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%cx_name%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Customer Name<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%cx_sp_name%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Customer Spouse Name<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%cx_c_name%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Customer Child Name<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%web_link%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Web Link<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%event_date%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Event Date<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%point_balance%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Point Balance<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%referee_phone%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Referee Phone<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%referee_points%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Referee Points<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%store_name%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Store Name<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%store_phone%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Store Phone Number<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%store_address%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Store Address<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%store_place_id%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Store On map<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%coupon_code%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Coupon Code<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%coupon_title%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Coupon Title<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%coupon_expiry%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Coupon Expiry<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%coupon_min_purchase%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Coupon Minimum Purchase<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%expiry_points%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Expiry Points<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%points_expiry_date%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Points Expiry Date<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%c_var1%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Custom Variable 1<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%c_var2%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Custom Variable 2<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%c_var3%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Custom Variable 3<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%c_var4%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Custom Variable 4<span>
+																</div>
+															</div>
+														</div>
+													</div>										</div>
+									</div>
+                                </div>`;
+					varHtml += `<div class="form-group col-md-12"><a href="javascript:;" onclick="setSmsTemplate(this);" class="btn btn-primary text-white">Set Template</a></div>`;
+					$(elem).siblings('.sms-template-text').html(dom).slideDown('fast');
+					$('.template-var').html(varHtml);
+
+					let lastFocused;
+					// get the last focused element
+					$('.sms-vars').on('focusin', function() {
+						lastFocused = $(this);
+					});
+
+					$('.codeContent').off('click').on('click', function(e) {
+						e.preventDefault();
+						let newVal = $(lastFocused).val() + $(this).text();
+						if (newVal.length < 30) {
+							$(lastFocused).val(newVal);
+						}
+					});
+				} else {
+					$(elem).siblings('.sms-template-text').html('<div class="text-danger m-auto text-center">Cant Get the Template Details</div>').slideDown('fast');
+				}
+			}
+		});
+	}
+
+	function setSmsTemplate(elem) {
+		let isValid = validateTemplateVars(elem);
+		//setting the template id and sms to list
+		if (isValid) {
+			// 1. get the template variables and encode to json
+			var varList = {};
+			var varInputs = $(elem).parents('.sms-template-text').find('input,select');
+			var smsText = $(elem).parents('.sms-template-text').find('textarea').val();
+			var smsTemplateId = $(elem).parents('.list-group-item').data('id');
+			varInputs.each(function(index, elem) {
+				varList[$(elem).attr('name')] = $(elem).val();
+
+				//presentable sms text
+				var varPatt = '##' + $(elem).attr('name') + '##';
+				var varExp = new RegExp(varPatt, 'ig');
+				smsText = smsText.replace(varExp, $(elem).val());
+			});
+
+			// 2. set the template variables & sms along with template Id
+			$('#smsTemplateId').val(smsTemplateId);
+			$('#templateVar').val(JSON.stringify(varList));
+			$('#smsText').val(smsText);
+			$('#smsText').trigger('click');
+
+			// 3. Reflect changes to UI
+			// Removing Loader => $(elem).html('Send Message');
+			setTimeout(() => {
+				$(elem).parents('.sms-template-text').slideUp('fast');
+				$('.list-group-item').removeClass('selected');
+				$(elem).parents('.list-group-item').addClass('selected');
+			}, 600);
+			setTimeout(() => {
+				removeModal('sms-template-modal');
+			}, 1200);
+		}
+		calculateEstimate();
+	}
+</script>
+<!-- Whatsapp Template Selection Modal -->
+<div class="modal modal-blur fade" data-bs-backdrop="static" data-bs-keyboard="false" id="wa-template-modal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 650px;">
+		<div class="modal-content">
+			<div class="modal-header">
+				<div>
+					<h3 class="modal-title">Choose WhatsApp Template</h3>
+					<p class="text-muted mb-0" style="font-size: 13px;">0 templates available</p>
+				</div>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="px-3 pt-3 pb-2" style="border-bottom: 1px solid #e6e7e9;">
+				<div class="input-icon">
+					<span class="input-icon-addon">
+						<svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+							<path stroke="none" d="M0 0h24v24H0z" fill="none" />
+							<circle cx="10" cy="10" r="7" />
+							<line x1="21" y1="21" x2="15" y2="15" />
+						</svg>
+					</span>
+					<input type="text" id="waTemplateSearch" class="form-control" placeholder="Search template by name...">
+				</div>
+			</div>
+			<div class="modal-body p-0" style="max-height: 60vh; overflow-y: auto;">
+							</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	function addWaTemplateVar(elem) {
+		let $current = $(elem).siblings('.wa-template-text');
+		// Toggle: if already open, close it
+		if ($current.is(':visible')) {
+			$current.slideUp('fast').html('');
+			$(elem).find('.wa-toggle-icon').css('transform', 'rotate(0deg)');
+			return;
+		}
+		// Close all others
+		$('.wa-template-text').slideUp('fast').html('');
+		$('.wa-toggle-icon').css('transform', 'rotate(0deg)');
+		// Open current
+		$current.html('<div class="loader m-auto" style="width: 40px;height: 40px;" id="loader"></div>').slideDown('fast');
+		$(elem).find('.wa-toggle-icon').css('transform', 'rotate(180deg)');
+
+		let tempalateId = $(elem).parents('.list-group-item').data('id');
+		if (tempalateId) {
+			let waMediaIdSelector = document.getElementById('waMediaId');
+			let html = '';
+			//global function from qfree-backend/js/script.js
+			switch (waOperator) {
+				case '360d':
+				case 'gupshup':
+					//get the template's payload
+					gupshupPayload = waTemplates.find((item) => item.id == tempalateId);
+					html = whatsappTemplateSelectionRenderGupshup(gupshupPayload, html, waMediaIdSelector, null, null, null, 'gupshup');
+					//get the template's payload
+					html += `<div class="form-group col-md-12">
+                                    <span class="text-muted text-wrap"><strong>NOTE :</strong> Use </span>
+									<div class="list-group list-group-flush mt-2">
+										<div class="row">
+										<div class="col-6 p-0 ps-1 pb-1">
+													<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem; background: var(--tblr-border-color-light)">
+														<div class="row">
+															<div class="col-6 p-0 ps-2">
+																<b>code</b>
+															</div>
+															<div class="col-6 p-0">
+																<b>Attribute</b>
+															</div>
+														</div>
+													</div>
+												</div><div class="col-6 p-0 ps-1 pb-1">
+													<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem; background: var(--tblr-border-color-light)">
+														<div class="row">
+															<div class="col-6 p-0 ps-2">
+																<b>code</b>
+															</div>
+															<div class="col-6 p-0">
+																<b>Attribute</b>
+															</div>
+														</div>
+													</div>
+												</div>											<div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%cx_name%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Customer Name<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%cx_sp_name%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Customer Spouse Name<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%cx_c_name%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Customer Child Name<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%web_link%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Web Link<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%event_date%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Event Date<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%point_balance%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Point Balance<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%referee_phone%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Referee Phone<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%referee_points%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Referee Points<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%store_name%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Store Name<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%store_phone%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Store Phone Number<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%store_address%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Store Address<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%store_place_id%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Store On map<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%coupon_code%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Coupon Code<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%coupon_title%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Coupon Title<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%coupon_expiry%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Coupon Expiry<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%coupon_min_purchase%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Coupon Minimum Purchase<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%expiry_points%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Expiry Points<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%points_expiry_date%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Points Expiry Date<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%c_var1%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Custom Variable 1<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%c_var2%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Custom Variable 2<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%c_var3%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Custom Variable 3<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%c_var4%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Custom Variable 4<span>
+																</div>
+															</div>
+														</div>
+													</div>										</div>
+									</div>
+                                </div>`;
+					html += `<div class="form-group col-md-12"><a href="javascript:;" class="btn btn-primary waSetTempBtn" onclick="setWaTemplate(this);" >Set Template</a></div>`;
+					$(elem).siblings('.wa-template-text').html(html).slideDown('fast');
+					break;
+
+				default:
+					//get the template's payload
+					gupshupPayload = waTemplates.find((item) => item.id == tempalateId);
+					realPayload = gupshupPayload;
+					html = whatsappTemplateSelectionRenderGupshup(gupshupPayload, html, waMediaIdSelector, null, null, null, waOperator);
+					html += `<div class="form-group col-md-12">
+                                    <span class="text-muted text-wrap"><strong>NOTE :</strong> Use </span>
+									<div class="list-group list-group-flush mt-2">
+										<div class="row">
+										<div class="col-6 p-0 ps-1 pb-1">
+													<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem; background: var(--tblr-border-color-light)">
+														<div class="row">
+															<div class="col-6 p-0 ps-2">
+																<b>code</b>
+															</div>
+															<div class="col-6 p-0">
+																<b>Attribute</b>
+															</div>
+														</div>
+													</div>
+												</div><div class="col-6 p-0 ps-1 pb-1">
+													<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem; background: var(--tblr-border-color-light)">
+														<div class="row">
+															<div class="col-6 p-0 ps-2">
+																<b>code</b>
+															</div>
+															<div class="col-6 p-0">
+																<b>Attribute</b>
+															</div>
+														</div>
+													</div>
+												</div>											<div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%cx_name%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Customer Name<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%cx_sp_name%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Customer Spouse Name<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%cx_c_name%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Customer Child Name<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%web_link%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Web Link<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%event_date%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Event Date<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%point_balance%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Point Balance<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%referee_phone%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Referee Phone<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%referee_points%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Referee Points<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%store_name%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Store Name<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%store_phone%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Store Phone Number<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%store_address%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Store Address<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%store_place_id%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Store On map<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%coupon_code%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Coupon Code<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%coupon_title%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Coupon Title<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%coupon_expiry%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Coupon Expiry<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%coupon_min_purchase%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Coupon Minimum Purchase<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%expiry_points%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Expiry Points<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%points_expiry_date%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Points Expiry Date<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%c_var1%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Custom Variable 1<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%c_var2%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Custom Variable 2<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%c_var3%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Custom Variable 3<span>
+																</div>
+															</div>
+														</div>
+													</div><div class="col-6 p-0 ps-1 pb-1">
+														<div class="list-group-item text-wrap" style="padding: 0.5rem 0.5rem">
+															<div class="row">
+																<div class="col-6 p-0 ps-2">
+																	<a href="javascript:;" class="codeContent"><code>%%c_var4%%</code></a>
+																</div>
+																<div class="col-6 p-0">
+																	<span style="font-size: 0.75rem">Custom Variable 4<span>
+																</div>
+															</div>
+														</div>
+													</div>										</div>
+									</div>
+                                </div>`;
+					html += `<div class="form-group col-md-12"><a href="javascript:;" class="btn btn-primary waSetTempBtn" onclick="setWaTemplate(this);" >Set Template</a></div>`;
+					$(elem).siblings('.wa-template-text').html(html).slideDown('fast');
+					break;
+			}
+		}
+
+		let lastFocused;
+		// get the last focused element
+		$('.wa-vars').on('focusin', function() {
+			lastFocused = $(this);
+		});
+
+		$('.codeContent').off('click').on('click', function(e) {
+			e.preventDefault();
+			let newVal = $(lastFocused).val() + $(this).text();
+			if (newVal.length < 30) {
+				$(lastFocused).val(newVal);
+			}
+		});
+
+	}
+
+	async function setWaTemplate(elem, payload = {}) {
+		let isValid = validateTemplateVars(elem);
+
+		$('.waSetTempBtn').attr('disabled', 'disabled');
+		$('.waSetTempBtn').html(LOADER);
+		// 1. get the template variables
+		let waMediaId = $('#waMediaId').val();
+		let waMediaFileName = $('#waMediaId_filename').val();
+
+		//mapping vars for extra header parameter
+		waMediaId ? $('#waMediaId').addClass('wa-vars') : $('#waMediaId').removeClass('wa-vars');
+
+		// 2. set the template sms along with template Id
+		var waTemplateId = $(elem).parents('.list-group-item').data('id');
+		$('#waTemplateId').val(waTemplateId);
+		let vars = $('.wa-vars');
+
+		switch (waOperator) {
+			case '360d':
+			case 'gupshup':
+				let payloadUrl = await getPayloadUrl(gupshupPayload['id'], vars, waMediaId);
+				$('#waPayload').val(payloadUrl);
+				let previewGupshup = prepareGupshupWaPreview(payloadUrl);
+				$('#whatsapp-preview-container').html('<h4 class="form-label">Whatsapp Preview</h4>' + previewGupshup);
+				break;
+
+			default:
+				//get the template's payload
+				let getPayloadInfos = createPayloadInfo(vars, waMediaId, 0, realPayload.wa_template_json.buttons, realPayload);
+				let previewSelfServe = prepareWaPreview(getPayloadInfos);
+
+				let variableList = [];
+				if (getPayloadInfos && getPayloadInfos.varList) {
+					const varList = getPayloadInfos.varList;
+
+					//set varList to hidden field for record
+					$('#var_list').val(JSON.stringify(varList));
+
+					// Extract values
+					const values = extractValues(varList);
+					variableList = values;
+				}
+
+				let waPayload = {
+					template: {
+						id: realPayload.template_id,
+						params: variableList
+					}
+				};
+
+				if (realPayload.header_type.toLowerCase() == 'carousel') {
+					let carouselData = getFormData();
+					if (carouselData && carouselData.card) {
+						let cardHeaderType = "IMAGE";
+						if (carouselData.card[0] && carouselData.card[0].file_type) {
+							cardHeaderType = carouselData.card[0].file_type.toUpperCase();
+						}
+
+						let carouselMessage = {
+							type: "carousel",
+							cardHeaderType: cardHeaderType,
+							cards: []
+						};
+
+						// Ensure it handles both array and object-with-numeric-keys
+						let cardsArr = Array.isArray(carouselData.card) ? carouselData.card : Object.values(carouselData.card);
+
+						// Collect card body + button variables into template.params
+						// (matching MerchantOfferUtility::createGupshupSsPayload format)
+						let carouselParams = [];
+						cardsArr.forEach(card => {
+							// Only link goes into message.cards
+							carouselMessage.cards.push({
+								link: card.file
+							});
+
+							// Card body variables → template.params
+							if (card.body) {
+								let bodyValues = typeof card.body === 'object' ? Object.values(card.body) : card.body;
+								bodyValues.forEach(val => {
+									if (val) carouselParams.push(val);
+								});
+							}
+
+							// Card button variables → template.params
+							if (card.button) {
+								let buttons = typeof card.button === 'object' ? Object.values(card.button) : card.button;
+								buttons.forEach(btn => {
+									if (btn && btn.variable) carouselParams.push(btn.variable);
+								});
+							}
+						});
+
+						waPayload.template.params = carouselParams;
+						waPayload.message = carouselMessage;
+					}
+				} else if (waMediaId != null && waMediaId != "") {
+					const header_type = realPayload.header_type.toLowerCase();
+					let messageObj = {
+						type: header_type
+					};
+					messageObj[header_type] = {
+						link: waMediaId
+					};
+					if (header_type == "document" && typeof waMediaFileName != "undefined") {
+						if (waMediaFileName && waMediaFileName.length > 0) {
+							messageObj[header_type].filename = waMediaFileName;
+						}
+					}
+					waPayload.message = messageObj;
+				}
+
+				const createdWaPayload = JSON.stringify(waPayload);
+				$('#waPayload').val(createdWaPayload);
+				$('#whatsapp-preview-container').html('<h4 class="form-label">Whatsapp Preview</h4>' + previewSelfServe).show(300);;
+				break;
+		}
+
+		// 3. Reflect changes to UI
+		setTimeout(() => {
+			$(elem).parents('.wa-template-text').slideUp('fast');
+			$('.list-group-item').removeClass('selected');
+			$(elem).parents('.list-group-item').addClass('selected');
+		}, 600);
+
+		$('.waSetTempBtn').html('Set Template');
+		$('.waSetTempBtn').removeAttr('disabled');
+
+		setTimeout(() => {
+			removeModal('wa-template-modal');
+		}, 1200);
+
+		calculateEstimate();
+	}
+</script>
+
+<!-- bulk upload mobile numbers Modal -->
+<div class="modal modal-blur fade" data-bs-backdrop="static" data-bs-keyboard="false" id="bulkUploadNos" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header" style="display: flex; justify-content: flex-start;">
+
+				<h3 class="modal-title">Upload customers Phone Numbers</h3>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+			</div>
+			<div class="modal-body">
+				<div id="bulkUploadError">
+				</div>
+				<p>Use this section to upload a xlsx containing all the customers phone numbers. <a href="/resources/docs/phone_numbers_with_custom_vars.xlsx?v=1791920560">Click Here</a> to Download the template, enter all details from 2nd row and re-upload the file below.</p>
+				<form id="fileUploadForm" class="form-vertical" action="/coupon-dashboard/adhoc-coupons" method="post" enctype="multipart/form-data">								<div class="form-group field-uploadfile-excelfile">
+<label class="control-label" for="uploadfile-excelfile">Excel File</label>
+
+<input type="hidden" name="UploadFile[excelFile]" value=""><input type="file" id="uploadfile-excelfile" class="form-control file-loading" name="UploadFile[excelFile]" required accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" data-krajee-fileinput="fileinput_f1b116c5">
+<!--[if lt IE 10]><br><div class="alert alert-warning"><strong>Note:</strong> Your browser does not support file preview and multiple file upload. Try an alternative or more recent browser to access these features.</div><script>document.getElementById("uploadfile-excelfile").className.replace(/\bfile-loading\b/,"");;</script><![endif]-->
+
+<div class="help-block"></div>
+
+</div>
+			</div>
+			<div class="modal-footer">
+				<button type="submit" class="btn btn-success uploadButton">Start Upload</button>				</form>			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Modal For test sms. begins here -->
+<div class="modal modal-blur fade" data-bs-backdrop="static" data-bs-keyboard="false" id="testMessage" tabindex="-1" role="dialog" aria-hidden="true"></div>
+<!-- Modal For test sms. ends -->
+
+<div class="modal modal-blur fade" data-bs-backdrop="static" data-bs-keyboard="false" id="campaign-response" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header" style="display: flex; justify-content: flex-start;">
+				<h4 class="modal-title">Message Summary</h4>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-bs-dismiss="modal"></button>
+
+			</div>
+			<div class="modal-body">
+				<div class="card">
+					<div class="card-body" style="background-color: var(--tblr-code-bg);">
+						<div class="row">
+							<div class="col-md-6">
+								<label>Customers Reached On <span class="creditLabel">SMS</span></label>
+								<p class="custReach"></p>
+							</div>
+							<div class="col-md-6">
+								<label><span class="creditLabel">SMS</span> Credits Spent</label>
+								<p class="expenditure"></p>
+							</div>
+						</div>
+						<p class="mt-2"><b>NOTE -</b> To check detailed report of message reachability check <a href="/sms-ledger/index" target="_blank">Promo Ledger</a> section.</p>
+					</div>
+				</div>
+				<div class="text-center mt-3">
+					<button type="button" class="btn btn-success px-4" onclick="window.location = window.location">Done</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Modal For manual phone nos. begins here -->
+<div class="modal modal-blur fade" data-bs-backdrop="static" data-bs-keyboard="false" id="addModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header" style="display: flex; justify-content: flex-start;">
+				<h4 class="modal-title">Add numbers</h4>
+				<button type="button" class="btn-close" onclick="removeModal('addModal');" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<div id="addedNumbersError">
+
+				</div>
+				<p>Write the phone numbers in a comma separated fashion, to be added explicitly.</p>
+				<textarea class="form-control" rows="10" cols="1" id="addedNos"></textarea>
+				<p class="text-red mt-2">Please ensure to add ISD code as well e.g. 91XXXXXXXXXX</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" id="addNosBtn" onclick="addNos('60646', '', $('#channelType').val());">Add Numbers</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Modal For manual phone nos. ends -->
+
+<script>
+	$(document).ready(function() {
+		EstimateSMSCredits();
+		calculateEstimate('initial');
+		toggleChannelInstances();
+
+		// Search filter for WhatsApp template list
+		$('#waTemplateSearch').on('input', function() {
+			let query = $(this).val().toLowerCase();
+			$('#waTemplateList .list-group-item').each(function() {
+				let title = $(this).data('title') || '';
+				$(this).toggle(title.indexOf(query) !== -1);
+			});
+		});
+
+		$(".uploadButton").click(function(e) {
+
+			$(this).attr('disabled', 'disabled');
+			$('.uploadButton').html(LOADER);
+
+			e.preventDefault();
+
+			let channel = $('#channelType').val();
+
+			var formData = new FormData($("#fileUploadForm")[0]);
+			formData.append('merchant_id', '60646');
+			formData.append('offer_id', '');
+			formData.append('channel_type', channel);
+			formData.append('for', 'adhoc');
+
+			$.ajax({
+				url: '/campaign/bulk-upload',
+				type: 'POST',
+				data: formData,
+				cache: false,
+				contentType: false,
+				processData: false,
+				success: function(response) {
+					response = JSON.parse(response);
+					if (!response.error) {
+						$("#addedMoNos").html(response.data);
+						$("#addPhoneNos").show();
+
+						$("#bulkUploadNos").modal('hide');
+						calculateEstimate('initial');
+					} else {
+						$("#bulkUploadError").html("<div class='alert alert-danger'>" + response.message + "</div>")
+					}
+					$('.uploadButton').html('Start Upload');
+					$('.uploadButton').removeAttr('disabled');
+					removeModal('bulkUploadNos');
+				},
+				error: function() {
+					alert('ERROR at PHP side!!');
+					$('.uploadButton').html('Start Upload');
+					$('.uploadButton').removeAttr('disabled');
+				}
+			});
+		});
+
+		$('#checkAll').click(function() {
+			$('#moNos .check').prop('checked', $(this).prop('checked'));
+			Filters();
+		});
+
+		$('#checkAllAdded').click(function() {
+			$('#addPhoneNos .checkAdded').prop('checked', $(this).prop('checked'));
+			calculateEstimate();
+		});
+
+		$("#myBtn").on("click", function(e) {
+			e.preventDefault();
+			$(this).removeAttr('disabled');
+			if ($("#tempCredits").text() != '') {
+				let channel = $('#channelType').val();
+				let available = 0;
+				if (channel.includes('s')) {
+					var total = parseInt($("#totalCredits").text());
+					available = parseInt($('.sms-credits').first().html());
+					$('.creditLabel').html('SMS');
+				}
+				if (channel.includes('w')) {
+					var total = parseInt($("#totalCredits").text());
+					available = parseInt($('.wa-credits').first().html());
+					$('.creditLabel').html('WhatsApp');
+				}
+				if (total <= 0) {
+					$(".expenditure").html($("#totalCredits").text());
+					$('#errMsg').html('<h4>You must select atleast one number to continue<h4>');
+					$('#buyCreditsBtn').hide();
+					showModal('myModalLowCredit');
+				} else if (total > available) {
+					$(".expenditure").html($("#totalCredits").text());
+					$('#buyCreditsBtn').show();
+					showModal('myModalLowCredit');
+				} else {
+					$(".expenditure").html($("#totalCredits").text());
+					showModal('myModal');
+				}
+			}
+		});
+
+		// segmentation
+		$('#hidden_selected_segmentation_id').val('all');
+		$('#moNosCount').val(0);
+
+					getCustomerSegmentationslist();
+		
+	});
+
+	function EstimateSMSCredits() {
+		var count = {
+			messages: 1
+		};
+		if ($('#smsText').length) {
+			count = SmsCounter.count($('#smsText').val());
+		}
+		credUsed = count.messages;
+		var charCount = count.length;
+		$('#credCount').html(credUsed);
+		$('#charCount').html(charCount);
+
+		$('#smsText').on("keyup click keydown change", function() {
+
+			var linkType = $('#smsText').val().indexOf("web_link") != -1 ? 'with link' : 'without link';
+
+			var text = $(this).val();
+			// Since \n takes 2 characters (in the PHP Library), so adding an extra character(invisibly) for each line break
+			var countLn = (text.match(/\n/g) || []).length;
+			for (var i = 1; i <= countLn; i++) {
+				text += '.';
+			}
+			var count = SmsCounter.count(text, linkType);
+			credUsed = count.messages;
+			$('#credCount').val(credUsed);
+			calculateEstimate();
+			if (credUsed > 1)
+				$('#s').show();
+			else
+				$('#s').hide();
+
+			var charCount = count.length;
+			var totalCount = count.per_message;
+
+			if (count.messages > 1 && linkType == 'with link') {
+				totalCount += (count.messages - 1) * (count.per_message + 20);
+			} else {
+				totalCount += (count.messages - 1) * (count.per_message);
+				totalCount -= 20;
+				charCount -= 6;
+			}
+
+			if ($('#smsText').val().match(/%%(.*?)%%/ig) && $('#smsText').val().match(/%%(.*?)%%/ig).length) {
+				charCount = charCount + 6; // changing length of %%offer_link%% to 20 (reserved for url)
+			}
+
+			$('#credCount').html(credUsed);
+			$('#charCount').html(charCount);
+			$('#totalCount').html(totalCount);
+
+			var count = parseInt($('#tempUsers').text());
+			var credits = credUsed * count;
+			$('#totalCredits').html(credits);
+			$('#tempCredits').html(
+				count + ' x ' + credUsed + ' = ' + '<b>' + credits + '<b>'
+			);
+
+			if (credUsed > 1) {
+				$('#sms_warning').show();
+				$('#sms_warning').html("Note: You have typed more than " + (totalCount) + " characters and will be charged more than 1 SMS credit.");
+			} else
+				$('#sms_warning').hide();
+		});
+		$('#smsText').trigger('click');
+	}
+
+	function testMessage(elem) {
+
+		$(elem).attr('disabled', 'disabled');
+		$(elem).html(LOADER);
+
+		//coupon details
+		let denoId = $('#denoId').val();
+		let couponValidity = $('#valCoupon').val();
+		let segmantation_query_id = $('#selectInputOfChooseCustomerSegmentation').val();
+		let channelType = $('#channelType').val();
+
+		let startDate = $('#startDate').val();
+		let endDate = $('#endDate').val();
+		let profile = $('#profile').val();
+
+		//post data for sms campaign
+		let smsText = $('#smsText').val();
+		let templateVar = $('#templateVar').val();
+		let smsTemplateId = $('#smsTemplateId').val();
+		let linkType = $('#smsText').val().indexOf("web_link") != -1 ? 'with link' : 'without link';
+
+		//post data for whatsapp campaign
+		let waPayload = $('#waPayload').val();
+		let var_list = $('#var_list').val();
+		let waTemplateId = $('#waTemplateId').val();
+		let waMediaId = $('#waMediaId').val();
+		let testNumbers = $('#testNumbers').val();
+
+
+		let postData = {
+			couponValidity,
+			channelType,
+			testNumbers,
+			linkType,
+			segmantation_query_id,
+			startDate,
+			endDate,
+			profile,
+			denoId: '',
+			smsText: '',
+			templateVar: '',
+			smsTemplateId: '',
+			waPayload: '',
+			waTemplateId: '',
+			waMediaId: '',
+			waOperator
+		}
+
+		postData.denoId = denoId;
+
+		if (channelType.includes('s')) {
+			postData.smsText = smsText;
+			postData.templateVar = templateVar;
+			postData.smsTemplateId = smsTemplateId;
+			$('.creditLabel').html('SMS');
+		}
+
+		if (channelType.includes('w')) {
+			postData.waPayload = waPayload;
+			postData.waTemplateId = waTemplateId;
+			postData.waMediaId = waMediaId;
+			postData.var_list = var_list;
+			$('.creditLabel').html('WhatsApp');
+		}
+
+		$.ajax({
+			type: "POST",
+			url: "/coupon-dashboard/send-adhoc",
+			data: postData,
+			success: function(response) {
+				resp = JSON.parse(response);
+				if (!resp.error) {
+					$(elem).html('Send Message');
+					var msgText = `<p class="text-center"; style="font-weight:bold;">Message Sent</p>`;
+					var footerButtons = `<button type="button" class="btn btn-success" data-bs-dismiss="modal" $('#test-message-btn').attr('disabled','disabled');">Message Received</button>
+					<a href="javascript:;" class="btn btn-danger" style="margin-bottom: 6px" data-bs-dismiss="modal" $('#test-message-btn').removeAttr('disabled');">Not Received</a>`
+					$('#testMessage .modal-content').addClass('alert-success');
+					$('#myBtn, .submitBtn').removeAttr('disabled');
+					$('#testMessage .modal-body').html(msgText);
+					$('#testMessage .modal-header .close').remove();
+					$('#testMessage .modal-footer').css('text-align', 'center');
+					$('#testMessage .modal-footer').html(footerButtons);
+
+					$('#testMessage .modal-footer').addClass('d-flex');
+					$('#testMessage .modal-footer').addClass('justify-content-center');
+					$('.expenditure').html(resp.creditsUsed);
+				}
+			},
+			error: function(response) {
+				alert('Something went wrong. please try again latter.');
+			}
+		});
+	}
+
+	function sendMessage(elem) {
+		$(elem).attr('disabled', 'disabled');
+
+		//coupon details
+		let denoId = $('#denoId').val();
+		let couponValidity = $('#valCoupon').val();
+		let channelType = $('#channelType').val();
+		let segmantation_query_id = $('#selectInputOfChooseCustomerSegmentation').val();
+
+		let startDate = $('#startDate').val();
+		let endDate = $('#endDate').val();
+		let profile = $('#profile').val();
+
+		//post data for sms campaign
+		let smsText = $('#smsText').val();
+		let templateVar = $('#templateVar').val();
+		let smsTemplateId = $('#smsTemplateId').val();
+		let checkAll = $('#checkAll').is(":checked");
+		let checkAllAdded = $('#checkAllAdded').is(":checked");
+		let linkType = $('#smsText').val().indexOf("web_link") != -1 ? 'with link' : 'without link';
+
+		//post data for whatsapp campaign
+		let waPayload = $('#waPayload').val();
+		let var_list = $('#var_list').val();
+		let waTemplateId = $('#waTemplateId').val();
+		let waMediaId = $('#waMediaId').val();
+		let mobiles = [];
+
+		//prepare all mobiles numbers
+		$('[name*="SMSNos"]:checked').each(function() {
+			mobiles.push($(this).val());
+		});
+
+		let postData = {
+			segmantation_query_id,
+			couponValidity,
+			channelType,
+			mobiles,
+			linkType,
+			startDate,
+			endDate,
+			profile,
+			denoId: '',
+			smsText: '',
+			templateVar: '',
+			smsTemplateId: '',
+			waPayload: '',
+			waTemplateId: '',
+			waMediaId: '',
+			waOperator,
+			var_list
+		}
+
+		if (checkAll) postData.checkAll = 1;
+		if (checkAllAdded) postData.checkAllAdded = 1;
+
+		postData.denoId = denoId;
+		if (channelType.includes('s')) {
+			postData.smsText = smsText;
+			postData.templateVar = templateVar;
+			postData.smsTemplateId = smsTemplateId;
+			$('.creditLabel').html('SMS');
+		}
+
+		if (channelType.includes('w')) {
+			postData.waPayload = waPayload;
+			postData.waTemplateId = waTemplateId;
+			postData.waMediaId = waMediaId;
+			$('.creditLabel').html('WhatsApp');
+		}
+
+		$.ajax({
+			type: "POST",
+			url: "/coupon-dashboard/send-adhoc",
+			data: postData,
+			success: function(response) {
+				resp = JSON.parse(response);
+				if (!resp.error) {
+					$('.custReach').html(resp.customerReached);
+					$('.expenditure').html(resp.creditsUsed);
+					removeModal('myModal');
+					showModal('campaign-response');
+				}
+			},
+			error: function(response) {
+				alert('Something went wrong. please try again latter.');
+			}
+		});
+	}
+
+	function changeCustomerSegmentationAutomation(val, hiddenInputId = null) {
+		$('#editSegBtn').show();
+		$('#previewSegBtn').show();
+		$('#segmantation_query_id').val(val);
+	}
+
+	function popupDenomination() {
+		$('#denominationModal').modal('show');
+	}
+</script>            </div>
+
+
+        </div>
+    </div>
+    <footer class="mt-auto">
+    <div class="page-wrapper-bottom">
+        <div class="page-footer text-center text-muted mb-3" style="background-color: var(--tblr-body-bg);">
+            <div><a href="https://billfree.in" class="text-muted" title="BillFree Labs" target="">BillFree Labs</a> Pvt Ltd, 2026 &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; <a href="mailto:contact@billfree.in?subject=Billfree-backend query" class="text-muted"><i class="las la-envelope"></i> contact@billfree.in</a> &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; <a class="text-muted" href="tel:+01204207081"><i class="las la-phone"></i> 0120-4207081</a></div>
+            <!-- <div style='float:right;'><a  href="https://bit.ly/BilFree">BillFree</a></div> -->
+        </div>
+    </div>
+</footer>    <script src="/assets/d7c67dda/yii.js?v=1656451257"></script>
+<script src="/resources/dashboard/js/tabler.min.js?v=1738999962"></script>
+<script src="/resources/js/constants.js?v=1746774834"></script>
+<script src="/resources/js/currency-format.js?v=1790566300"></script>
+<script src="/resources/dashboard/libs/tom-select/dist/js/tom-select.base.min.js?v=1738999962"></script>
+<script src="/resources/dashboard/libs/vanillajs-datepicker/dist/js/datepicker.min.js?v=1738999962"></script>
+<script src="/resources/js/billfreeMerchant.js?v=1773472590"></script>
+<script src="/resources/js/billfree.js?v=1773472590"></script>
+<script src="/resources/qfree-backend/js/script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/whatsapp-script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/rcs-script.js?v=1759128504"></script>
+<script src="/resources/dashboard/js/campaign-script.js?v=1759128504"></script>
+<script src="/resources/dashboard/js/chartInit.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/script.js?v=1790566300"></script>
+<script src="/resources/dashboard/js/crypto-js.min.js?v=1738999962"></script>
+<script src="/resources/plugins/country-selector/intlTelInput.js?v=1746707187"></script>
+<script src="/resources/dashboard/js/redeem-rewards.js?v=1790566300"></script>
+<script src="/assets/9135b6b9/trumbowyg.min.js?v=1691822137"></script>
+<script src="/assets/eb112df/js/select2.full.min.js?v=1656451284"></script>
+<script src="/assets/eb112df/js/select2-krajee.min.js?v=1656451284"></script>
+<script src="/assets/5fc1f4db/js/kv-widgets.min.js?v=1656451282"></script>
+<script src="/assets/d7c67dda/yii.activeForm.js?v=1656451257"></script>
+<script src="/assets/9447997a/js/bootstrap.js?v=1691821954"></script>
+<script src="/assets/5c82dce2/js/activeform.min.js?v=1715677042"></script>
+<script src="/assets/36646495/js/plugins/sortable.min.js?v=1656451282"></script>
+<script src="/assets/36646495/js/plugins/purify.min.js?v=1656451282"></script>
+<script src="/assets/36646495/js/fileinput.min.js?v=1656451282"></script>
+<script src="/assets/d7c67dda/yii.validation.js?v=1656451257"></script>
+<script>jQuery(function ($) {
+jQuery("#descriptionField").trumbowyg({"btns":[["viewHTML"],["formatting"],["strong","em","del"],["link"],["unorderedList","orderedList"],["horizontalRule"],["fullscreen"]],"lang":"en"});
+if (jQuery('#selectInputOfChooseCustomerSegmentation').data('select2')) { jQuery('#selectInputOfChooseCustomerSegmentation').select2('destroy'); }
+jQuery.when(jQuery('#selectInputOfChooseCustomerSegmentation').select2(select2_7fade4b7)).done(initS2Loading('selectInputOfChooseCustomerSegmentation','s2options_d6851687'));
+
+jQuery('#query_builder_form').yiiActiveForm([], []);
+var $el=jQuery("#fileUploadForm .kv-hint-special");if($el.length){$el.each(function(){$(this).activeFieldHint()});}
+if (jQuery('#uploadfile-excelfile').data('fileinput')) { jQuery('#uploadfile-excelfile').fileinput('destroy'); }
+jQuery('#uploadfile-excelfile').fileinput(fileinput_f1b116c5);
+
+jQuery('#fileUploadForm').yiiActiveForm([{"id":"uploadfile-excelfile","name":"excelFile","container":".field-uploadfile-excelfile","input":"#uploadfile-excelfile","validate":function (attribute, value, messages, deferred, $form) {yii.validation.file(attribute, messages, {"message":"File upload failed.","skipOnEmpty":true,"mimeTypes":[],"wrongMimeType":"Only files with these MIME types are allowed: .","extensions":["xlsx","xlsm","xltx","xltm","csv"],"wrongExtension":"Only files with these extensions are allowed: xlsx, xlsm, xltx, xltm, csv.","maxFiles":1,"tooMany":"You can upload at most 1 file."});}}], []);
+});</script>
+    <!-- Modal HTML for Bootstrap 5 -->
+    <div id="accessDeniedModal" class="modal modal-blur fade" tabindex="-1" aria-labelledby="accessDeniedModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="accessDeniedModalLabel">Access Denied</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex flex-column align-items-center justify-content-center">
+                        <img class="w-25" src="/resources/images/access_denied.png" alt="img">
+                        <div class="mt-3">
+                            <p class="fs-3" id="">You do not have access to the requested feature.</p>
+                            <p class="fs-3" id="accessDeniedMessage">Please buy a subscription to use this feature.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-primary" href="/account/index?tab=subscriptions"
+                        style="margin-top: 14px;">Buy Subscription</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+<script>
+    function handleClick() {
+        $('#info').hide();
+    }
+</script>
+
+<!-- PWA JavaScript -->
+<script src="/js/pwa-app.js"></script>
+
