@@ -111,14 +111,14 @@ export default function BillReceipt() {
       console.error('Feedback submission error:', err);
     }
 
-    // If rating >= 4, automatically open Google Review page
-    const googleReviewUrl = data?.tenantProfile?.google_review_url || 
-      `https://www.google.com/search?q=${encodeURIComponent((data?.tenantProfile?.store_name || data?.receiptData?.StoreName || 'Pankhudi Fashion Store') + ' reviews')}`;
+    // If rating >= 4, automatically open Google Review write dialog
+    const targetUrl = data?.tenantProfile?.google_review_url || 
+      'https://www.google.com/search?q=DEEPAK+SAREES+old+panvel#lrd=0x3be7e90524b2180d:0x15c5576269cfa09b,3';
     
-    if (rating >= 4 && googleReviewUrl && googleReviewUrl !== '#') {
+    if (rating >= 4 && targetUrl && targetUrl !== '#') {
       setTimeout(() => {
-        window.open(googleReviewUrl, '_blank');
-      }, 350);
+        window.open(targetUrl, '_blank');
+      }, 300);
     }
   };
 
@@ -168,7 +168,7 @@ export default function BillReceipt() {
   
   // Direct Google Review Write Dialog URL
   const googleReviewUrl = tenant.google_review_url || 
-    'https://search.google.com/local/writereview?placeid=ChIJDRiyJAUp5zsRm6DPIWJXxRt';
+    'https://www.google.com/search?q=DEEPAK+SAREES+old+panvel#lrd=0x3be7e90524b2180d:0x15c5576269cfa09b,3';
 
   // WhatsApp store contact number (clean format for wa.me)
   const rawPhone = tenant.phone_number_id || receipt.StorePhone || '917977163140';
