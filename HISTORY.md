@@ -52,15 +52,14 @@ Successfully established the full enterprise brain framework inside the project 
   2. **SaaS SuperAdmin Panel (`/saas-admin`)**: For SaaS operators to manage all tenant accounts, subscription plans, message quotas, global WABA gateways, and multi-store analytics.
 - **Rule & Brain Updates**: Updated `AGENTS.md`, `SCHEMA_DICTIONARY.md`, `cto-standards.md`, and `billing-messaging` skill to permanently encode this design.
 
-### 8. Windows Print Agent: 3-Channel Cashier Interceptor Modal
-- Architected the real-time POS print interceptor popup modal (`digital-invoice-system/print-agent/UI/MainWindow.xaml`):
-  1. **Option 1: [1] Send Digitally**: WhatsApp digital bill only, physical printing skipped to save thermal paper rolls.
-  2. **Option 2: [2] Send to Printer**: Physical paper printing only, skips cloud upload.
-  3. **Option 3: [3] Send on Both Channels** *(Default)*: Both prints physical paper bill and dispatches digital receipt via WhatsApp.
-- **Cashier Ergonomics & Rush-Hour Velocity**:
-  - Hotkey acceleration: Press `1` / `D`, `2` / `P`, `3` / `B` / `Enter`, or `Escape`.
-  - Configurable 5-second countdown auto-timer so busy cashiers never experience billing counter bottleneck.
-  - Auto-extracts customer WhatsApp number from print stream, with instant inline editing if missing.
+### 9. Digital Receipt Privacy & Page Title Enforcement (`/i/:slug`)
+- **Document Title Format**: Dynamically sets browser tab title to `${invoiceNumber} - ${storeName}` (e.g. `DS-2026-8842 - Deepak Sarees`).
+- **Comprehensive Search Engine Crawl Prevention**:
+  1. **Nginx HTTP Response Header**: Configured `add_header X-Robots-Tag "noindex, nofollow, noarchive, nosnippet" always;` on `bill.retailnode.in`.
+  2. **`robots.txt`**: Added `robots.txt` disallowing all search crawlers (`Googlebot`, `Bingbot`, `*`) from `/i/`, `/t/`, `/api/`, and admin panels.
+  3. **HTML Meta Tags**: Injected `<meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />` and `<meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet" />` both in `index.html` and dynamically via React `useEffect` in `BillReceipt.jsx`.
+- Deployed live to server `95.135.166.109`.
+
 
 
 
