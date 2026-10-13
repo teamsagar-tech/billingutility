@@ -49,6 +49,32 @@ export default function BillReceipt() {
     if (slug) fetchBill();
   }, [slug]);
 
+  // Set document title to "invoice number - firm name" and disallow search engine indexing
+  useEffect(() => {
+    if (data) {
+      const invNo = data.receiptData?.InvoiceNumber || data.receiptData?.invoiceNumber || slug;
+      const firm = data.tenantProfile?.store_name || data.receiptData?.StoreName || 'Deepak Sarees';
+      document.title = `${invNo} - ${firm}`;
+
+      // Enforce strict no-index / no-archive for search crawlers
+      let metaRobots = document.querySelector('meta[name="robots"]');
+      if (!metaRobots) {
+        metaRobots = document.createElement('meta');
+        metaRobots.name = 'robots';
+        document.head.appendChild(metaRobots);
+      }
+      metaRobots.setAttribute('content', 'noindex, nofollow, noarchive, nosnippet');
+
+      let metaGooglebot = document.querySelector('meta[name="googlebot"]');
+      if (!metaGooglebot) {
+        metaGooglebot = document.createElement('meta');
+        metaGooglebot.name = 'googlebot';
+        document.head.appendChild(metaGooglebot);
+      }
+      metaGooglebot.setAttribute('content', 'noindex, nofollow, noarchive, nosnippet');
+    }
+  }, [data, slug]);
+
   // Social slider auto-advance (every 4 seconds)
   useEffect(() => {
     const timer = setInterval(() => {
