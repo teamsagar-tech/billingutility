@@ -52,15 +52,15 @@ Successfully established the full enterprise brain framework inside the project 
   2. **SaaS SuperAdmin Panel (`/saas-admin`)**: For SaaS operators to manage all tenant accounts, subscription plans, message quotas, global WABA gateways, and multi-store analytics.
 - **Rule & Brain Updates**: Updated `AGENTS.md`, `SCHEMA_DICTIONARY.md`, `cto-standards.md`, and `billing-messaging` skill to permanently encode this design.
 
-### 7. Tenant Store Profile & Direct Google Review Integration: Deepak Sarees
-- Configured store profile for **Deepak Sarees**:
-  - **Logo**: Circular store insignia uploaded and served via `/stores/deepak_sarees_logo.png`.
-  - **Instagram**: `https://www.instagram.com/deepaksarees_panvel/?hl=hi`.
-  - **Facebook**: `https://www.facebook.com/p/Deepak-Sarees-Panvel-61551084821532/`.
-  - **Direct Google Review Dialog**: Configured official Google write-review Place URL (`https://search.google.com/local/writereview?placeid=ChIJDRiyJAUp5zsRm6DPIWJXxRt`), which immediately launches the 5-star review modal upon clicking the card or any star rating.
-  - **Address**: `X4P5+FG Mumbai, Maharashtra`.
-  - **Store WhatsApp Contact**: `+91 79 7716 3140` (`917977163140`).
-- Updated MySQL `tenants` and `invoices` table records for testing shortId `JiKSx0qM` and cleared Redis cache.
-- Rebuilt frontend with Vite and deployed live to `bill.retailnode.in`.
+### 8. Windows Print Agent: 3-Channel Cashier Interceptor Modal
+- Architected the real-time POS print interceptor popup modal (`digital-invoice-system/print-agent/UI/MainWindow.xaml`):
+  1. **Option 1: [1] Send Digitally**: WhatsApp digital bill only, physical printing skipped to save thermal paper rolls.
+  2. **Option 2: [2] Send to Printer**: Physical paper printing only, skips cloud upload.
+  3. **Option 3: [3] Send on Both Channels** *(Default)*: Both prints physical paper bill and dispatches digital receipt via WhatsApp.
+- **Cashier Ergonomics & Rush-Hour Velocity**:
+  - Hotkey acceleration: Press `1` / `D`, `2` / `P`, `3` / `B` / `Enter`, or `Escape`.
+  - Configurable 5-second countdown auto-timer so busy cashiers never experience billing counter bottleneck.
+  - Auto-extracts customer WhatsApp number from print stream, with instant inline editing if missing.
+
 
 
