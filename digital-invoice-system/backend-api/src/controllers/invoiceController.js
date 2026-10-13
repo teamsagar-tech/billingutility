@@ -195,9 +195,9 @@ exports.getInvoice = async (req, res) => {
       date: row.created_at
     }));
 
-    // 4. Fetch Tenant Profile (Social links, logo, feedback setting)
+    // 4. Fetch Tenant Profile (Social links, logo, website, feedback setting)
     const [tenantRows] = await db.query(
-      'SELECT store_name, logo_url, instagram_url, facebook_url, google_review_url, feedback_enabled FROM tenants WHERE id = ?',
+      'SELECT store_name, logo_url, instagram_url, facebook_url, google_review_url, website_url, feedback_enabled FROM tenants WHERE id = ?',
       [tenantId]
     );
     const tenantProfile = tenantRows[0] || {};

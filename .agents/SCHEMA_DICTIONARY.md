@@ -25,6 +25,7 @@ Stores the brand/merchant master record, API tokens, quota limits, and messaging
 - **instagram_url**: `VARCHAR(255) NULL` - Merchant Instagram profile link
 - **facebook_url**: `VARCHAR(255) NULL` - Merchant Facebook profile link
 - **google_review_url**: `VARCHAR(255) NULL` - Google Business Profile review link for 4+ star ratings
+- **website_url**: `VARCHAR(255) NULL` - Store official e-commerce or website link
 - **feedback_enabled**: `BOOLEAN DEFAULT TRUE` - Enable/disable interactive feedback star rating
 - **created_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
 - **updated_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`

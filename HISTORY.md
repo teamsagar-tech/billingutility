@@ -52,9 +52,15 @@ Successfully established the full enterprise brain framework inside the project 
   2. **SaaS SuperAdmin Panel (`/saas-admin`)**: For SaaS operators to manage all tenant accounts, subscription plans, message quotas, global WABA gateways, and multi-store analytics.
 - **Rule & Brain Updates**: Updated `AGENTS.md`, `SCHEMA_DICTIONARY.md`, `cto-standards.md`, and `billing-messaging` skill to permanently encode this design.
 
-### 6. Next Milestone: Phase 2 Implementation
-- Database migration adding `billing_messages`, `global_configs`, and tenant quota fields.
-- Dual WABA gateway service (`waba_custom` via `waba.mpocket.in` + Meta Graph API).
-- Production URL resolution to `https://bill.retailnode.in/t/{shortId}`.
-- Merchant message delivery status UI (`/dashboard`) and SuperAdmin panel scaffolding (`/saas-admin`).
-- WhatsApp delivery status callback webhook.
+### 6. Digital Receipt UI/UX Redesign & Brand Integration (`/i/:slug`)
+- **Visual Architecture & Component Hierarchy**:
+  1. **Store Header**: Clean, high-trust store branding with dynamic store name, address, and verified badge.
+  2. **Google Review Card**: Layered golden ribbon wave banner, "Rate Your Experience with us", 5 interactive stars, and official Google 4-color "G" logo. Rating >= 4 automatically routes the shopper to the store's Google Business Review page.
+  3. **Social Follow Slider**: Auto-advancing slider with official Meta Facebook round icon and official Instagram radial gradient card, opening merchant profiles.
+  4. **Invoice & Loyalty Stream**: Structured action buttons (Download PDF, Share Bill), loyalty rewards ledger (+X pts earned, total balance), and itemized bill table.
+  5. **Conditional Website Card**: If `website_url` is configured on the tenant or invoice, renders a prominent "Visit our website for more information" card with "Shop Online ↗" CTA.
+  6. **Promotional Offers Banner Carousel**: Multi-slide festival & seasonal discount banners (Durga Puja 50% OFF, Wedding Sale) with official Instagram and WhatsApp quick-contact buttons below.
+  7. **Purchase History & Online Re-order**: Instant customer visit history log and direct WhatsApp re-order actions.
+- **Database Schema Update**: Added `website_url VARCHAR(255) NULL` to `tenants` table.
+- **Production Build & Deployment**: Deployed cleanly to `95.135.166.109` (`https://bill.retailnode.in/i/JiKSx0qM`).
+

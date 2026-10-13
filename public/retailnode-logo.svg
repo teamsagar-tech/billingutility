@@ -1,0 +1,15 @@
+<svg width="512" height="512" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main circle -->
+  <circle cx="100" cy="100" r="86" fill="#ffffff" stroke="#0ea5e9" stroke-width="14" />
+  
+  <!-- Left connection dot -->
+  <circle cx="14" cy="100" r="8" fill="#ffffff" stroke="#0ea5e9" stroke-width="5" />
+  
+  <!-- Right connection dot -->
+  <circle cx="186" cy="100" r="8" fill="#ffffff" stroke="#0ea5e9" stroke-width="5" />
+  
+  <!-- Text RN. -->
+  <text x="100" y="100" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="72" text-anchor="middle" dominant-baseline="central">
+    <tspan fill="#0f172a">RN</tspan><tspan fill="#0ea5e9">.</tspan>
+  </text>
+</svg>
