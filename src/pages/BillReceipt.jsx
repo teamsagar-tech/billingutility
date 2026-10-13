@@ -766,8 +766,21 @@ export default function BillReceipt() {
         {/* ========================================================= */}
         {/* FOOTER                                                    */}
         {/* ========================================================= */}
-        <footer style={{ textAlign: 'center', fontSize: '11px', color: '#94a3b8', paddingBottom: '24px' }}>
-          Powered by RetailNode Digital Billing Utility &bull; bill.retailnode.in
+        <footer style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', color: '#64748b', paddingBottom: '28px', paddingTop: '4px' }}>
+          <span>Powered by</span>
+          <a 
+            href="https://retailnode.in" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: '700', color: '#0f172a', textDecoration: 'none' }}
+          >
+            <img 
+              src="https://retailnode.in/logo.svg" 
+              alt="RetailNode Logo" 
+              style={{ width: '18px', height: '18px', display: 'inline-block' }} 
+            />
+            <span>RetailNode</span>
+          </a>
         </footer>
       </div>
     </div>
