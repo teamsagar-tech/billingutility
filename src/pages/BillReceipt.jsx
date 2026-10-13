@@ -158,20 +158,20 @@ export default function BillReceipt() {
   const items = receipt.Items || receipt.items || receipt.LineItems || [];
   const billTotal = receipt.BillTotal || receipt.billAmount || receipt.totalAmount || '0.00';
   const taxAmount = receipt.TaxAmount || receipt.taxAmount || '0.00';
-  const storeName = tenant.store_name || receipt.StoreName || 'Pankhudi Fashion Store';
-  const storeAddress = receipt.StoreAddress || 'Main Market, Solapur';
+  const storeName = tenant.store_name || receipt.StoreName || 'Deepak Sarees';
+  const storeAddress = receipt.StoreAddress || 'X4P5+FG Mumbai, Maharashtra';
   const pointsEarned = data.loyalty?.earned || Math.floor(parseFloat(billTotal) / 100);
   const pointsBalance = data.loyalty?.balance || 0;
   
   // Website URL
   const websiteUrl = tenant.website_url || receipt.StoreWebsite || receipt.website;
   
-  // Google Review URL
+  // Direct Google Review Write Dialog URL
   const googleReviewUrl = tenant.google_review_url || 
-    `https://www.google.com/search?q=${encodeURIComponent(storeName + ' reviews')}`;
+    'https://search.google.com/local/writereview?placeid=ChIJDRiyJAUp5zsRm6DPIWJXxRt';
 
   // WhatsApp store contact number (clean format for wa.me)
-  const rawPhone = tenant.phone_number_id || receipt.StorePhone || '919876543210';
+  const rawPhone = tenant.phone_number_id || receipt.StorePhone || '917977163140';
   const whatsappNumber = rawPhone.replace(/\D/g, '');
 
   return (
@@ -187,15 +187,15 @@ export default function BillReceipt() {
               <img 
                 src={tenant.logo_url} 
                 alt={storeName} 
-                style={{ height: '36px', width: 'auto', maxHeight: '36px', objectFit: 'contain' }} 
+                style={{ height: '42px', width: '42px', borderRadius: '50%', objectFit: 'contain', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }} 
               />
             ) : (
-              <div style={{ width: '38px', height: '38px', borderRadius: '12px', backgroundColor: '#0f766e', color: '#ffffff', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', boxShadow: '0 2px 6px rgba(15, 118, 110, 0.2)' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#0f766e', color: '#ffffff', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', boxShadow: '0 2px 6px rgba(15, 118, 110, 0.2)' }}>
                 {storeName.charAt(0)}
               </div>
             )}
             <div>
-              <h1 style={{ fontSize: '1rem', fontWeight: '800', color: '#0f172a', margin: 0, lineHeight: 1.2 }}>
+              <h1 style={{ fontSize: '1.05rem', fontWeight: '800', color: '#0f172a', margin: 0, lineHeight: 1.2 }}>
                 {storeName}
               </h1>
               <p style={{ fontSize: '11px', color: '#64748b', margin: '2px 0 0', fontWeight: '500' }}>
@@ -223,14 +223,21 @@ export default function BillReceipt() {
 
           <div style={{ padding: '8px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
             <div style={{ flex: 1 }}>
-              <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#d97706', margin: '0 0 10px', letterSpacing: '-0.01em' }}>
-                Rate Your Experience with us
-              </h3>
+              <a 
+                href={googleReviewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: 'none', display: 'block' }}
+              >
+                <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#d97706', margin: '0 0 10px', letterSpacing: '-0.01em', cursor: 'pointer' }}>
+                  Rate Your Experience with us
+                </h3>
+              </a>
               
               {feedbackSent ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontWeight: '700', fontSize: '13px' }}>
                   <CheckCircle2 style={{ width: '16px', height: '16px' }} />
-                  <span>Thank you for your {starRating}★ review!</span>
+                  <span>Thank you for your review!</span>
                 </div>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
