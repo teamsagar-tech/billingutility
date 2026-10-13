@@ -7,12 +7,18 @@ const {
   verifyWhatsAppOtp,
   trackAction,
   getActionStatus,
-  lookupCustomerBills
+  lookupCustomerBills,
+  getStoreInvoices,
+  createQuickBill
 } = require('../controllers/invoiceController');
-const { requireApiToken } = require('../middleware/auth');
+const { requireApiToken, requireAuth } = require('../middleware/auth');
 const { submitFeedback } = require('../controllers/feedbackController');
 
 const router = express.Router();
+
+// Merchant invoice listing & quick bill creation (authenticated)
+router.get('/', requireAuth, getStoreInvoices);
+router.post('/', requireAuth, createQuickBill);
 
 // Public customer bills lookup by phone
 router.get('/public/lookup', lookupCustomerBills);

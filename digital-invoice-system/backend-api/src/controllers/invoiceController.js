@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const db = require('../config/database');
 const redis = require('../config/redis');
+const { sendWhatsAppMessage, getWabaCredentials } = require('../services/wabaClient');
 
 // Normalize phone numbers to 10 digits for accurate matching
 const normalizePhone = (p) => {
@@ -113,47 +114,17 @@ exports.uploadInvoice = async (req, res) => {
     // 2. Fetch Tenant WABA Credentials
     const [tenants] = await db.query('SELECT waba_access_token, phone_number_id, waba_provider FROM tenants WHERE id = ?', [tenantId]);
     const baseUrl = process.env.APP_URL || 'https://bill.retailnode.in';
-    const receiptUrl = `${baseUrl}/i/${shortId}`;
+    const receiptUrl = `${baseUrl}/t/${shortId}`;
 
-    if (tenants.length > 0 && tenants[0].waba_access_token) {
-       const { waba_access_token, phone_number_id, waba_provider } = tenants[0];
-       
-       // Send WhatsApp message
-       try {
-         if (waba_provider === 'waba_custom' || !phone_number_id) {
-           // WABA Custom Gateway (e.g. waba.mpocket.in)
-           await fetch('https://waba.mpocket.in/messages', {
-             method: 'POST',
-             headers: {
-               'Authorization': `Bearer ${waba_access_token}`,
-               'Content-Type': 'application/json'
-             },
-             body: JSON.stringify({
-               messaging_product: "whatsapp",
-               to: customerPhone,
-               type: "text",
-               text: { body: `Thank you for shopping at *${receiptData.StoreName || 'RetailNode'}*!\n\nYour digital bill for *₹${billAmount.toFixed(2)}* is ready.\n\nView and download your receipt here:\n${receiptUrl}` }
-             })
-           });
-         } else {
-           // Meta WhatsApp Cloud API (Graph API)
-           await fetch(`https://graph.facebook.com/v20.0/${phone_number_id}/messages`, {
-             method: 'POST',
-             headers: {
-               'Authorization': `Bearer ${waba_access_token}`,
-               'Content-Type': 'application/json'
-             },
-             body: JSON.stringify({
-               messaging_product: "whatsapp",
-               to: customerPhone,
-               type: "text",
-               text: { body: `Thank you for shopping at *${receiptData.StoreName || 'RetailNode'}*!\n\nYour digital bill for *₹${billAmount.toFixed(2)}* is ready.\n\nView and download your receipt here:\n${receiptUrl}` }
-             })
-           });
-         }
-       } catch (waErr) {
-         console.error('Failed to send WhatsApp:', waErr);
-       }
+    // Send WhatsApp digital bill strictly via WABA (waba.mpocket.in)
+    try {
+      await sendWhatsAppMessage({
+        tenantId,
+        to: customerPhone,
+        text: `Thank you for shopping at *${receiptData.StoreName || 'RetailNode'}*!\n\nYour digital bill for *₹${billAmount.toFixed(2)}* is ready.\n\nView and download your receipt here:\n${receiptUrl}`
+      });
+    } catch (waErr) {
+      console.error('Failed to send WhatsApp via WABA:', waErr.message);
     }
 
     res.status(201).json({
@@ -190,52 +161,20 @@ async function getCachedTenantProfile(tenantId) {
   return profile;
 }
 
-// Enterprise WhatsApp Message Dispatcher
+// Enterprise WhatsApp Message Dispatcher strictly via WABA (waba.mpocket.in)
 async function sendWhatsAppOtpMessage({ to, otp, invoiceNo, storeName, tenant }) {
   const normPhone = normalizePhone(to);
   const waPhone = normPhone.length === 10 ? `91${normPhone}` : normPhone;
   const messageText = `🔒 *RetailNode Security Code*\n\nYour OTP to verify invoice *#${invoiceNo}* at *${storeName}* is: *${otp}*\n\nThis code is valid for 10 minutes. Do not share it with anyone.`;
 
-  let sent = false;
-  if (tenant && tenant.waba_access_token) {
-    try {
-      if (tenant.waba_provider === 'waba_custom' || !tenant.phone_number_id) {
-        const resp = await fetch('https://waba.mpocket.in/messages', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${tenant.waba_access_token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            messaging_product: 'whatsapp',
-            to: waPhone,
-            type: 'text',
-            text: { body: messageText }
-          })
-        });
-        sent = resp.ok;
-      } else {
-        const resp = await fetch(`https://graph.facebook.com/v20.0/${tenant.phone_number_id}/messages`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${tenant.waba_access_token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            messaging_product: 'whatsapp',
-            to: waPhone,
-            type: 'text',
-            text: { body: messageText }
-          })
-        });
-        sent = resp.ok;
-      }
-    } catch (err) {
-      console.error('[WhatsApp-OTP] Gateway delivery error:', err.message);
-    }
-  }
+  const res = await sendWhatsAppMessage({
+    tenantId: tenant?.id,
+    to: waPhone,
+    text: messageText
+  });
 
-  console.log(`[WhatsApp-OTP] OTP for ${waPhone} (Inv #${invoiceNo}): ${otp} (Dispatched: ${sent})`);
+  const sent = res.success;
+  console.log(`[WhatsApp-OTP] OTP for ${waPhone} (Inv #${invoiceNo}): ${otp} (Dispatched via WABA: ${sent})`);
   return { sent, waPhone };
 }
 
@@ -893,13 +832,19 @@ exports.createQuickBill = async (req, res) => {
 
     const { customerPhone, customerName, billAmount, invoiceNumber, items, sendWhatsApp } = req.body;
 
-    if (!customerPhone || !billAmount) {
+    const actualPhone = customerPhone || req.body.customer_phone || req.body.phone;
+    const actualAmount = parseFloat(billAmount || req.body.bill_amount || req.body.receipt_data?.GrandTotal || req.body.amount || 0);
+    const actualName = customerName || req.body.customer_name || req.body.name || req.body.receipt_data?.CustomerName || 'Valued Customer';
+    const actualInvNo = invoiceNumber || req.body.invoice_number || req.body.receipt_data?.InvoiceNumber || `INV-${Date.now().toString().slice(-6)}`;
+    const actualSendWa = sendWhatsApp !== false && req.body.send_whatsapp !== false;
+
+    if (!actualPhone || !actualAmount) {
       return res.status(400).json({ success: false, error: 'Customer phone and bill amount are required' });
     }
 
-    const normalizedPhone = normalizePhone(customerPhone);
+    const normalizedPhone = normalizePhone(actualPhone);
     const shortId = generateShortId();
-    const amount = parseFloat(billAmount);
+    const amount = actualAmount;
 
     // Fetch store profile
     const [storeRows] = await db.query('SELECT store_name, store_address, store_phone FROM tenants WHERE id = ?', [tenantId]);
@@ -910,14 +855,16 @@ exports.createQuickBill = async (req, res) => {
       StoreName: storeName,
       Address: storeRows[0]?.store_address || '',
       Phone: storeRows[0]?.store_phone || '',
-      InvoiceNumber: invoiceNumber || `INV-${Date.now().toString().slice(-6)}`,
+      InvoiceNumber: actualInvNo,
       Date: new Date().toISOString(),
-      CustomerName: customerName || 'Valued Customer',
+      CustomerName: actualName,
       customerPhone: normalizedPhone,
       BillTotal: amount.toFixed(2),
-      Items: Array.isArray(items) && items.length > 0 ? items : [
-        { Name: 'Retail Store Purchase', Qty: 1, Rate: amount, Amount: amount }
-      ]
+      Items: Array.isArray(items) && items.length > 0 ? items : (
+        req.body.receipt_data?.Items || [
+          { Name: 'Retail Store Purchase', Qty: 1, Rate: amount, Amount: amount }
+        ]
+      )
     };
 
     // Dynamic loyalty rules
@@ -965,38 +912,29 @@ exports.createQuickBill = async (req, res) => {
     const receiptUrl = `${baseUrl}/t/${shortId}`;
 
     if (sendWhatsApp !== false) {
-      const [tenants] = await db.query('SELECT waba_access_token, phone_number_id, waba_provider FROM tenants WHERE id = ?', [tenantId]);
-      if (tenants.length > 0 && tenants[0].waba_access_token) {
-        const { waba_access_token, phone_number_id, waba_provider } = tenants[0];
-        try {
-          if (waba_provider === 'waba_custom' || !phone_number_id) {
-            await fetch('https://waba.mpocket.in/messages', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${waba_access_token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                messaging_product: "whatsapp",
-                to: normalizedPhone,
-                type: "text",
-                text: { body: `Thank you for shopping at *${storeName}*!\n\nYour digital bill for *₹${amount.toFixed(2)}* is ready.\n\nView and download your receipt here:\n${receiptUrl}` }
-              })
-            });
-          }
-        } catch (e) {
-          console.error('Quick bill WhatsApp error:', e.message);
-        }
+      try {
+        await sendWhatsAppMessage({
+          tenantId,
+          to: normalizedPhone,
+          text: `Thank you for shopping at *${storeName}*!\n\nYour digital bill for *₹${amount.toFixed(2)}* is ready.\n\nView and download your receipt here:\n${receiptUrl}`
+        });
+      } catch (e) {
+        console.error('Quick bill WhatsApp error:', e.message);
       }
     }
 
     res.status(201).json({
       success: true,
+      short_url: receiptUrl,
+      url: receiptUrl,
       message: 'Quick digital bill generated and WhatsApp dispatched successfully',
       data: {
         id: newInvoiceId,
         shortId,
+        short_id: shortId,
         receiptUrl,
+        short_url: receiptUrl,
+        url: receiptUrl,
         invoiceNumber: receiptData.InvoiceNumber,
         customerPhone: normalizedPhone,
         customerName: receiptData.CustomerName,

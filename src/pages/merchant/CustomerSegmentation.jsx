@@ -58,28 +58,28 @@ export default function CustomerSegmentation() {
 
     // 1. VIP Spenders (Spend >= 5000 or visits >= 5)
     const vipList = customers.filter(
-      (c) => Number(c.total_spent || 0) >= 5000 || Number(c.visits_count || 0) >= 5
+      (c) => Number(c.total_spent || c.lifetime_value || 0) >= 5000 || Number(c.visits_count || c.no_of_visits || 0) >= 5
     );
     const vipAvg = vipList.length > 0
-      ? Math.round(vipList.reduce((sum, c) => sum + Number(c.total_spent || 0), 0) / vipList.length)
+      ? Math.round(vipList.reduce((sum, c) => sum + Number(c.total_spent || c.lifetime_value || 0), 0) / vipList.length)
       : 0;
 
     // 2. Loyal Repeat (Visits >= 2)
-    const loyalList = customers.filter((c) => Number(c.visits_count || 0) >= 2);
+    const loyalList = customers.filter((c) => Number(c.visits_count || c.no_of_visits || 0) >= 2);
     const loyalAvg = loyalList.length > 0
-      ? Math.round(loyalList.reduce((sum, c) => sum + Number(c.total_spent || 0), 0) / loyalList.length)
+      ? Math.round(loyalList.reduce((sum, c) => sum + Number(c.total_spent || c.lifetime_value || 0), 0) / loyalList.length)
       : 0;
 
     // 3. New First-Time (Visits <= 1)
-    const newList = customers.filter((c) => Number(c.visits_count || 0) <= 1);
+    const newList = customers.filter((c) => Number(c.visits_count || c.no_of_visits || 0) <= 1);
     const newAvg = newList.length > 0
-      ? Math.round(newList.reduce((sum, c) => sum + Number(c.total_spent || 0), 0) / newList.length)
+      ? Math.round(newList.reduce((sum, c) => sum + Number(c.total_spent || c.lifetime_value || 0), 0) / newList.length)
       : 0;
 
     // 4. Birthday Club (DOB recorded)
     const bdayList = customers.filter((c) => Boolean(c.dob));
     const bdayAvg = bdayList.length > 0
-      ? Math.round(bdayList.reduce((sum, c) => sum + Number(c.total_spent || 0), 0) / bdayList.length)
+      ? Math.round(bdayList.reduce((sum, c) => sum + Number(c.total_spent || c.lifetime_value || 0), 0) / bdayList.length)
       : 0;
 
     const base = [

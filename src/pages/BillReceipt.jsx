@@ -439,7 +439,7 @@ export default function BillReceipt() {
       firmAddress
     );
     
-    if (rating >= 4 && targetUrl && targetUrl !== '#') {
+    if (targetUrl && targetUrl !== '#') {
       setTimeout(() => {
         handleTrackAndOpen('google_review_click', targetUrl, 'star_rating_prompt');
       }, 350);

@@ -15,6 +15,11 @@ const setupDatabase = async () => {
         facebook_url VARCHAR(255),
         google_review_url VARCHAR(255),
         feedback_enabled BOOLEAN DEFAULT FALSE,
+        plan_tier ENUM('starter', 'growth', 'enterprise') DEFAULT 'starter',
+        plan_valid_until DATE NULL,
+        message_quota INT DEFAULT 1000,
+        messages_used INT DEFAULT 0,
+        is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -95,6 +100,27 @@ const setupDatabase = async () => {
         status ENUM('pending', 'converted') DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Create Pricing & Promo Campaigns Table (Dynamic Admin Pricing)
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS pricing_campaigns (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        campaign_name VARCHAR(150) NOT NULL,
+        plan_tier VARCHAR(50) NOT NULL DEFAULT 'growth',
+        regular_price DECIMAL(10,2) NOT NULL DEFAULT 9000.00,
+        campaign_price DECIMAL(10,2) NOT NULL DEFAULT 6000.00,
+        trial_days INT NOT NULL DEFAULT 3,
+        badge_text VARCHAR(150) DEFAULT 'SAVE ₹3,000 TODAY (33% OFF)',
+        headline VARCHAR(255) DEFAULT 'One Simple Price. All Features Included.',
+        subheadline TEXT,
+        features_json JSON,
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        start_date DATE NULL,
+        end_date DATE NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
 

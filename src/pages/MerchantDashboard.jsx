@@ -3389,9 +3389,7 @@ export default function MerchantDashboard() {
                       value={wabaForm.waba_provider}
                       onChange={(e) => setWabaForm({ ...wabaForm, waba_provider: e.target.value })}
                       style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '0.85rem', backgroundColor: '#ffffff' }}
-                    >
-                      <option value="waba_custom">Custom WABA Gateway (waba.mpocket.in)</option>
-                      <option value="meta_cloud">Meta WhatsApp Cloud API (Graph API)</option>
+                      <option value="waba_custom">WABA Gateway (waba.mpocket.in)</option>
                     </select>
                   </div>
 

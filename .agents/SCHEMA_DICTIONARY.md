@@ -13,7 +13,8 @@ Stores the brand/merchant master record, API tokens, quota limits, and messaging
 - **id**: `INT AUTO_INCREMENT PRIMARY KEY`
 - **store_name**: `VARCHAR(255) NOT NULL` - Name displayed on digital receipts and messages
 - **api_token**: `VARCHAR(255) UNIQUE NOT NULL` - Unique POS integration key (e.g. `sk_live_...`)
-- **plan_tier**: `ENUM('starter', 'growth', 'enterprise') DEFAULT 'starter'`
+- **plan_tier**: `VARCHAR(50) DEFAULT 'growth'` - Subscription plan tier: strictly `'trial'` (3-Day Free Trial) or `'growth'` (Annual Growth Plan, ₹6,000 / Year)
+- **plan_valid_until**: `DATE NULL` - Subscription license expiry date (defaults to +3 days for trial, +365 days for growth)
 - **message_quota**: `INT DEFAULT 1000` - Monthly or lifetime messaging credits
 - **messages_used**: `INT DEFAULT 0` - Running counter of sent messages
 - **is_active**: `BOOLEAN DEFAULT TRUE` - Tenant status flag (manageable by SuperAdmin)
@@ -44,9 +45,25 @@ Staff, merchant managers, and platform operators.
 - **id**: `INT AUTO_INCREMENT PRIMARY KEY`
 - **tenant_id**: `INT NULL` - Nullable for `superadmin` users, foreign key to `tenants(id)` for merchant users
 - **email**: `VARCHAR(255) UNIQUE NOT NULL`
+- **phone**: `VARCHAR(30) NULL` - User contact mobile number (10-digit clean format)
+- **first_name**: `VARCHAR(100) NULL` - User or store owner display name
+- **last_name**: `VARCHAR(100) NULL`
 - **password_hash**: `VARCHAR(255) NOT NULL` (Bcrypt 10 rounds)
+- **password_reset_otp**: `VARCHAR(10) NULL` - 6-digit OTP code for password recovery
+- **password_reset_expires**: `DATETIME NULL` - Expiration timestamp for password reset OTP (15-min window)
 - **role**: `ENUM('superadmin', 'merchant_admin', 'cashier') DEFAULT 'merchant_admin'`
 - **created_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
+
+---
+
+### 2b. `customer_otps` (Shopper Password-Free OTP Authentication)
+Temporary 6-digit one-time passcodes for customer bills & loyalty portal authentication (strictly password-free for all shoppers).
+- **id**: `INT AUTO_INCREMENT PRIMARY KEY`
+- **phone**: `VARCHAR(20) NOT NULL` - 10-digit customer mobile number
+- **otp**: `VARCHAR(10) NOT NULL` - 6-digit cryptographic verification code
+- **expires_at**: `DATETIME NOT NULL` - 10-minute validity window
+- **created_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
+- **INDEX**: `idx_cust_otps_phone (phone)`
 
 ---
 
@@ -200,3 +217,57 @@ High-throughput ledger tracking user clicks on Google Reviews, social channels, 
 - **metadata**: `JSON NULL` - Request metadata (IP, userAgent, source, destination URL)
 - **created_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
 - **Indexes**: `idx_tenant_action (tenant_id, action_type)`, `idx_short_action (short_id, action_type)`
+
+---
+
+### 11. `campaigns` (WABA & SMS Broadcast Marketing Campaigns)
+Records batch marketing broadcasts and lifecycle campaigns dispatched through WABA microservice (`waba.mpocket.in`).
+- **id**: `INT AUTO_INCREMENT PRIMARY KEY`
+- **tenant_id**: `INT NOT NULL` (REFERENCES `tenants(id)` ON DELETE CASCADE)
+- **waba_campaign_id**: `INT NULL` - ID returned from upstream `waba.mpocket.in/api/store-campaign`
+- **title**: `VARCHAR(255) NOT NULL` - Campaign internal name
+- **channel**: `ENUM('whatsapp', 'sms') DEFAULT 'whatsapp'`
+- **audience**: `VARCHAR(100) DEFAULT 'all'` - Audience segment (`all`, `active`, `vip`, `dormant`, `targeted`)
+- **template_name**: `VARCHAR(100) NULL` - Approved WABA template name
+- **message_text**: `TEXT NULL` - Promotional copy or template parameters preview
+- **coupon_code**: `VARCHAR(50) NULL` - Optional promo discount code
+- **bonus_points**: `INT DEFAULT 0`
+- **recipient_count**: `INT DEFAULT 0` - Total target customers
+- **delivered_count**: `INT DEFAULT 0` - Confirmed delivered receipts
+- **read_count**: `INT DEFAULT 0` - Confirmed read receipts
+- **failed_count**: `INT DEFAULT 0` - Bounced / failed numbers
+- **cost**: `DECIMAL(10,2) DEFAULT 0.00` - Calculated billing cost
+- **status**: `ENUM('draft', 'scheduled', 'running', 'completed', 'failed') DEFAULT 'completed'`
+- **scheduled_at**: `DATETIME NULL`
+- **created_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
+
+---
+
+### 12. `global_configs` (Platform Global Settings & Fallback Gateway)
+Platform-wide system configuration for fallback messaging gateway and platform defaults.
+- **id**: `INT AUTO_INCREMENT PRIMARY KEY`
+- **config_key**: `VARCHAR(100) UNIQUE NOT NULL` - e.g. `DEFAULT_WABA_PROVIDER`, `DEFAULT_WABA_PHONE_NUMBER_ID`, `DEFAULT_WABA_ACCESS_TOKEN`, `DEFAULT_WABA_URL`
+- **config_value**: `TEXT NOT NULL`
+- **is_secret**: `BOOLEAN DEFAULT FALSE`
+- **updated_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`
+
+---
+
+### 13. `pricing_campaigns` (SaaS Dynamic Pricing & Promo Offers)
+Platform-wide promotional campaigns, pricing tiers, and trial duration managed by SuperAdmin in `/saas-admin`.
+- **id**: `INT AUTO_INCREMENT PRIMARY KEY`
+- **campaign_name**: `VARCHAR(150) NOT NULL` - e.g. 'Retail Launch Offer', 'Diwali Festive Sale'
+- **plan_tier**: `VARCHAR(50) NOT NULL DEFAULT 'growth'`
+- **regular_price**: `DECIMAL(10,2) NOT NULL DEFAULT 9000.00` - Strikethrough regular price (₹)
+- **campaign_price**: `DECIMAL(10,2) NOT NULL DEFAULT 6000.00` - Active promotional price (₹)
+- **trial_days**: `INT NOT NULL DEFAULT 3` - Free trial duration (Days)
+- **badge_text**: `VARCHAR(150) DEFAULT 'SAVE ₹3,000 TODAY (33% OFF)'` - Ribbon badge displayed on pricing card
+- **headline**: `VARCHAR(255) DEFAULT 'One Simple Price. All Features Included.'` - Headline for /pricing
+- **subheadline**: `TEXT NULL` - Description text on /pricing
+- **features_json**: `JSON NULL` - Optional JSON list of plan features
+- **is_active**: `BOOLEAN NOT NULL DEFAULT TRUE` - Published active campaign (only 1 active at a time)
+- **start_date**: `DATE NULL` - Optional campaign start date
+- **end_date**: `DATE NULL` - Optional campaign end date
+- **created_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
+- **updated_at**: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`
+

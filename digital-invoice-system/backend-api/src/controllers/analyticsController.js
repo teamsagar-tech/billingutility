@@ -82,17 +82,43 @@ exports.getAnalytics = async (req, res) => {
     );
     const loyaltyPointsEarned = loyaltyStats[0]?.total_earned || 0;
 
-    // 7. Recent Invoices
-    const [recentInvoices] = await db.query(
-      'SELECT short_id, customer_phone, created_at FROM invoices WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 5',
+    // 7. Recent Invoices with parsed details
+    const [recentRows] = await db.query(
+      'SELECT id, short_id, customer_phone, receipt_json, created_at FROM invoices WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 5',
       [tenantId]
     );
+
+    const recentInvoices = recentRows.map(r => {
+      let rJson = {};
+      try {
+        rJson = typeof r.receipt_json === 'string' ? JSON.parse(r.receipt_json) : (r.receipt_json || {});
+      } catch (e) {}
+      return {
+        id: r.id,
+        short_id: r.short_id,
+        shortId: r.short_id,
+        customer_phone: r.customer_phone,
+        customerPhone: r.customer_phone,
+        customer_name: rJson.CustomerName || rJson.customerName || 'Customer',
+        customerName: rJson.CustomerName || rJson.customerName || 'Customer',
+        invoice_number: rJson.InvoiceNumber || rJson.invoice_number || r.short_id,
+        invoiceNumber: rJson.InvoiceNumber || rJson.invoice_number || r.short_id,
+        bill_total: parseFloat(rJson.BillTotal || rJson.billAmount || rJson.totalAmount || 0),
+        billTotal: parseFloat(rJson.BillTotal || rJson.billAmount || rJson.totalAmount || 0),
+        created_at: r.created_at,
+        createdAt: r.created_at,
+        whatsapp_status: 'delivered',
+        whatsappStatus: 'delivered'
+      };
+    });
+
+    const roundedRevenue = Math.round(totalRevenue);
 
     res.status(200).json({
       success: true,
       data: {
         totalInvoices,
-        totalRevenue: Math.round(totalRevenue),
+        totalRevenue: roundedRevenue,
         newRevenue: Math.round(newRevenue),
         repeatRevenue: Math.round(repeatRevenue),
         newBillsCount,
@@ -106,7 +132,16 @@ exports.getAnalytics = async (req, res) => {
         avgFeedbackRating,
         loyaltyPointsEarned,
         loyaltyPointsRedeemed: 0,
-        recentInvoices
+        recentInvoices,
+        recent_invoices: recentInvoices,
+        metrics: {
+          total_invoices: totalInvoices,
+          total_revenue: roundedRevenue,
+          new_revenue: Math.round(newRevenue),
+          repeat_revenue: Math.round(repeatRevenue),
+          total_customers: uniqueCustomers,
+          returning_customers: existingCustomers
+        }
       }
     });
   } catch (error) {

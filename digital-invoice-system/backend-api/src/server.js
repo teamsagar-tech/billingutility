@@ -30,10 +30,11 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/store', authRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/invoices', invoiceRoutes);
+app.use('/api/v1', authRoutes);
 
 // Health Check
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', service: 'Print Interceptor API' });
+app.get(['/health', '/api/v1/health'], (req, res) => {
+  res.status(200).json({ status: 'ok', service: 'Digital Invoice & Billing Messaging API' });
 });
 
 // Global Error Handler

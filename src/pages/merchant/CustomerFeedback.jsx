@@ -90,7 +90,7 @@ export default function CustomerFeedback() {
             Customer Feedback &amp; System Ratings
           </h1>
           <p style={{ margin: 0, fontSize: '0.8rem', color: '#6b7280' }}>
-            Ratings submitted on digital receipts (/t/{'{shortId}'}). 4★ &amp; 5★ ratings are redirected to Google Reviews, while 1-3★ feedback is shielded internally.
+            Ratings and feedback submitted by verified customers directly on their digital receipts (/t/{'{shortId}'}).
           </p>
         </div>
         <button
@@ -145,19 +145,19 @@ export default function CustomerFeedback() {
         </div>
 
         <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '1.25rem' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Google Review Promoted</div>
+          <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Satisfied Customers</div>
           <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#16a34a', marginTop: '4px' }}>
             {promotersPercent}% ({promotersCount})
           </div>
-          <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: '600' }}>4★ &amp; 5★ redirected to Google Maps</span>
+          <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: '600' }}>4★ &amp; 5★ positive ratings</span>
         </div>
 
         <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '1.25rem' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Private Feedback Intercepted</div>
+          <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Service Feedback</div>
           <div style={{ fontSize: '1.75rem', fontWeight: '800', color: privateCount > 0 ? '#ea580c' : '#0f172a', marginTop: '4px' }}>
             {privateCount} Reviews
           </div>
-          <span style={{ fontSize: '0.75rem', color: '#ea580c', fontWeight: '600' }}>1-3★ shielded internally for resolution</span>
+          <span style={{ fontSize: '0.75rem', color: '#ea580c', fontWeight: '600' }}>1-3★ customer feedback</span>
         </div>
       </div>
 
@@ -167,7 +167,7 @@ export default function CustomerFeedback() {
           <thead>
             <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#4b5563', fontSize: '0.72rem', textTransform: 'uppercase' }}>
               <th style={{ padding: '12px 16px' }}>#</th>
-              <th style={{ padding: '12px 16px' }}>Shield Status</th>
+              <th style={{ padding: '12px 16px' }}>Rating Tier</th>
               <th style={{ padding: '12px 16px' }}>Customer Name</th>
               <th style={{ padding: '12px 16px' }}>Mobile</th>
               <th style={{ padding: '12px 16px' }}>Invoice</th>
@@ -210,12 +210,12 @@ export default function CustomerFeedback() {
                       {isNegative ? (
                         <span style={{ padding: '3px 8px', borderRadius: '4px', backgroundColor: '#fee2e2', color: '#991b1b', fontSize: '0.72rem', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                           <AlertTriangle style={{ width: '12px', height: '12px' }} />
-                          <span>Private Shield</span>
+                          <span>1-3★ Feedback</span>
                         </span>
                       ) : (
                         <span style={{ padding: '3px 8px', borderRadius: '4px', backgroundColor: '#dcfce7', color: '#166534', fontSize: '0.72rem', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                           <Star style={{ width: '12px', height: '12px', fill: '#166534' }} />
-                          <span>Google Prompted</span>
+                          <span>4-5★ Feedback</span>
                         </span>
                       )}
                     </td>

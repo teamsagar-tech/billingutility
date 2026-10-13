@@ -13,11 +13,16 @@ export default function InvoicesPage() {
   const fetchInvoices = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/invoices', {
+      let res = await fetch('/api/v1/auth/invoices', {
         headers: { Authorization: `Bearer ${token}` }
       });
+      if (!res.ok) {
+        res = await fetch('/api/v1/invoices', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
       const data = await res.json();
-      if (data.success && data.data) {
+      if (data.success && Array.isArray(data.data)) {
         setInvoices(data.data);
       }
     } catch (err) {

@@ -4,6 +4,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 // Core Target Pages
 import LogoSplash from './pages/LogoSplash';
 import MerchantLogin from './pages/MerchantLogin';
+import MerchantSignUp from './pages/MerchantSignUp';
+import ForgotPassword from './pages/ForgotPassword';
 import SuperAdminLogin from './pages/SuperAdminLogin';
 import CustomerBillsLookup from './pages/CustomerBillsLookup';
 import BillReceipt from './pages/BillReceipt';
@@ -67,15 +69,19 @@ export default function App() {
         {/* Target Route 1: bill.retailnode.in root shows JUST RetailNode logo and nothing else */}
         <Route path="/" element={<LogoSplash />} />
 
-        {/* 1. Retail Store / Merchant Login (Primary public login) */}
+        {/* 1. Retail Store / Merchant Login & Self-Serve Sign Up */}
         <Route path="/login" element={<MerchantLogin />} />
         <Route path="/merchant/login" element={<MerchantLogin />} />
+        <Route path="/signup" element={<MerchantSignUp />} />
+        <Route path="/register" element={<MerchantSignUp />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ForgotPassword />} />
 
         {/* 2. SaaS SuperAdmin Platform Login (Isolated security gate) */}
         <Route path="/saas-admin/login" element={<SuperAdminLogin />} />
         <Route path="/platform-admin" element={<SuperAdminLogin />} />
 
-        {/* 3. Customer Digital Bills & Loyalty Portal (Consumer mobile lookup) */}
+        {/* 3. Customer Digital Bills & Loyalty Portal (Strict OTP-Only Login) */}
         <Route path="/my-bills" element={<CustomerBillsLookup />} />
         <Route path="/customer/login" element={<CustomerBillsLookup />} />
         <Route path="/i/lookup" element={<CustomerBillsLookup />} />

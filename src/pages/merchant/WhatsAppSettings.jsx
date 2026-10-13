@@ -79,14 +79,26 @@ export default function WhatsAppSettings() {
             <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#374151', textTransform: 'uppercase', marginBottom: '6px' }}>
               WABA Gateway Provider
             </label>
-            <select
-              value={wabaForm.waba_provider}
-              onChange={(e) => setWabaForm({ ...wabaForm, waba_provider: e.target.value })}
-              style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', backgroundColor: '#ffffff' }}
-            >
-              <option value="waba_custom">Custom WABA Gateway (waba.mpocket.in)</option>
-              <option value="meta_cloud">Meta WhatsApp Cloud API (Graph API)</option>
-            </select>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 14px',
+              backgroundColor: '#f8fafc',
+              border: '1px solid #cbd5e1',
+              borderRadius: '8px',
+              fontSize: '0.85rem',
+              fontWeight: '700',
+              color: '#0f766e'
+            }}>
+              <span>Custom WABA Gateway (waba.mpocket.in) &bull; Official WABA Direct</span>
+              <span style={{ fontSize: '0.72rem', backgroundColor: '#ecfdf5', color: '#065f46', padding: '2px 8px', borderRadius: '4px', border: '1px solid #a7f3d0' }}>
+                ACTIVE GATEWAY
+              </span>
+            </div>
+            <p style={{ margin: '6px 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+              All billing receipts, OTPs, and promotional campaigns route strictly through WABA. If token is omitted, the platform automatically routes through the separate RetailNode default shared gateway.
+            </p>
           </div>
 
           <div>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ShieldCheck, ArrowRight, Lock, Mail, AlertTriangle, KeyRound } from 'lucide-react';
 
 export default function SuperAdminLogin() {
@@ -148,9 +148,22 @@ export default function SuperAdminLogin() {
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                Master Access Key
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Master Access Key
+                </label>
+                <Link
+                  to="/forgot-password"
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#818cf8',
+                    fontWeight: '600',
+                    textDecoration: 'none'
+                  }}
+                >
+                  Forgot Key?
+                </Link>
+              </div>
               <div style={{ position: 'relative' }}>
                 <Lock style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#64748b' }} />
                 <input

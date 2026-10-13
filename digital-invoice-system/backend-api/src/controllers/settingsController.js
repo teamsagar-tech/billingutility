@@ -26,6 +26,14 @@ exports.getStoreProfile = async (req, res) => {
         phone_number_id, 
         waba_template_name, 
         plan_tier, 
+        plan_valid_until,
+        DATEDIFF(plan_valid_until, CURRENT_DATE) as plan_days_remaining,
+        CASE 
+          WHEN plan_valid_until IS NULL THEN 'lifetime'
+          WHEN plan_valid_until < CURRENT_DATE THEN 'expired'
+          WHEN DATEDIFF(plan_valid_until, CURRENT_DATE) <= 15 THEN 'expiring_soon'
+          ELSE 'active'
+        END as plan_status,
         message_quota, 
         messages_used, 
         is_active, 

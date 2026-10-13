@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Sliders, Save, Key, Copy, CheckCircle, Star, Image, Globe } from 'lucide-react';
+import { Sliders, Save, Key, Copy, CheckCircle, Star, Image, Globe, ShieldCheck, Calendar, Sparkles, AlertTriangle } from 'lucide-react';
 
 export default function StoreSettings() {
   const { profile, setProfile, token, notifyToast } = useOutletContext();
@@ -85,6 +85,101 @@ export default function StoreSettings() {
         <p style={{ margin: 0, fontSize: '0.8rem', color: '#6b7280' }}>
           Configure your retail brand identity, Google Review 1-click dialog, social media channels, and POS API tokens
         </p>
+      </div>
+
+      {/* Store Plan & License Validity Box */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        borderRadius: '16px',
+        border: '1px solid #e2e8f0',
+        padding: '1.5rem',
+        marginBottom: '1.5rem',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Sparkles style={{ width: '18px', height: '18px', color: '#2563eb' }} />
+            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '800', color: '#111827' }}>
+              Store Subscription &amp; Annual Plan Validity
+            </h3>
+          </div>
+          <span style={{
+            fontSize: '0.75rem',
+            fontWeight: '800',
+            padding: '3px 10px',
+            borderRadius: '9999px',
+            backgroundColor: profile?.plan_status === 'expired' ? '#fee2e2' : (profile?.plan_status === 'expiring_soon' ? '#fef3c7' : '#dcfce7'),
+            color: profile?.plan_status === 'expired' ? '#991b1b' : (profile?.plan_status === 'expiring_soon' ? '#92400e' : '#166534'),
+            border: `1px solid ${profile?.plan_status === 'expired' ? '#fecaca' : (profile?.plan_status === 'expiring_soon' ? '#fde68a' : '#bbf7d0')}`
+          }}>
+            {profile?.plan_status === 'expired' ? 'Plan Expired' : (profile?.plan_days_remaining !== null ? `Active • ${profile?.plan_days_remaining}d remaining` : 'Active')}
+          </span>
+        </div>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '1rem',
+          padding: '1.25rem',
+          backgroundColor: '#f8fafc',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          marginBottom: '1rem'
+        }}>
+          <div>
+            <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Current Plan</div>
+            <div style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', marginTop: '2px', textTransform: 'capitalize' }}>
+              {profile?.plan_tier === 'trial' ? 'RetailNode Trial (3 Days)' : 'RetailNode Growth Plan'}
+            </div>
+            <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: '700' }}>
+              {profile?.plan_tier === 'trial' ? 'Free 3-Day Trial' : (
+                <>₹6,000 / Year <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontWeight: '500' }}>₹9,000</span></>
+              )}
+            </span>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Plan Valid Until</div>
+            <div style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>
+              {profile?.plan_valid_until
+                ? new Date(profile.plan_valid_until).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                : '14-Oct-2027'}
+            </div>
+            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+              1 Year License Validity
+            </span>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>WhatsApp Quota</div>
+            <div style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>
+              {(profile?.messages_used || 0).toLocaleString()} / {(profile?.message_quota || 1000).toLocaleString()}
+            </div>
+            <span style={{ fontSize: '0.75rem', color: '#0284c7', fontWeight: '600' }}>
+              {Math.max(0, (profile?.message_quota || 1000) - (profile?.messages_used || 0)).toLocaleString()} credits remaining
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', fontSize: '0.8rem', color: '#64748b' }}>
+          <span>To renew or upgrade your annual license, please contact RetailNode Support at <b>support@retailnode.in</b></span>
+          <a
+            href="https://wa.me/917977163140?text=Hi%20RetailNode%20Team%2C%20I%20want%20to%20renew%2Fextend%20my%20Store%20Annual%20Plan%20validity"
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              padding: '6px 12px',
+              borderRadius: '6px',
+              backgroundColor: '#2563eb',
+              color: '#ffffff',
+              fontWeight: '700',
+              textDecoration: 'none',
+              fontSize: '0.75rem'
+            }}
+          >
+            Contact Admin to Renew
+          </a>
+        </div>
       </div>
 
       {/* API Key Box */}

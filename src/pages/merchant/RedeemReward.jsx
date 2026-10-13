@@ -21,8 +21,9 @@ export default function RedeemReward() {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
-        if (data.success && data.data?.coupons) {
-          setCoupons(data.data.coupons.filter((c) => c.is_active));
+        if (data.success && data.data) {
+          const list = Array.isArray(data.data) ? data.data : (data.data.coupons || []);
+          setCoupons(list.filter((c) => c.is_active));
         }
       } catch (err) {
         console.error('Failed to load coupons:', err);

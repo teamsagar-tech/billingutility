@@ -28,12 +28,14 @@ export default function CouponDashboard() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      if (data.success && data.data) {
-        setCoupons(data.data.coupons || []);
+      if (data.success) {
+        const couponList = Array.isArray(data.data) ? data.data : (data.data?.coupons || []);
+        setCoupons(couponList);
+        const sum = data.summary || data.data?.summary || {};
         setStats({
-          totalCoupons: data.data.totalCoupons || 0,
-          redeemedCoupons: data.data.redeemedCoupons || 0,
-          availableCoupons: data.data.availableCoupons || 0
+          totalCoupons: sum.totalCoupons ?? (data.data?.totalCoupons || couponList.length),
+          redeemedCoupons: sum.redeemedCoupons ?? (data.data?.redeemedCoupons || 0),
+          availableCoupons: sum.availableCoupons ?? (data.data?.availableCoupons || couponList.length)
         });
       }
     } catch (err) {

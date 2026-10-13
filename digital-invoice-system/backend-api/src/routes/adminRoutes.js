@@ -7,7 +7,11 @@ const {
   topupQuota,
   getActionLogs,
   getGlobalGateways,
-  updateGlobalGateways
+  updateGlobalGateways,
+  getPricingCampaigns,
+  createPricingCampaign,
+  updatePricingCampaign,
+  deletePricingCampaign
 } = require('../controllers/adminController');
 const { requireAuth, requireSuperAdmin } = require('../middleware/auth');
 
@@ -31,5 +35,11 @@ router.get('/action-logs', getActionLogs);
 // Global Gateway Configuration
 router.get('/gateways', getGlobalGateways);
 router.put('/gateways', updateGlobalGateways);
+
+// Pricing & Promo Campaigns Management
+router.get('/pricing-campaigns', getPricingCampaigns);
+router.post('/pricing-campaigns', createPricingCampaign);
+router.put('/pricing-campaigns/:id', updatePricingCampaign);
+router.delete('/pricing-campaigns/:id', deletePricingCampaign);
 
 module.exports = router;

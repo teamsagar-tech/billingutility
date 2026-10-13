@@ -141,6 +141,17 @@ export default function MerchantLogin() {
                 <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#334155', textTransform: 'uppercase' }}>
                   Password
                 </label>
+                <Link
+                  to="/forgot-password"
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#0f766e',
+                    fontWeight: '600',
+                    textDecoration: 'none'
+                  }}
+                >
+                  Forgot Password?
+                </Link>
               </div>
               <div style={{ position: 'relative' }}>
                 <Lock style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#94a3b8' }} />
@@ -196,6 +207,49 @@ export default function MerchantLogin() {
               )}
             </button>
           </form>
+
+          {/* Sign Up Link */}
+          <div style={{
+            marginTop: '1.5rem',
+            paddingTop: '1.25rem',
+            borderTop: '1px solid #f1f5f9',
+            textAlign: 'center',
+            fontSize: '0.85rem',
+            color: '#64748b'
+          }}>
+            <span>New retail store? </span>
+            <Link to="/signup" style={{ color: '#0f766e', fontWeight: '700', textDecoration: 'none' }}>
+              Create Store Account
+            </Link>
+          </div>
+        </div>
+
+        {/* Customer OTP Access Banner */}
+        <div style={{
+          marginTop: '1rem',
+          backgroundColor: '#eff6ff',
+          border: '1px solid #bfdbfe',
+          borderRadius: '14px',
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          <span style={{ fontSize: '0.82rem', color: '#1e40af' }}>
+            Looking for your shopper receipts?
+          </span>
+          <Link
+            to="/my-bills"
+            style={{
+              fontSize: '0.78rem',
+              fontWeight: '700',
+              color: '#2563eb',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Customer OTP Login &rarr;
+          </Link>
         </div>
 
         {/* Footer */}

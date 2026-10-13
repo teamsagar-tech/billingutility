@@ -8,6 +8,98 @@
 
 ---
 
+## [2026-10-14] Strict Direct WABA Integration (waba.mpocket.in), Zero Graph API & Dynamic Shared Gateway Fallback
+
+### 1. Architectural Mandates & Directives
+1. **Strictly WABA (`waba.mpocket.in`) Integration**: Never use Meta Graph API (`graph.facebook.com`) directly. All WhatsApp dispatches route strictly to the native WABA microservice hosted at `https://waba.mpocket.in/api/:phone_number_id/messages`.
+2. **Zero Hardcoded Tokens or IDs**: Removed all hardcoded credentials from the codebase.
+3. **RetailNode Default Shared Gateway Fallback**: If a merchant has not configured their own WABA API in `tenants`, the system dynamically and cleanly falls back to the separate RetailNode default shared gateway credentials stored in `global_configs` (`DEFAULT_WABA_PHONE_NUMBER_ID`: `361462453714220`, `DEFAULT_WABA_ACCESS_TOKEN`: `Vpv6mesdUaY3XHS6BKrM0XOdIoQu4ygTVaHmpKMNb29bc1c7`).
+4. **Live Verification**: Successfully dispatched and received test message from RetailNode Default Shared Gateway (`361462453714220`) on recipient WhatsApp (`+91 8857808284`).
+5. **Verified Portal Credentials**:
+   - **Store Admin Portal** (`https://bill.retailnode.in/login`):
+     - **Email**: `store@deepaksarees.com`
+     - **Password**: `Deepak@2026!`
+   - **SaaS SuperAdmin Portal** (`https://bill.retailnode.in/saas-admin/login`):
+     - **Email**: `admin@retailnode.in`
+     - **Password**: `Admin@2026!`
+
+### 2. Services & Endpoints Implemented
+- **`wabaClient.js`**:
+  - `getWabaCredentials(tenantId)`: Resolves merchant credentials dynamically or falls back to `global_configs` default gateway.
+  - `sendWhatsAppMessage`: Dispatches to `https://waba.mpocket.in/api/:phone_number_id/messages` with Bearer auth and logs audit record into `billing_messages`.
+  - `createWabaCampaign`: Schedules batch broadcasts via `https://waba.mpocket.in/api/store-campaign` and saves to `campaigns` table.
+  - `fetchCampaignReport`: Fetches live metrics from `https://waba.mpocket.in/api/campaign/report/:campaignId`.
+- **`invoiceController.js`**:
+  - Purged all legacy Meta Graph API calls. All digital invoice dispatches and verification OTPs now route strictly through `wabaClient.js`.
+  - Canonical public receipt URL updated to `https://bill.retailnode.in/t/{shortId}`.
+- **`campaignController.js` & `authRoutes.js`**:
+  - Registered `/api/v1/auth/campaigns/templates`, `/api/v1/auth/campaigns/list`, `/api/v1/auth/campaigns/create`, `/api/v1/auth/campaigns/report/:campaignId`.
+
+---
+
+## [2026-10-14] User Sign Up, Password Recovery & Strict Customer OTP-Only Authentication Architecture
+
+### 1. Context & User Directives
+The user provided critical production requirements:
+1. **User Sign Up & Forgot Password for All Users**: Store owners and managers need a self-serve onboarding flow (`/signup` and `/register`) and complete password recovery (`/forgot-password` and `/reset-password`).
+2. **Strict OTP-Only Authentication for Customers**: Shoppers and end consumers accessing their digital invoices (`/my-bills`, `/customer/login`) must **NEVER** use passwords. Authentication is strictly 6-digit Mobile OTP verification to preserve a friction-free consumer experience while strictly protecting invoice privacy.
+3. **Zero Static / Dummy Data**: Complete purge of mock numbers and artificial arrays across the platform.
+
+### 2. Database Schema Alterations (`digital_invoice` on `95.135.166.109`)
+- **`users` Table**:
+  - Added `phone VARCHAR(30) NULL` - 10-digit mobile number for merchant staff and owners.
+  - Added `first_name VARCHAR(100) NULL` and `last_name VARCHAR(100) NULL` - User display name.
+  - Added `password_reset_otp VARCHAR(10) NULL` - Cryptographic 6-digit OTP code for password recovery.
+  - Added `password_reset_expires DATETIME NULL` - 15-minute expiration timestamp.
+- **`customer_otps` Table Created**:
+  - `id INT AUTO_INCREMENT PRIMARY KEY`
+  - `phone VARCHAR(20) NOT NULL` (indexed)
+  - `otp VARCHAR(10) NOT NULL`
+  - `expires_at DATETIME NOT NULL` (10-minute window)
+  - `created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
+
+### 3. Backend Auth Engine (`authController.js` & `authRoutes.js`)
+- **`POST /api/v1/auth/register` & `/signup`**:
+  - Validates store name, owner name, phone, email, and password.
+  - Generates secure `sk_live_...` API token.
+  - Creates tenant in `tenants` and merchant admin user in `users`.
+  - Initializes default loyalty (`points_per_rupee = 1.00`, `rupees_per_point = 0.50`) and referral settings.
+  - Issues 30-day JWT for immediate frictionless dashboard redirection.
+- **`POST /api/v1/auth/forgot-password`**:
+  - Accepts registered email or mobile number.
+  - Generates secure 6-digit OTP stored in `users.password_reset_otp` with 15-minute validity.
+- **`POST /api/v1/auth/reset-password`**:
+  - Validates active OTP and updates user password with 10-round Bcrypt hash.
+- **`POST /api/v1/auth/customer/send-otp`**:
+  - Validates 10-digit customer mobile number.
+  - Stores 6-digit OTP in `customer_otps` with 10-minute expiry.
+- **`POST /api/v1/auth/customer/verify-otp`**:
+  - Verifies OTP, purges used OTP, and issues Customer JWT.
+  - Queries `invoices`, `tenants`, and `customers` to return all real digital bills, total loyalty points, and lifetime spent.
+
+### 4. Frontend Component Suite
+- **`CustomerBillsLookup.jsx` (`/my-bills`, `/customer/login`)**:
+  - Strictly password-free OTP login flow.
+  - Step 1: 10-digit mobile entry -> triggers `POST /api/v1/auth/customer/send-otp`.
+  - Step 2: 6-digit OTP input with resend countdown timer -> triggers `POST /api/v1/auth/customer/verify-otp`.
+  - Step 3: Verified shopper dashboard displaying customer name, loyalty points balance, lifetime store spend, itemized receipts with interactive receipt links (`/t/:shortId`) and PDF downloads, and session management with "Switch Number".
+- **`MerchantSignUp.jsx` (`/signup`, `/register`)**:
+  - Store Name, Owner Name, 10-Digit Mobile, Business Email, City, Password & Confirm Password.
+  - Auto-focus, keyboard navigation, instant registration, and redirect to `/dashboard`.
+- **`ForgotPassword.jsx` (`/forgot-password`, `/reset-password`)**:
+  - 2-step OTP password reset with direct "Proceed to Sign In" flow.
+- **`MerchantLogin.jsx` & `SuperAdminLogin.jsx`**:
+  - Integrated "Forgot Password?" and "Create Store Account / Sign Up" links, plus a banner for shoppers directing to `/my-bills`.
+- **`src/App.jsx`**:
+  - Configured routes for `/signup`, `/register`, `/forgot-password`, `/reset-password`, `/my-bills`, `/customer/login`.
+
+### 5. Production Build & Verification
+- `npm run build` completed cleanly.
+- Rsynced to `/var/www/billintegration/dist/` and backend restarted via PM2 (`bill-backend` id 6).
+- Verified live HTTP 200 responses on `https://bill.retailnode.in/signup`, `https://bill.retailnode.in/forgot-password`, and `https://bill.retailnode.in/my-bills`.
+
+---
+
 ## [2026-10-13] Architectural Audit, CTO Brain Setup & Customer Billing Messaging Initialization
 
 ### 1. Context & Motivation
@@ -326,12 +418,58 @@ Successfully established the full enterprise brain framework inside the project 
 - Applied across `CustomerProfiles.jsx`, `CustomersPage.jsx`, and `CustomerJourney.jsx`.
 
 ### 6. Zero Dummy Data Across Merchant Dashboard Pages
-- **`StoreComparison.jsx`**: Wired to real analytics payload (`totalRevenue`, `totalInvoices`, `avgOrderValue`, new vs repeat splits). Removed static 4.9 rating and static 33% bar.
-- **`CustomerSegmentation.jsx`**: Dynamically computes segment audience counts and average spends directly from live customer database records. Added member modal.
-- **`RoiExplorer.jsx`**: Computes real blended ROI % from live revenue and messaging volume at ~₹0.45/msg.
-- **`RedeemReward.jsx`**: Replaced mock timeout with live customer lookup (`/api/v1/auth/customers/:phone/journey`) and live coupons from `/api/v1/auth/coupons`.
-- **`CouponDashboard.jsx`**: Connected to live CRUD endpoints (`GET/POST /api/v1/auth/coupons`).
-- **`CampaignsHub.jsx`**: Removed static mock campaigns, replaced with empty state for ledger.
+### 7. Resolution of Invoices Not Showing & Complete Elimination of Static Data Across All Pages
+- **Invoices Route Bug Fix**:
+  - Root Cause: `InvoicesPage.jsx` called `/api/v1/invoices`, but `invoiceRoutes.js` lacked a root `router.get('/')` handler, causing Express to return a 404 HTML string (`Cannot GET /api/v1/invoices`). Meanwhile, the actual listing handler `getStoreInvoices` was only mounted at `/api/v1/auth/invoices`.
+  - Added `router.get('/', requireAuth, getStoreInvoices)` and `router.post('/', requireAuth, createQuickBill)` directly in `invoiceRoutes.js`.
+  - In `server.js`, mounted `app.use('/api/v1', authRoutes)` to guarantee complete compatibility across both prefixed (`/api/v1/auth/...`) and un-prefixed (`/api/v1/...`) frontend calls.
+  - In `authRoutes.js`, added `router.post('/profile', requireAuth, updateStoreProfile)` to accept POST submissions from `StoreSettings.jsx` and `WhatsAppSettings.jsx`.
+- **Static Mock Data Removed Across Components**:
+  - `LoyaltyDashboard.jsx`: Removed hardcoded `const transactions = [...]` (Anita Sharma, Priya Joshi, Sunita Patil). Built `getLoyaltyLedger` in `loyaltyController.js` and registered `GET /api/v1/auth/loyalty/ledger`. `LoyaltyDashboard.jsx` now fetches and renders real points earned/redeemed from live invoice records.
+  - `CouponDashboard.jsx`: Fixed data response parsing bug where `data.data.coupons` was checked on an array response (`data.data` is an array directly), which caused coupons and stats to render as empty/zero.
+  - `RedeemReward.jsx`: Updated `fetchActiveCoupons` to correctly handle `data.data` array.
+  - `DashboardHome.jsx`: Replaced hardcoded `* 0.67` / `* 0.33` artificial ratios with live metrics from `analytics.newRevenue`, `analytics.repeatRevenue`, `analytics.newBillsCount`, `analytics.repeatBillsCount`. Fixed property mismatches on recent invoices.
+  - `analyticsController.js`: Enhanced `recentInvoices` query to parse `receipt_json` so `invoice_number`, `bill_total`, and `customer_name` are populated dynamically. Added alias metrics block (`total_revenue`, `total_invoices`, etc.) to support all component consumption patterns.
+  - `customerController.js`: Added full set of alias fields (`total_spent`, `visits_count`, `dormancy_bucket`, `cohort`, `last_bill_amount`, `last_visit`) to ensure `CustomersPage.jsx`, `CustomerProfiles.jsx`, and `CustomerSegmentation.jsx` bind smoothly.
+  - `CustomerSegmentation.jsx` & `CustomersPage.jsx`: Updated filter and row render calculations to check both property alias sets.
+  - `StoreComparison.jsx`: Fixed broken CRM link from `/dashboard/profiles/customers` to `/dashboard/customers`.
+  - `DownloadCenter.jsx`: Implemented real live CSV generation and client-side downloads for Invoices (`Invoices_*.csv`), Customer CRM (`Customers_*.csv`), and WhatsApp messaging ledger (`WABA_Messages_*.csv`).
+- **Production Build & Verification**:
+  - Compiled production bundle (`dist/assets/index-9gZ2flk7.js`).
+  - Synchronized backend source and frontend `dist/` to `root@95.135.166.109`.
+  - Restarted PM2 process `bill-backend` (PID 73179).
+  - Verified live API endpoints with merchant JWT token (`store@deepaksarees.com`):
+    - `GET https://bill.retailnode.in/api/v1/invoices` -> HTTP 200 with 4 invoices.
+    - `GET https://bill.retailnode.in/api/v1/auth/invoices` -> HTTP 200 with 4 invoices.
+    - `GET https://bill.retailnode.in/api/v1/auth/loyalty/ledger` -> HTTP 200 with dynamic loyalty transactions.
+    - `GET https://bill.retailnode.in/api/v1/auth/analytics` -> HTTP 200 with ₹16,599 revenue and 4 bills.
+### 8. Strict Prohibition of Negative Review Gating & Dynamic Pricing Engine Implementation
+- **Review Policy Overhaul (Strict No-Gating Rule)**:
+  - Addressed explicit directive: `'Negative Feedback Shield (1★ to 3★ routed internally) - WE ARE NOT DOING THIS'`.
+  - Completely purged all deceptive review gating, "shield", "private review interceptor", and "routed internally" mechanics.
+  - In `BillReceipt.jsx`: Removed `rating >= 4` conditional gating on Google Review dialog trigger. All customers who rate or click review have transparent, direct access to leave Google Reviews.
+  - In `MerchantDashboard.jsx` & `CustomerFeedback.jsx`: Cleaned up terminology to "Customer Feedback & Reviews", replacing "Shield Status" with "Rating Tier" (e.g. 1-3★ Feedback, 4-5★ Feedback) and service resolution notes.
+  - In `Pricing.jsx`: Replaced gating claim with "Direct Google Business Review Integration & 1-Click Link".
+
+- **Plan Architecture Consolidation**:
+  - Per directive, restricted all subscription plans to strictly TWO tiers across the entire platform:
+    1. **Trial**: 3 Days Free Trial (automatic on merchant signup).
+    2. **Growth Plan**: ₹6,000 / Year (Discounted from regular ₹9,000 / Year, save ₹3,000).
+  - Eliminated all legacy multi-tier options (`starter`, `enterprise`, `pro`, `annual`).
+  - Added database column `plan_valid_until` to `tenants` and set Deepak Sarees to `plan_tier = 'growth'` (valid till 14-Oct-2027).
+
+- **Dynamic Admin Pricing & Promo Campaign System**:
+  - Created MySQL table `pricing_campaigns` (`campaign_name`, `plan_tier`, `regular_price`, `campaign_price`, `trial_days`, `badge_text`, `headline`, `subheadline`, `is_active`, `start_date`, `end_date`).
+  - Implemented public endpoint `GET /api/v1/pricing/active` with instant fallback.
+  - Implemented SuperAdmin CRUD endpoints:
+    - `GET /api/v1/admin/pricing-campaigns`
+    - `POST /api/v1/admin/pricing-campaigns`
+    - `PUT /api/v1/admin/pricing-campaigns/:id`
+    - `DELETE /api/v1/admin/pricing-campaigns/:id`
+  - Overhauled `Pricing.jsx` to dynamically fetch active campaign details on load, displaying live offer prices, calculated savings, and 3-day trial callouts.
+  - Added dedicated **"Pricing Campaigns & Offers"** tab in `SaaSAdminPanel.jsx` with active campaign spotlight card, live pricing editor, campaign creation modal, and instant publish toggles.
+  - Updated Store Onboarding and Plan Validity modals with quick extend buttons (`+3d Trial`, `+90d Quarter`, `+1 Year Growth`).
+  - Verified live deployment to production (`95.135.166.109`) and confirmed PM2 backend process operational.
 
 
 

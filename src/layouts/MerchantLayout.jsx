@@ -27,7 +27,8 @@ import {
   FileText,
   X,
   ChevronRight,
-  Send
+  Send,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function MerchantLayout() {
@@ -395,6 +396,43 @@ export default function MerchantLayout() {
           </div>
         )}
 
+        {/* Plan Expiration Alert Banner */}
+        {profile?.plan_status === 'expired' && (
+          <div style={{
+            backgroundColor: '#dc2626',
+            color: '#ffffff',
+            padding: '8px 1.5rem',
+            fontSize: '0.8rem',
+            fontWeight: '700',
+            textAlign: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}>
+            <AlertTriangle style={{ width: '15px', height: '15px' }} />
+            <span>Your Store Subscription Plan has expired. Please contact RetailNode SaaS Admin to extend your plan validity.</span>
+          </div>
+        )}
+        {profile?.plan_status === 'expiring_soon' && (
+          <div style={{
+            backgroundColor: '#fef3c7',
+            color: '#92400e',
+            borderBottom: '1px solid #fde68a',
+            padding: '8px 1.5rem',
+            fontSize: '0.8rem',
+            fontWeight: '700',
+            textAlign: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}>
+            <AlertTriangle style={{ width: '15px', height: '15px' }} />
+            <span>Store plan expiring in {profile.plan_days_remaining} days (Valid till {new Date(profile.plan_valid_until).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}). Contact admin for renewal.</span>
+          </div>
+        )}
+
         {/* TOP HEADER */}
         <header style={{
           backgroundColor: '#ffffff',
@@ -409,11 +447,40 @@ export default function MerchantLayout() {
           zIndex: 40
         }}>
           {/* Left info & status */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 0 3px rgba(16, 185, 129, 0.2)' }} />
               <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#166534' }}>POS &amp; WhatsApp Online</span>
             </div>
+
+            {/* Store Plan & License Validity Badge */}
+            {profile?.plan_tier && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                fontSize: '0.75rem',
+                fontWeight: '700',
+                backgroundColor: profile.plan_status === 'expired' ? '#fee2e2' : (profile.plan_status === 'expiring_soon' ? '#fef3c7' : '#f0fdf4'),
+                color: profile.plan_status === 'expired' ? '#991b1b' : (profile.plan_status === 'expiring_soon' ? '#92400e' : '#166534'),
+                border: `1px solid ${profile.plan_status === 'expired' ? '#fecaca' : (profile.plan_status === 'expiring_soon' ? '#fde68a' : '#bbf7d0')}`
+              }}>
+                <span style={{ textTransform: 'capitalize' }}>{profile.plan_tier} Plan</span>
+                <span>&bull;</span>
+                <span>
+                  {profile.plan_status === 'expired'
+                    ? 'Expired'
+                    : (profile.plan_days_remaining !== null ? `${profile.plan_days_remaining}d left` : 'Active')}
+                </span>
+                {profile.plan_valid_until && (
+                  <span style={{ fontWeight: '500', opacity: 0.85, fontSize: '0.7rem' }}>
+                    (Till {new Date(profile.plan_valid_until).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })})
+                  </span>
+                )}
+              </div>
+            )}
 
             <a
               href="https://bill.retailnode.in/t/OHVrHzYL"

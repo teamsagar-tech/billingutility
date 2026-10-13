@@ -108,7 +108,7 @@ export default function StoreComparison() {
         </Link>
 
         <Link
-          to="/dashboard/profiles/customers"
+          to="/dashboard/customers"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -167,7 +167,7 @@ export default function StoreComparison() {
             <Star style={{ width: '20px', height: '20px', fill: '#f59e0b', color: '#f59e0b' }} />
           </div>
           <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: '600' }}>
-            {feedbackCount > 0 ? `${feedbackCount} verified reviews` : 'Google review shield active'}
+            {feedbackCount > 0 ? `${feedbackCount} verified reviews` : 'Customer review system active'}
           </span>
         </div>
       </div>

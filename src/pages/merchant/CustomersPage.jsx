@@ -63,12 +63,12 @@ export default function CustomersPage() {
 
     let matchesDormant = true;
     if (dormantFilter !== 'all') {
-      matchesDormant = c.dormancy_bucket === dormantFilter;
+      matchesDormant = (c.dormancy_bucket || c.dormancy) === dormantFilter;
     }
 
     let matchesVisit = true;
     if (visitFilter !== 'all') {
-      const v = Number(c.visits_count || 1);
+      const v = Number(c.visits_count || c.no_of_visits || 1);
       if (visitFilter === '1') matchesVisit = v === 1;
       else if (visitFilter === '2') matchesVisit = v === 2;
       else if (visitFilter === '3') matchesVisit = v === 3;
@@ -79,7 +79,7 @@ export default function CustomersPage() {
 
     let matchesCohort = true;
     if (cohortFilter !== 'all') {
-      matchesCohort = c.cohort === cohortFilter;
+      matchesCohort = (c.cohort || c.rfm_cohort) === cohortFilter;
     }
 
     let matchesProfile = true;
@@ -286,8 +286,8 @@ export default function CustomersPage() {
                 filteredCustomers.map((c, idx) => {
                   const custPhone = c.phone || c.customer_phone || '';
                   const custName = c.customer_name || c.name || 'Valued Shopper';
-                  const totalSpent = Number(c.total_spent || 0);
-                  const visits = Number(c.visits_count || 1);
+                  const totalSpent = Number(c.total_spent || c.lifetime_value || 0);
+                  const visits = Number(c.visits_count || c.no_of_visits || 1);
                   const isComplete = c.profile_status === 'complete';
                   const cohort = getCohortBadge(totalSpent, visits);
 

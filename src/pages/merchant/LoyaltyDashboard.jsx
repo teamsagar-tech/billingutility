@@ -11,13 +11,41 @@ export default function LoyaltyDashboard() {
     min_points_redeem: 500,
     discount_value: 0.5
   });
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const transactions = [
-    { id: 1, date: 'Today, 02:45 PM', customerName: 'Anita Sharma', phone: '9876543210', billNo: 'DS-8842', earned: 88, redeemed: 0, balance: 250 },
-    { id: 2, date: 'Yesterday, 06:10 PM', customerName: 'Priya Joshi', phone: '9123456780', billNo: 'DS-8841', earned: 42, redeemed: 0, balance: 140 },
-    { id: 3, date: 'Oct 11, 01:20 PM', customerName: 'Sunita Patil', phone: '9988776655', billNo: 'DS-8839', earned: 0, redeemed: 100, balance: 210 }
-  ];
+  const fetchLoyaltyData = async () => {
+    setLoading(true);
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      // 1. Settings
+      const setRes = await fetch('/api/v1/auth/loyalty', { headers });
+      const setData = await setRes.json();
+      if (setData.success && setData.data) {
+        setLoyalty({
+          rupees_per_point: parseInt(setData.data.rupees_per_point, 10) || 100,
+          min_points_redeem: parseInt(setData.data.min_points_redeem, 10) || 500,
+          discount_value: parseFloat(setData.data.discount_value) || 0.5
+        });
+      }
+
+      // 2. Ledger
+      const ledRes = await fetch('/api/v1/auth/loyalty/ledger', { headers });
+      const ledData = await ledRes.json();
+      if (ledData.success && Array.isArray(ledData.data)) {
+        setTransactions(ledData.data);
+      }
+    } catch (err) {
+      console.error('Failed to load loyalty data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLoyaltyData();
+  }, [token]);
 
   const handleSaveLoyalty = async (e) => {
     e.preventDefault();
@@ -152,25 +180,36 @@ export default function LoyaltyDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {transactions.map((t) => (
-                  <tr key={t.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px', color: '#64748b' }}>{t.date}</td>
-                    <td style={{ padding: '12px', fontWeight: '700', color: '#0f172a' }}>
-                      {t.customerName}
-                      <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{maskPhone(t.phone)}</div>
-                    </td>
-                    <td style={{ padding: '12px', color: '#0284c7', fontWeight: '600' }}>#{t.billNo}</td>
-                    <td style={{ padding: '12px', textAlign: 'center', color: '#16a34a', fontWeight: '700' }}>
-                      {t.earned > 0 ? `+${t.earned}` : '—'}
-                    </td>
-                    <td style={{ padding: '12px', textAlign: 'center', color: '#dc2626', fontWeight: '700' }}>
-                      {t.redeemed > 0 ? `-${t.redeemed}` : '—'}
-                    </td>
-                    <td style={{ padding: '12px', textAlign: 'center', fontWeight: '800', color: '#0f172a' }}>
-                      {t.balance} pts
+                {transactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ padding: '2.5rem', textAlign: 'center', color: '#64748b' }}>
+                      <Award style={{ width: '28px', height: '28px', margin: '0 auto 8px', opacity: 0.4 }} />
+                      <p style={{ margin: 0, fontSize: '0.85rem' }}>No loyalty points transactions recorded yet. Points will be automatically awarded on POS bills.</p>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  transactions.map((t) => (
+                    <tr key={t.id || t.shortId} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '12px', color: '#64748b' }}>
+                        {t.date ? new Date(t.date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'Recent'}
+                      </td>
+                      <td style={{ padding: '12px', fontWeight: '700', color: '#0f172a' }}>
+                        {t.customerName}
+                        <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{maskPhone(t.phone)}</div>
+                      </td>
+                      <td style={{ padding: '12px', color: '#0284c7', fontWeight: '600' }}>#{t.billNo}</td>
+                      <td style={{ padding: '12px', textAlign: 'center', color: '#16a34a', fontWeight: '700' }}>
+                        {t.earned > 0 ? `+${t.earned}` : '—'}
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center', color: '#dc2626', fontWeight: '700' }}>
+                        {t.redeemed > 0 ? `-${t.redeemed}` : '—'}
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center', fontWeight: '800', color: '#0f172a' }}>
+                        {t.balance} pts
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

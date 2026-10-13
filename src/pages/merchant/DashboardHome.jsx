@@ -18,13 +18,15 @@ import { formatK, formatCurrency } from '../../utils/merchantUtils';
 export default function DashboardHome() {
   const { profile, analytics, loading } = useOutletContext();
 
-  const totalRev = Number(analytics?.metrics?.total_revenue || 0);
-  const totalBills = Number(analytics?.metrics?.total_invoices || 0);
-  const newRev = totalRev > 0 ? totalRev * 0.67 : 0;
-  const repeatRev = totalRev > 0 ? totalRev * 0.33 : 0;
-  const newBills = totalBills > 0 ? Math.ceil(totalBills * 0.67) : 0;
-  const repeatBills = totalBills > 0 ? Math.floor(totalBills * 0.33) : 0;
-  const aov = totalBills > 0 ? totalRev / totalBills : 0;
+  const totalRev = Number(analytics?.totalRevenue ?? analytics?.metrics?.total_revenue ?? 0);
+  const totalBills = Number(analytics?.totalInvoices ?? analytics?.metrics?.total_invoices ?? 0);
+  const newRev = Number(analytics?.newRevenue ?? 0);
+  const repeatRev = Number(analytics?.repeatRevenue ?? 0);
+  const newBills = Number(analytics?.newBillsCount ?? 0);
+  const repeatBills = Number(analytics?.repeatBillsCount ?? 0);
+  const aov = Number(analytics?.avgOrderValue ?? (totalBills > 0 ? Math.round(totalRev / totalBills) : 0));
+  const newPct = totalRev > 0 ? Math.round((newRev / totalRev) * 100) : 50;
+  const repeatPct = 100 - newPct;
 
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
@@ -92,12 +94,12 @@ export default function DashboardHome() {
             {/* New vs Repeat Progress Bar */}
             <div style={{ marginTop: '16px' }}>
               <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#e5e7eb' }}>
-                <div style={{ width: '67%', backgroundColor: '#6366f1' }} title="New Shoppers" />
-                <div style={{ width: '33%', backgroundColor: '#10b981' }} title="Repeat Shoppers" />
+                <div style={{ width: `${newPct}%`, backgroundColor: '#6366f1' }} title="New Shoppers" />
+                <div style={{ width: `${repeatPct}%`, backgroundColor: '#10b981' }} title="Repeat Shoppers" />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '0.7rem', fontWeight: '600' }}>
-                <span style={{ color: '#4f46e5' }}>New: {formatK(newRev)} (67%)</span>
-                <span style={{ color: '#10b981' }}>Repeat: {formatK(repeatRev)} (33%)</span>
+                <span style={{ color: '#4f46e5' }}>New: {formatK(newRev)} ({newPct}%)</span>
+                <span style={{ color: '#10b981' }}>Repeat: {formatK(repeatRev)} ({repeatPct}%)</span>
               </div>
             </div>
           </div>
@@ -120,8 +122,8 @@ export default function DashboardHome() {
 
             <div style={{ marginTop: '16px' }}>
               <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#e5e7eb' }}>
-                <div style={{ width: '67%', backgroundColor: '#6366f1' }} />
-                <div style={{ width: '33%', backgroundColor: '#10b981' }} />
+                <div style={{ width: `${totalBills > 0 ? Math.round((newBills / totalBills) * 100) : 50}%`, backgroundColor: '#6366f1' }} />
+                <div style={{ width: `${totalBills > 0 ? Math.round((repeatBills / totalBills) * 100) : 50}%`, backgroundColor: '#10b981' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '0.7rem', fontWeight: '600' }}>
                 <span style={{ color: '#4f46e5' }}>{newBills} New Bills</span>
@@ -307,7 +309,7 @@ export default function DashboardHome() {
           </Link>
         </div>
 
-        {analytics?.recent_invoices && analytics.recent_invoices.length > 0 ? (
+        {((analytics?.recentInvoices || analytics?.recent_invoices) && (analytics.recentInvoices || analytics.recent_invoices).length > 0) ? (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.825rem' }}>
               <thead>
@@ -320,16 +322,16 @@ export default function DashboardHome() {
                 </tr>
               </thead>
               <tbody>
-                {analytics.recent_invoices.slice(0, 5).map((inv) => (
-                  <tr key={inv.id} style={{ borderBottom: '1px solid #f8fafc' }}>
+                {(analytics.recentInvoices || analytics.recent_invoices).slice(0, 5).map((inv, idx) => (
+                  <tr key={inv.id || inv.short_id || idx} style={{ borderBottom: '1px solid #f8fafc' }}>
                     <td style={{ padding: '10px 12px', fontWeight: '700', color: '#0f172a' }}>
-                      {inv.invoice_number}
+                      #{inv.invoice_number || inv.invoiceNumber || inv.short_id}
                     </td>
                     <td style={{ padding: '10px 12px', color: '#475569' }}>
-                      {inv.customer_phone}
+                      {inv.customer_phone || inv.customerPhone}
                     </td>
                     <td style={{ padding: '10px 12px', fontWeight: '700', color: '#0f172a' }}>
-                      {formatCurrency(inv.bill_total || 1000)}
+                      {formatCurrency(inv.bill_total || inv.billTotal || 0)}
                     </td>
                     <td style={{ padding: '10px 12px' }}>
                       <span style={{
@@ -349,7 +351,7 @@ export default function DashboardHome() {
                     </td>
                     <td style={{ padding: '10px 12px' }}>
                       <a
-                        href={`/t/${inv.short_id || 'test'}`}
+                        href={`/t/${inv.short_id || inv.shortId}`}
                         target="_blank"
                         rel="noreferrer"
                         style={{ color: '#0284c7', fontWeight: '600', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '3px' }}

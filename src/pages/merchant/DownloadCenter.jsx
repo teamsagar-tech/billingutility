@@ -3,10 +3,52 @@ import { useOutletContext } from 'react-router-dom';
 import { Download, FileText, Users, DollarSign, Database, Terminal, CheckCircle } from 'lucide-react';
 
 export default function DownloadCenter() {
-  const { profile, notifyToast } = useOutletContext();
+  const { profile, token, notifyToast } = useOutletContext();
 
-  const handleExport = (reportName) => {
-    notifyToast(`Generating ${reportName}... Download will start shortly.`);
+  const downloadFile = (content, filename, type) => {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExport = async (type) => {
+    notifyToast(`Generating ${type} export...`);
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      if (type === 'invoices') {
+        const res = await fetch('/api/v1/auth/invoices', { headers });
+        const json = await res.json();
+        const data = json.data || [];
+        const csvHeader = 'Invoice Number,Date,Customer Name,Phone,Bill Total,WhatsApp Status,Reviewed\n';
+        const csvRows = data.map((i) => `"${i.invoiceNumber || i.invoice_number || ''}","${i.createdAt || i.created_at || ''}","${i.customerName || ''}","${i.customerPhone || ''}","${i.billTotal || 0}","${i.whatsappStatus || 'delivered'}","${i.hasReviewed ? 'Yes' : 'No'}"`).join('\n');
+        downloadFile(csvHeader + csvRows, `Invoices_${Date.now()}.csv`, 'text/csv;charset=utf-8;');
+        notifyToast('Invoices CSV downloaded successfully!');
+      } else if (type === 'customers') {
+        const res = await fetch('/api/v1/auth/customers', { headers });
+        const json = await res.json();
+        const data = json.data || [];
+        const csvHeader = 'Customer Name,Phone,Email,Total Spent,Visits,Loyalty Points,RFM Cohort,Dormancy\n';
+        const csvRows = data.map((c) => `"${c.customer_name || ''}","${c.phone || ''}","${c.email || ''}","${c.total_spent || c.lifetime_value || 0}","${c.visits_count || c.no_of_visits || 1}","${c.loyalty_points || 0}","${c.rfm_cohort || ''}","${c.dormancy || ''}"`).join('\n');
+        downloadFile(csvHeader + csvRows, `Customers_${Date.now()}.csv`, 'text/csv;charset=utf-8;');
+        notifyToast('Customer CRM directory downloaded!');
+      } else if (type === 'messages') {
+        const res = await fetch('/api/v1/auth/invoices', { headers });
+        const json = await res.json();
+        const data = json.data || [];
+        const csvHeader = 'Invoice Number,Recipient Phone,Dispatched At,Status,Gateway,Template Name\n';
+        const csvRows = data.map((i) => `"${i.invoiceNumber || i.invoice_number || ''}","${i.customerPhone || ''}","${i.createdAt || i.created_at || ''}","${i.whatsappStatus || 'delivered'}","waba.mpocket.in","billing_receipt"`).join('\n');
+        downloadFile(csvHeader + csvRows, `WABA_Messages_${Date.now()}.csv`, 'text/csv;charset=utf-8;');
+        notifyToast('WhatsApp messaging ledger exported!');
+      }
+    } catch (e) {
+      alert('Failed to generate export file: ' + e.message);
+    }
   };
 
   return (
@@ -35,7 +77,7 @@ export default function DownloadCenter() {
             </p>
           </div>
           <button
-            onClick={() => handleExport('Invoices CSV')}
+            onClick={() => handleExport('invoices')}
             style={{ padding: '9px 16px', borderRadius: '8px', border: 'none', backgroundColor: '#0284c7', color: '#ffffff', fontSize: '0.825rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
           >
             <Download style={{ width: '15px', height: '15px' }} />
@@ -56,7 +98,7 @@ export default function DownloadCenter() {
             </p>
           </div>
           <button
-            onClick={() => handleExport('Customer Directory Excel')}
+            onClick={() => handleExport('customers')}
             style={{ padding: '9px 16px', borderRadius: '8px', border: 'none', backgroundColor: '#16a34a', color: '#ffffff', fontSize: '0.825rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
           >
             <Download style={{ width: '15px', height: '15px' }} />
@@ -77,7 +119,7 @@ export default function DownloadCenter() {
             </p>
           </div>
           <button
-            onClick={() => handleExport('WhatsApp Messaging Ledger')}
+            onClick={() => handleExport('messages')}
             style={{ padding: '9px 16px', borderRadius: '8px', border: 'none', backgroundColor: '#d97706', color: '#ffffff', fontSize: '0.825rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
           >
             <Download style={{ width: '15px', height: '15px' }} />
