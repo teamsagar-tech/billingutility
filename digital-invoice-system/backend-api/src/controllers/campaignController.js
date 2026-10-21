@@ -1,5 +1,8 @@
+const axios = require('axios');
 const db = require('../config/database');
 const { createWabaCampaign, fetchCampaignReport, getWabaCredentials, normalizePhoneNumber } = require('../services/wabaClient');
+
+const WABA_BASE_URL = process.env.WABA_BASE_URL || 'https://waba.mpocket.in';
 
 /**
  * POST /api/v1/campaigns/create
@@ -150,48 +153,86 @@ exports.getCampaignReport = async (req, res) => {
 
 /**
  * GET /api/v1/campaigns/templates
- * Retrieves approved WABA templates for the store
+ * Retrieves approved WABA templates for the store dynamically from WABA setup
  */
 exports.getTemplates = async (req, res) => {
   try {
     const tenantId = req.user.tenantId;
     const creds = await getWabaCredentials(tenantId);
+    const identifier = creds.phoneNumberId || process.env.DEFAULT_WABA_PHONE_NUMBER_ID || '361462453714220';
 
-    // List approved templates
-    const templates = [
-      {
-        name: creds.templateName || 'deepak_sarees_invoice',
-        category: 'UTILITY',
-        language: 'en',
-        displayName: 'Billing & Digital Invoice Receipt (Interactive)'
-      },
-      {
-        name: '2024_promo_1',
-        category: 'MARKETING',
-        language: 'mr',
-        displayName: 'Festive & Promotional Broadcast (Discount Offer)'
-      },
-      {
-        name: 'shahi_paithani_feb_2025',
-        category: 'MARKETING',
-        language: 'mr',
-        displayName: 'New Arrivals & Paithani Collection Showcase'
-      },
-      {
-        name: 'retailnode_consultation_v2',
-        category: 'UTILITY',
-        language: 'en',
-        displayName: 'Customer Greeting & Milestone Engagement'
-      }
-    ];
+    let templates = [];
+
+    try {
+      const response = await axios.get(`${WABA_BASE_URL}/api/tenant/templates/retailnode-status`, {
+        params: { identifier: identifier.trim() },
+        timeout: 15000
+      });
+
+      const rawTemplates = response.data?.templates || [];
+
+      templates = rawTemplates.map(t => {
+        const bodyComp = (t.components || []).find(c => c.type === 'BODY');
+        const headerComp = (t.components || []).find(c => c.type === 'HEADER');
+        const buttonsComp = (t.components || []).find(c => c.type === 'BUTTONS');
+
+        return {
+          id: t.id,
+          name: t.name,
+          category: t.category || 'UTILITY',
+          language: t.language || 'en',
+          status: t.status || 'APPROVED',
+          displayName: `${t.name.replace(/_/g, ' ')} (${t.category} • ${t.language})`,
+          bodyText: bodyComp?.text || '',
+          headerFormat: headerComp?.format || null,
+          buttons: buttonsComp?.buttons || [],
+          components: t.components || []
+        };
+      });
+    } catch (wabaErr) {
+      console.warn('[CampaignController] Failed to fetch live templates from WABA:', wabaErr.message);
+    }
+
+    // Fallback if WABA call failed or returned empty
+    if (templates.length === 0) {
+      templates = [
+        {
+          name: creds.templateName || 'retailnode_bill_link_v1',
+          category: 'UTILITY',
+          language: 'en',
+          status: 'APPROVED',
+          displayName: 'Digital Invoice Link & Receipt (UTILITY • en)',
+          bodyText: 'Dear customer, your digital bill is ready. Click link to view.'
+        },
+        {
+          name: 'retailnode_loyalty_update',
+          category: 'UTILITY',
+          language: 'en',
+          status: 'APPROVED',
+          displayName: 'Loyalty Points Balance Update (UTILITY • en)',
+          bodyText: 'Hello {{1}}, you earned {{2}} points. Total balance: {{3}}.'
+        },
+        {
+          name: '2024_promo_1',
+          category: 'MARKETING',
+          language: 'mr',
+          status: 'APPROVED',
+          displayName: 'Festive & Promotional Broadcast (MARKETING • mr)',
+          bodyText: 'Special festive discount offer.'
+        }
+      ];
+    }
 
     res.status(200).json({
       success: true,
       wabaProvider: 'waba_custom',
       isDefaultGateway: creds.isDefault,
-      templates
+      templates,
+      total: templates.length
     });
   } catch (error) {
+    console.error('[CampaignController] Error fetching templates:', error);
     res.status(500).json({ success: false, error: 'Failed to retrieve templates' });
   }
 };
+

@@ -140,14 +140,14 @@ export default function DownloadCenter() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem', backgroundColor: '#f0f9ff', borderRadius: '12px', border: '1px solid #bae6fd', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <h4 style={{ margin: '0 0 4px', fontSize: '0.95rem', fontWeight: '800', color: '#0369a1' }}>
-              DigitalBillAgent.exe (Windows Thermal Print Interceptor)
+              RetailNodePrintAgent.exe (Windows Thermal Print Interceptor)
             </h4>
             <p style={{ margin: 0, fontSize: '0.78rem', color: '#0284c7' }}>
               Zero modification needed on your existing billing software. Reads printer spool buffer directly.
             </p>
           </div>
           <a
-            href="/downloads/DigitalBillAgent.exe"
+            href="/downloads/RetailNodePrintAgent.exe"
             download
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', borderRadius: '8px', backgroundColor: '#0284c7', color: '#ffffff', fontWeight: '700', fontSize: '0.8rem', textDecoration: 'none' }}
           >

@@ -6,8 +6,8 @@ const FaqSection = () => {
 
   const faqs = [
     {
-      question: "Is RetailBill an ERP software?",
-      answer: "No. RetailBill is not an ERP software. It is a customer engagement platform that integrates easily with your existing ERP / Invoicing software, enabling you to better engage with your customers by means of digital bills and CRM offerings."
+      question: "Is RetailNode an ERP software?",
+      answer: "RetailNode V2 offers a complete ERP solution, while this Billing Platform acts as an ultra-fast customer engagement utility that integrates easily with RetailNode ERP or any third-party POS/invoicing software, enabling you to deliver digital bills, loyalty rewards, and CRM offerings on WhatsApp."
     },
     {
       question: "Can we send invoices to our customers over WhatsApp?",
@@ -15,10 +15,10 @@ const FaqSection = () => {
     },
     {
       question: "I do not have an existing loyalty program. Do I have to change my software to get this feature?",
-      answer: "Not at all. RetailBill handles the entire loyalty program natively. You can issue points, send reminders, and allow customers to redeem rewards via OTP without needing to change your existing POS system."
+      answer: "Not at all. RetailNode handles the entire loyalty program natively. You can issue points, send reminders, and allow customers to redeem rewards via OTP without needing to change your existing POS system."
     },
     {
-      question: "Is there a free trial for me to understand if RetailBill is a good fit?",
+      question: "Is there a free trial for me to understand if RetailNode is a good fit?",
       answer: "Yes! We offer a free trial with no commitment. You can start sending digital bills and exploring the Smart CRM immediately to see the impact on your retail business."
     }
   ];

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Search, RefreshCw, CheckCircle, Star, Eye, ExternalLink, Receipt, Filter } from 'lucide-react';
+import { RefreshCw, CheckCircle, Star, Eye, ExternalLink, Receipt, Filter } from 'lucide-react';
 import { formatCurrency, maskPhone } from '../../utils/merchantUtils';
+import { SortableTh, TablePagination, TableSearchInput } from '../../components/DataTable';
+import { useDataTable } from '../../hooks/useDataTable';
 
 export default function InvoicesPage() {
   const { token, notifyToast } = useOutletContext();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
   const fetchInvoices = async () => {
@@ -36,18 +37,33 @@ export default function InvoicesPage() {
     fetchInvoices();
   }, [token]);
 
-  const filteredInvoices = invoices.filter((inv) => {
-    const q = searchQuery.toLowerCase();
-    const invNum = (inv.invoiceNumber || inv.invoice_number || '').toLowerCase();
-    const phone = (inv.customerPhone || inv.customer_phone || '').toLowerCase();
-    const name = (inv.customerName || inv.customer_name || '').toLowerCase();
-    const matchesSearch = invNum.includes(q) || phone.includes(q) || name.includes(q);
-
-    const matchesStatus =
-      statusFilter === 'all' ||
-      (inv.whatsappStatus || inv.whatsapp_status || 'delivered').toLowerCase() === statusFilter.toLowerCase();
-
-    return matchesSearch && matchesStatus;
+  // Universal Data Table Hook with search, sorting, and pagination
+  const {
+    items: paginatedInvoices,
+    totalItems,
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    searchQuery,
+    setSearchQuery,
+    sortConfig,
+    handleSort
+  } = useDataTable(invoices, {
+    searchFields: ['invoiceNumber', 'customerPhone', 'customerName', 'shortId'],
+    defaultSortKey: 'createdAt',
+    defaultSortDir: 'desc',
+    defaultPageSize: 10,
+    customFilter: (inv) => {
+      if (statusFilter === 'all') return true;
+      const status = (inv.whatsappStatus || inv.whatsapp_status || 'delivered').toLowerCase();
+      return status === statusFilter.toLowerCase();
+    },
+    customSortAccessor: (inv, key) => {
+      if (key === 'billTotal') return Number(inv.billTotal || 0);
+      if (key === 'createdAt') return new Date(inv.createdAt || 0).getTime();
+      return inv[key];
+    }
   });
 
   return (
@@ -63,21 +79,20 @@ export default function InvoicesPage() {
         </div>
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative', width: '280px' }}>
-            <Search style={{ position: 'absolute', left: '12px', top: '10px', width: '15px', height: '15px', color: '#9ca3af' }} />
-            <input
-              type="text"
-              placeholder="Search bill #, phone, name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '0.825rem' }}
-            />
-          </div>
+          <TableSearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search bill #, phone, name..."
+            width="280px"
+          />
 
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '0.825rem', backgroundColor: '#ffffff' }}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '0.825rem', backgroundColor: '#ffffff', outline: 'none' }}
           >
             <option value="all">All WhatsApp Status</option>
             <option value="read">Read (✓✓ Blue)</option>
@@ -102,32 +117,47 @@ export default function InvoicesPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
             <thead>
               <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb', color: '#4b5563', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                <th style={{ padding: '12px 16px' }}>Invoice #</th>
-                <th style={{ padding: '12px 16px' }}>Date</th>
-                <th style={{ padding: '12px 16px' }}>Customer</th>
-                <th style={{ padding: '12px 16px' }}>Amount (₹)</th>
-                <th style={{ padding: '12px 16px' }}>WhatsApp Status</th>
-                <th style={{ padding: '12px 16px' }}>Google Review</th>
+                <SortableTh sortKey="invoiceNumber" currentSort={sortConfig} onSort={handleSort}>
+                  Invoice #
+                </SortableTh>
+                <SortableTh sortKey="createdAt" currentSort={sortConfig} onSort={handleSort}>
+                  Date
+                </SortableTh>
+                <SortableTh sortKey="customerName" currentSort={sortConfig} onSort={handleSort}>
+                  Customer
+                </SortableTh>
+                <SortableTh sortKey="billTotal" currentSort={sortConfig} onSort={handleSort}>
+                  Amount (₹)
+                </SortableTh>
+                <SortableTh sortKey="whatsappStatus" currentSort={sortConfig} onSort={handleSort}>
+                  WhatsApp Status
+                </SortableTh>
+                <SortableTh sortKey="viewCount" currentSort={sortConfig} onSort={handleSort}>
+                  Customer Views
+                </SortableTh>
+                <SortableTh sortKey="hasReviewed" currentSort={sortConfig} onSort={handleSort}>
+                  Google Review
+                </SortableTh>
                 <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading && invoices.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>
+                  <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>
                     <div style={{ display: 'inline-block', width: '24px', height: '24px', border: '3px solid #0284c7', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '8px' }} />
                     <p style={{ margin: 0, fontSize: '0.85rem' }}>Loading invoices...</p>
                   </td>
                 </tr>
-              ) : filteredInvoices.length === 0 ? (
+              ) : paginatedInvoices.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>
+                  <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>
                     <Receipt style={{ width: '32px', height: '32px', margin: '0 auto 8px', opacity: 0.4 }} />
                     <p style={{ margin: 0, fontSize: '0.85rem' }}>No invoices match your query.</p>
                   </td>
                 </tr>
               ) : (
-                filteredInvoices.map((inv) => {
+                paginatedInvoices.map((inv) => {
                   const invNum = inv.invoiceNumber || inv.invoice_number;
                   const shortId = inv.shortId || inv.short_id;
                   const billAmt = inv.billTotal || inv.bill_total || 0;
@@ -135,6 +165,7 @@ export default function InvoicesPage() {
                   const custName = inv.customerName || inv.customer_name || 'Valued Customer';
                   const custPhone = inv.customerPhone || inv.customer_phone || 'N/A';
                   const dateStr = inv.createdAt || inv.created_at;
+                  const viewCount = Number(inv.viewCount || 0);
 
                   return (
                     <tr key={inv.id || shortId} style={{ borderBottom: '1px solid #f3f4f6' }}>
@@ -169,6 +200,36 @@ export default function InvoicesPage() {
                           {(waStatus === 'read' || waStatus === 'delivered') && <CheckCircle style={{ width: '12px', height: '12px' }} />}
                           {waStatus}
                         </span>
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        {viewCount > 0 ? (
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '3px 8px',
+                            borderRadius: '9999px',
+                            fontSize: '0.725rem',
+                            fontWeight: '700',
+                            backgroundColor: '#ecfdf5',
+                            color: '#065f46',
+                            border: '1px solid #a7f3d0'
+                          }}>
+                            👁️ {viewCount} {viewCount === 1 ? 'view' : 'views'}
+                          </span>
+                        ) : (
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            padding: '2px 8px',
+                            borderRadius: '9999px',
+                            fontSize: '0.725rem',
+                            color: '#9ca3af',
+                            backgroundColor: '#f3f4f6'
+                          }}>
+                            Unopened
+                          </span>
+                        )}
                       </td>
                       <td style={{ padding: '12px 16px' }}>
                         {inv.hasReviewed ? (
@@ -212,6 +273,16 @@ export default function InvoicesPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Enterprise Table Pagination */}
+        <TablePagination
+          currentPage={currentPage}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          accentColor="#0284c7"
+        />
       </div>
     </div>
   );

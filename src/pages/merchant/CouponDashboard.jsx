@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Tag, Plus, Copy, CheckCircle, Calendar, Sparkles, X, RefreshCw } from 'lucide-react';
+import { Tag, Plus, Copy, CheckCircle, Calendar, Sparkles, X, RefreshCw, Search } from 'lucide-react';
 import { formatCurrency, formatDisplayDate, formatInputDate } from '../../utils/merchantUtils';
+import { SortableTh, TablePagination, TableSearchInput } from '../../components/DataTable';
+import { useDataTable } from '../../hooks/useDataTable';
 
 export default function CouponDashboard() {
   const { token, notifyToast } = useOutletContext();
@@ -48,6 +50,32 @@ export default function CouponDashboard() {
   useEffect(() => {
     fetchCoupons();
   }, [token]);
+
+  // Universal Data Table Hook with search, sorting & pagination
+  const {
+    items: paginatedCoupons,
+    totalItems,
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    searchQuery,
+    setSearchQuery,
+    sortConfig,
+    handleSort
+  } = useDataTable(coupons, {
+    searchFields: ['code', 'title', 'discount_type'],
+    defaultSortKey: 'id',
+    defaultSortDir: 'desc',
+    defaultPageSize: 10,
+    customSortAccessor: (c, key) => {
+      if (key === 'discount_value') return Number(c.discount_value || 0);
+      if (key === 'min_bill_amount') return Number(c.min_bill_amount || 0);
+      if (key === 'redeemed_count') return Number(c.redeemed_count || 0);
+      if (key === 'valid_until') return new Date(c.valid_until || 0).getTime();
+      return c[key];
+    }
+  });
 
   const handleCreateCoupon = async (e) => {
     e.preventDefault();
@@ -120,7 +148,14 @@ export default function CouponDashboard() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <TableSearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search code, title..."
+            width="240px"
+          />
+
           <button
             onClick={fetchCoupons}
             disabled={loading}
@@ -197,13 +232,13 @@ export default function CouponDashboard() {
           <thead>
             <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#4b5563', fontSize: '0.72rem', textTransform: 'uppercase' }}>
               <th style={{ padding: '12px 16px' }}>#</th>
-              <th style={{ padding: '12px 16px' }}>Promo Code</th>
-              <th style={{ padding: '12px 16px' }}>Campaign Title</th>
-              <th style={{ padding: '12px 16px' }}>Discount Value</th>
-              <th style={{ padding: '12px 16px' }}>Min Bill Amount</th>
-              <th style={{ padding: '12px 16px' }}>Quota Used</th>
-              <th style={{ padding: '12px 16px' }}>Valid Until</th>
-              <th style={{ padding: '12px 16px' }}>Status</th>
+              <SortableTh sortKey="code" currentSort={sortConfig} onSort={handleSort}>Promo Code</SortableTh>
+              <SortableTh sortKey="title" currentSort={sortConfig} onSort={handleSort}>Campaign Title</SortableTh>
+              <SortableTh sortKey="discount_value" currentSort={sortConfig} onSort={handleSort}>Discount Value</SortableTh>
+              <SortableTh sortKey="min_bill_amount" currentSort={sortConfig} onSort={handleSort}>Min Bill Amount</SortableTh>
+              <SortableTh sortKey="redeemed_count" currentSort={sortConfig} onSort={handleSort}>Quota Used</SortableTh>
+              <SortableTh sortKey="valid_until" currentSort={sortConfig} onSort={handleSort}>Valid Until</SortableTh>
+              <SortableTh sortKey="is_active" currentSort={sortConfig} onSort={handleSort}>Status</SortableTh>
               <th style={{ padding: '12px 16px', textAlign: 'right' }}>Action</th>
             </tr>
           </thead>
@@ -214,7 +249,7 @@ export default function CouponDashboard() {
                   Loading coupons from database...
                 </td>
               </tr>
-            ) : coupons.length === 0 ? (
+            ) : paginatedCoupons.length === 0 ? (
               <tr>
                 <td colSpan="9" style={{ padding: '3.5rem 1rem', textAlign: 'center' }}>
                   <div style={{ maxWidth: '400px', margin: '0 auto' }}>
@@ -222,22 +257,16 @@ export default function CouponDashboard() {
                       <Tag style={{ width: '24px', height: '24px' }} />
                     </div>
                     <h3 style={{ margin: '0 0 6px', fontSize: '1rem', fontWeight: '800', color: '#1e293b' }}>
-                      No Coupons Created Yet
+                      No Coupons Found
                     </h3>
                     <p style={{ margin: '0 0 1rem', fontSize: '0.8rem', color: '#64748b' }}>
-                      Create promotional codes to incentivize repeat purchases and reward top loyal shoppers.
+                      No promotional codes match your search query.
                     </p>
-                    <button
-                      onClick={() => setShowCreateModal(true)}
-                      style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', backgroundColor: '#0284c7', color: '#ffffff', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}
-                    >
-                      + Create First Coupon
-                    </button>
                   </div>
                 </td>
               </tr>
             ) : (
-              coupons.map((c, i) => (
+              paginatedCoupons.map((c, i) => (
                 <tr key={c.id || i} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '12px 16px', color: '#9ca3af' }}>{i + 1}</td>
                   <td style={{ padding: '12px 16px' }}>
@@ -300,6 +329,16 @@ export default function CouponDashboard() {
             )}
           </tbody>
         </table>
+
+        {/* Table Pagination */}
+        <TablePagination
+          currentPage={currentPage}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          accentColor="#0284c7"
+        />
       </div>
 
       {/* Create Modal */}

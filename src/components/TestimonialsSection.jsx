@@ -27,7 +27,7 @@ const TestimonialsSection = () => {
           Loved by <span className="gradient-text">Retail Leaders</span>
         </h2>
         <p className="text-xl text-muted max-w-2xl mx-auto" style={{ fontSize: '1.25rem', color: 'var(--text-muted)' }}>
-          Don't just take our word for it. See how RetailBill is transforming offline retail.
+          Don't just take our word for it. See how RetailNode is transforming offline retail.
         </p>
       </div>
 

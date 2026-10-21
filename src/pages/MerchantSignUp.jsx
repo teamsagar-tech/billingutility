@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Store, User, Mail, Smartphone, MapPin, Lock, ArrowRight, ShieldCheck, AlertCircle, Sparkles } from 'lucide-react';
+import RetailNodeLogo from '../components/RetailNodeLogo';
 
 export default function MerchantSignUp() {
   const [formData, setFormData] = useState({
@@ -116,17 +117,13 @@ export default function MerchantSignUp() {
     }}>
       <div style={{ width: '100%', maxWidth: '520px' }}>
         
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-          <img
-            src="/retailnode-logo.png"
-            alt="RetailNode"
-            style={{ height: '46px', width: 'auto', display: 'block', margin: '0 auto 12px' }}
-          />
-          <h1 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+        {/* Standard RetailNode Header */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1.75rem' }}>
+          <RetailNodeLogo size="lg" to="/login" badge="STORE SIGNUP" />
+          <h1 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#0f172a', margin: '14px 0 4px', letterSpacing: '-0.02em', textAlign: 'center' }}>
             Start Sending Digital Invoices
           </h1>
-          <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+          <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0, textAlign: 'center' }}>
             Create your retail store billing account in under 60 seconds
           </p>
         </div>
@@ -391,14 +388,14 @@ export default function MerchantSignUp() {
                     fontWeight: '700',
                     fontSize: '0.9rem',
                     color: '#ffffff',
-                    backgroundColor: '#0f766e',
+                    backgroundColor: '#2563eb',
                     border: 'none',
                     cursor: loading ? 'not-allowed' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(15, 118, 110, 0.25)',
+                    boxShadow: '0 4px 10px -1px rgba(37, 99, 235, 0.35)',
                     transition: 'all 0.15s'
                   }}
                 >
@@ -423,7 +420,7 @@ export default function MerchantSignUp() {
                 color: '#64748b'
               }}>
                 <span>Already have a merchant account? </span>
-                <Link to="/login" style={{ color: '#0f766e', fontWeight: '700', textDecoration: 'none' }}>
+                <Link to="/login" style={{ color: '#2563eb', fontWeight: '700', textDecoration: 'none' }}>
                   Sign In here
                 </Link>
               </div>
@@ -464,7 +461,7 @@ export default function MerchantSignUp() {
 
         {/* Footer */}
         <div style={{ marginTop: '1.75rem', textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8' }}>
-          RetailNode Digital Invoice &amp; Customer Billing SaaS &bull; ISO/IEC 27001 Certified
+          RetailNode Digital Billing &amp; Customer Messaging SaaS Platform
         </div>
       </div>
     </div>

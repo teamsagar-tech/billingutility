@@ -6,6 +6,7 @@ import {
   TrendingUp,
   Megaphone,
   Receipt,
+  Package,
   Users,
   UserCheck,
   Compass,
@@ -17,6 +18,7 @@ import {
   Image,
   Award,
   Smartphone,
+  Mail,
   Sliders,
   Download,
   LogOut,
@@ -30,6 +32,7 @@ import {
   Send,
   AlertTriangle
 } from 'lucide-react';
+import RetailNodeLogo from '../components/RetailNodeLogo';
 
 export default function MerchantLayout() {
   const navigate = useNavigate();
@@ -176,6 +179,7 @@ export default function MerchantLayout() {
         { to: '/dashboard/roi-explorer', label: 'ROI Explorer', icon: TrendingUp },
         { to: '/dashboard/campaigns', label: 'Campaigns Hub', icon: Megaphone, badge: 'Auto' },
         { to: '/dashboard/invoices', label: 'Invoices (POS)', icon: Receipt },
+        { to: '/dashboard/products', label: 'Products (SKU)', icon: Package, badge: 'eCom' },
         { to: '/dashboard/downloads', label: 'Download Center', icon: Download }
       ]
     },
@@ -195,14 +199,16 @@ export default function MerchantLayout() {
         { to: '/dashboard/loyalty', label: 'Loyalty Rules', icon: Award },
         { to: '/dashboard/coupons', label: 'Coupon Dashboard', icon: Tag },
         { to: '/dashboard/redeem', label: 'Redeem Cashier', icon: Gift },
-        { to: '/dashboard/feedback', label: 'Reviews & Feedback', icon: Star }
+        { to: '/dashboard/feedback', label: 'Customer Surveys & Reviews', icon: Star, badge: 'Live' }
       ]
     },
     {
       group: 'CHANNELS & CONFIG',
       items: [
+        { to: '/dashboard/whatsapp', label: 'WhatsApp Gateway & Logs', icon: Smartphone },
+        { to: '/dashboard/templates', label: 'WABA Templates & Builder', icon: FileText, badge: 'New' },
+        { to: '/dashboard/email', label: 'Email Gateway (Resend)', icon: Mail },
         { to: '/dashboard/greeting-cards', label: 'Greeting Cards', icon: Image },
-        { to: '/dashboard/whatsapp', label: 'WhatsApp Gateway', icon: Smartphone },
         { to: '/dashboard/settings', label: 'Store Branding & API', icon: Sliders }
       ]
     }
@@ -223,36 +229,51 @@ export default function MerchantLayout() {
         zIndex: 50,
         overflowY: 'auto'
       }}>
-        {/* Store Brand Header - ZERO hardcoded store name */}
+        {/* PLATFORM BRANDING: Official RetailNode Logo with Name */}
         <div style={{
-          padding: '1.25rem 1rem',
+          padding: '1.25rem 1rem 0.9rem',
           borderBottom: '1px solid #f1f5f9',
           display: 'flex',
           alignItems: 'center',
-          gap: '12px'
+          justifyContent: 'space-between'
+        }}>
+          <RetailNodeLogo size="sm" badge="BILLING" to="/dashboard" />
+        </div>
+
+        {/* STORE MERCHANT CONTEXT (ZERO internal Store # ID) */}
+        <div style={{
+          margin: '0.65rem 0.65rem 0.25rem',
+          padding: '0.65rem 0.75rem',
+          borderRadius: '12px',
+          backgroundColor: '#f8fafc',
+          border: '1px solid #e2e8f0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
         }}>
           {profile?.logo_url ? (
             <img
               src={profile.logo_url}
               alt=""
-              style={{ width: '42px', height: '42px', borderRadius: '10px', objectFit: 'contain', border: '1px solid #e2e8f0', backgroundColor: '#ffffff' }}
+              style={{ width: '38px', height: '38px', borderRadius: '8px', objectFit: 'contain', border: '1px solid #e2e8f0', backgroundColor: '#ffffff', flexShrink: 0 }}
             />
           ) : (
             <div style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '10px',
-              backgroundColor: '#0284c7',
+              width: '38px',
+              height: '38px',
+              borderRadius: '8px',
+              backgroundColor: '#2563eb',
               color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: '800',
-              fontSize: '1rem',
-              boxShadow: '0 4px 6px -1px rgba(2, 132, 199, 0.2)'
+              fontSize: '0.9rem',
+              boxShadow: '0 2px 4px rgba(37, 99, 235, 0.25)',
+              flexShrink: 0
             }}>
               {loading ? (
-                <span style={{ display: 'inline-block', width: '16px', height: '16px', border: '2px solid #ffffff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                <span style={{ display: 'inline-block', width: '14px', height: '14px', border: '2px solid #ffffff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
               ) : (
                 (profile?.store_name?.slice(0, 2)?.toUpperCase() || 'RN')
               )}
@@ -261,26 +282,29 @@ export default function MerchantLayout() {
 
           <div style={{ overflow: 'hidden', flex: 1 }}>
             {loading ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div style={{ height: '16px', width: '110px', backgroundColor: '#e2e8f0', borderRadius: '4px', animation: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
-                <div style={{ height: '12px', width: '70px', backgroundColor: '#f1f5f9', borderRadius: '4px' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ height: '14px', width: '90px', backgroundColor: '#e2e8f0', borderRadius: '4px', animation: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
+                <div style={{ height: '10px', width: '60px', backgroundColor: '#f1f5f9', borderRadius: '4px' }} />
               </div>
             ) : (
               <>
                 <h2 style={{
-                  fontSize: '0.9rem',
+                  fontSize: '0.85rem',
                   fontWeight: '800',
                   margin: 0,
-                  color: '#111827',
+                  color: '#0f172a',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
                 }}>
                   {profile?.store_name || 'Retail Store'}
                 </h2>
-                <span style={{ fontSize: '0.7rem', color: '#6b7280' }}>
-                  {profile?.id ? `Store #${profile.id}` : 'Store Account'} &bull; <span style={{ color: '#16a34a', fontWeight: '600' }}>Active</span>
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#16a34a' }} />
+                  <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: '700' }}>Active Store</span>
+                  <span style={{ color: '#cbd5e1' }}>•</span>
+                  <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600' }}>POS Synced</span>
+                </div>
               </>
             )}
           </div>
@@ -345,6 +369,11 @@ export default function MerchantLayout() {
             </div>
           ))}
         </nav>
+
+        {/* POWERED BY RETAILNODE BRANDING */}
+        <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <RetailNodeLogo size="sm" to="/dashboard" />
+        </div>
 
         {/* SIDEBAR FOOTER & LOGOUT */}
         <div style={{ padding: '1rem', borderTop: '1px solid #f1f5f9' }}>
@@ -510,7 +539,7 @@ export default function MerchantLayout() {
             <button
               onClick={() => setShowQuickBill(true)}
               style={{
-                backgroundColor: '#0284c7',
+                backgroundColor: '#2563eb',
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '8px',
@@ -521,8 +550,11 @@ export default function MerchantLayout() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                boxShadow: '0 2px 4px rgba(2, 132, 199, 0.2)'
+                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+                transition: 'background-color 0.15s ease'
               }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
             >
               <Plus style={{ width: '15px', height: '15px' }} />
               <span>Quick POS Bill</span>

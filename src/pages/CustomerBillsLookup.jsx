@@ -19,6 +19,7 @@ import {
   RefreshCw,
   FileText
 } from 'lucide-react';
+import RetailNodeLogo from '../components/RetailNodeLogo';
 
 export default function CustomerBillsLookup() {
   const [searchParams] = useSearchParams();
@@ -263,23 +264,12 @@ export default function CustomerBillsLookup() {
     }}>
       <div style={{ maxWidth: '640px', margin: '0 auto' }}>
         
-        {/* Top Branding */}
+        {/* Official RetailNode Standard Logo with Name */}
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-          <div style={{
-            width: '56px',
-            height: '56px',
-            borderRadius: '16px',
-            backgroundColor: '#ecfdf5',
-            border: '1px solid #a7f3d0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 12px',
-            boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.1)'
-          }}>
-            <Receipt style={{ width: '28px', height: '28px', color: '#059669' }} />
+          <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'center' }}>
+            <RetailNodeLogo size="lg" to="/my-bills" badge="SHOPPER" />
           </div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0f172a', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: '900', color: '#0f172a', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
             Shopper Digital Bills &amp; Rewards
           </h1>
           <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
@@ -387,7 +377,7 @@ export default function CustomerBillsLookup() {
                   width: '100%',
                   padding: '14px 20px',
                   borderRadius: '12px',
-                  backgroundColor: '#059669',
+                  backgroundColor: '#2563eb',
                   color: '#ffffff',
                   fontWeight: '700',
                   fontSize: '0.95rem',
@@ -397,9 +387,11 @@ export default function CustomerBillsLookup() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(5, 150, 105, 0.25)',
+                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)',
                   transition: 'background-color 0.15s ease'
                 }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
               >
                 {loading ? (
                   <span>Sending Verification Code...</span>
@@ -421,7 +413,7 @@ export default function CustomerBillsLookup() {
               fontSize: '0.78rem',
               color: '#64748b'
             }}>
-              <ShieldCheck style={{ width: '15px', height: '15px', color: '#059669' }} />
+              <ShieldCheck style={{ width: '15px', height: '15px', color: '#2563eb' }} />
               <span>We never ask for passwords or PINs. Only instant 1-time OTP.</span>
             </div>
           </div>
@@ -533,7 +525,7 @@ export default function CustomerBillsLookup() {
                   style={{
                     width: '240px',
                     padding: '14px 16px',
-                    border: '2px solid #059669',
+                    border: '2px solid #2563eb',
                     borderRadius: '14px',
                     fontSize: '1.8rem',
                     fontWeight: '800',
@@ -541,7 +533,7 @@ export default function CustomerBillsLookup() {
                     textAlign: 'center',
                     color: '#0f172a',
                     outline: 'none',
-                    backgroundColor: '#f0fdf4'
+                    backgroundColor: '#eff6ff'
                   }}
                 />
               </div>
@@ -553,7 +545,7 @@ export default function CustomerBillsLookup() {
                   width: '100%',
                   padding: '14px 20px',
                   borderRadius: '12px',
-                  backgroundColor: '#059669',
+                  backgroundColor: '#2563eb',
                   color: '#ffffff',
                   fontWeight: '700',
                   fontSize: '0.95rem',
@@ -563,8 +555,11 @@ export default function CustomerBillsLookup() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(5, 150, 105, 0.25)'
+                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)',
+                  transition: 'background-color 0.15s ease'
                 }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
               >
                 {loading ? (
                   <span>Verifying Code...</span>

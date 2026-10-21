@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, Link } from 'react-router-dom';
 import {
   Megaphone,
   Smartphone,
@@ -697,19 +697,52 @@ export default function CampaignsHub() {
                 {/* Template Selector (if WhatsApp) */}
                 {campaignForm.channel === 'whatsapp' && (
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#374151', textTransform: 'uppercase', marginBottom: '6px' }}>
-                      Approved WABA Template
-                    </label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#374151', textTransform: 'uppercase' }}>
+                        Approved WABA Template ({templates.length})
+                      </label>
+                      <Link
+                        to="/dashboard/templates"
+                        style={{ fontSize: '0.72rem', color: '#2563eb', fontWeight: '700', textDecoration: 'none' }}
+                      >
+                        + Create / Manage Templates
+                      </Link>
+                    </div>
                     <select
                       value={campaignForm.templateName}
-                      onChange={(e) => setCampaignForm({ ...campaignForm, templateName: e.target.value })}
+                      onChange={(e) => {
+                        const sel = templates.find(t => t.name === e.target.value);
+                        setCampaignForm({
+                          ...campaignForm,
+                          templateName: e.target.value,
+                          messageText: sel?.bodyText || campaignForm.messageText
+                        });
+                      }}
                       style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
                     >
-                      {templates.map(t => (
-                        <option key={t.name} value={t.name}>
-                          {t.name} — {t.displayName || t.category}
-                        </option>
-                      ))}
+                      <optgroup label="⭐ Marketing & Promotional Templates">
+                        {templates.filter(t => t.category === 'MARKETING').map(t => (
+                          <option key={t.name} value={t.name}>
+                            {t.name} ({t.language}) — {t.displayName || 'Marketing'}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="⚡ Utility & Billing Templates">
+                        {templates.filter(t => t.category === 'UTILITY').map(t => (
+                          <option key={t.name} value={t.name}>
+                            {t.name} ({t.language}) — {t.displayName || 'Utility'}
+                          </option>
+                        ))}
+                      </optgroup>
+                      {templates.some(t => t.category === 'AUTHENTICATION') && (
+                        <optgroup label="🔒 Authentication Templates">
+                          {templates.filter(t => t.category === 'AUTHENTICATION').map(t => (
+                            <option key={t.name} value={t.name}>
+                              {t.name} ({t.language})
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
                     </select>
                   </div>
                 )}
@@ -752,7 +785,7 @@ export default function CampaignsHub() {
                     width: '100%',
                     padding: '12px 16px',
                     borderRadius: '8px',
-                    backgroundColor: '#0f766e',
+                    backgroundColor: '#2563eb',
                     color: '#ffffff',
                     fontWeight: '700',
                     fontSize: '0.9rem',
@@ -762,7 +795,7 @@ export default function CampaignsHub() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(15, 118, 110, 0.25)'
+                    boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.25)'
                   }}
                 >
                   {dispatching ? (

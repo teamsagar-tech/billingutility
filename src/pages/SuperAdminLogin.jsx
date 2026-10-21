@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ShieldCheck, ArrowRight, Lock, Mail, AlertTriangle, KeyRound } from 'lucide-react';
+import RetailNodeLogo from '../components/RetailNodeLogo';
 
 export default function SuperAdminLogin() {
   const [email, setEmail] = useState('');
@@ -69,25 +70,13 @@ export default function SuperAdminLogin() {
       color: '#f8fafc'
     }}>
       <div style={{ width: '100%', maxWidth: '420px' }}>
-        {/* Security Badge Header */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{
-            width: '54px',
-            height: '54px',
-            borderRadius: '14px',
-            backgroundColor: '#1e1b4b',
-            border: '1px solid #3730a3',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 14px'
-          }}>
-            <ShieldCheck style={{ width: '28px', height: '28px', color: '#818cf8' }} />
-          </div>
-          <h1 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#ffffff', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+        {/* Standard RetailNode Operator Header */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem' }}>
+          <RetailNodeLogo theme="dark" size="lg" to="/login" badge="OPERATOR" />
+          <h1 style={{ fontSize: '1.35rem', fontWeight: '800', color: '#ffffff', margin: '14px 0 4px', letterSpacing: '-0.02em', textAlign: 'center' }}>
             Platform Operator Terminal
           </h1>
-          <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: 0 }}>
+          <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: 0, textAlign: 'center' }}>
             Restricted SaaS Command &amp; Multi-Tenant Control
           </p>
         </div>
@@ -197,14 +186,14 @@ export default function SuperAdminLogin() {
                 fontWeight: '700',
                 fontSize: '0.875rem',
                 color: '#ffffff',
-                backgroundColor: '#4f46e5',
+                backgroundColor: '#2563eb',
                 border: 'none',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                boxShadow: '0 4px 14px 0 rgba(79, 70, 229, 0.4)',
+                boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.45)',
                 transition: 'all 0.15s'
               }}
             >

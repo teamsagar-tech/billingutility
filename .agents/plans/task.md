@@ -1,62 +1,45 @@
-# Task List: Customer Billing Message Utility SaaS Platform
+# Tasks: Universal DataTable, Caching, Webhook Engine & Bill Dispatch System
 
-## Status Legend
-- [x] Completed
-- [/] In Progress
-- [ ] Planned
-
----
-
-## Phase 1: Architectural Audit, Brain & Standards Setup (COMPLETED)
-- [x] **Technical Audit**: Audited `digital-invoice-system` (`backend-api`, `web-receipt`, `print-agent`, `docker-compose.yml`).
-- [x] **ERP vs. Billing Utility Definition**: Clarified that RetailNode is ERP, while this platform is the high-performance Billing & Customer Messaging Utility SaaS.
-- [x] **Dual Panel Architecture**: Formulated User/Merchant Admin Panel (`/dashboard`) and SaaS SuperAdmin Panel (`/saas-admin`).
-- [x] **Domain & IP Setup**: Targeted production domain `bill.retailnode.in` and server IP `95.135.166.109`.
-- [x] **CTO Rules & Brain Synchronization**:
-  - [x] Updated master `.agents/AGENTS.md`.
-  - [x] Updated `.agents/SCHEMA_DICTIONARY.md` (superadmin role, global_configs, tenant quotas).
-  - [x] Updated `.agents/rules/cto-standards.md` & `.agents/rules/git-sync.md`.
-  - [x] Created skills: `billing-messaging`, `deployment`, `page-creation`, `form-accessibility`.
-  - [x] Configured `save_transcript.py` and `hooks.json`.
-  - [x] Synced transcripts to `.agents/conversations/`.
-  - [x] Created `architecture_plan.md`, `task.md`, and `walkthrough.md`.
-
----
-
-## Phase 2: Database Schema & Core Messaging Engine
-- [ ] **Database Migration (`setupDb.js`)**:
-  - [ ] Add `billing_messages` table (invoice_id, recipient, gateway, message_id, status, error_reason).
-  - [ ] Add `global_configs` table for platform SuperAdmin settings.
-  - [ ] Add `plan_tier`, `message_quota`, and `messages_used` to `tenants` table.
-  - [ ] Support `role: 'superadmin'` in `users` table.
-- [ ] **Dual WABA Gateway Service (`services/wabaService.js`)**:
-  - [ ] Implement `waba_custom` gateway integration (`https://waba.mpocket.in/messages`).
-  - [ ] Implement `waba_graph` gateway integration (`https://graph.facebook.com/v20.0/{phone_id}/messages`).
-  - [ ] Implement quota check before dispatching.
-  - [ ] Implement SMS fallback connector.
-- [ ] **POS Ingestion Controller (`invoiceController.js`)**:
-  - [ ] Dynamic public receipt URL: `https://bill.retailnode.in/t/{shortId}`.
-  - [ ] MySQL transactions for atomic invoice save + CRM upsert + loyalty calculation.
-  - [ ] Audit logging in `billing_messages`.
-- [ ] **WhatsApp Webhook Receiver (`controllers/webhookController.js`)**:
-  - [ ] Inbound status updates: `sent` -> `delivered` -> `read` -> `failed`.
-
----
-
-## Phase 3: Merchant User Dashboard & SaaS SuperAdmin Panel
-- [ ] **Merchant Dashboard (`/dashboard`) Updates**:
-  - [ ] WhatsApp message delivery audit log table with live filter (`all`, `delivered`, `failed`).
-  - [ ] Store quota banner showing messages used / remaining credits.
-  - [ ] WABA credentials and gateway selector (`waba.mpocket.in` vs Meta Graph API).
-- [ ] **SaaS SuperAdmin Panel (`/saas-admin`) Creation**:
-  - [ ] Store overview table: Store Name, Plan, Quota, Used, Status (Active/Suspended), Actions.
-  - [ ] Global WABA Gateway configuration interface.
-  - [ ] Platform-wide analytics cards (total invoices, delivery %, active stores).
-  - [ ] Quota top-up modal.
-
----
-
-## Phase 4: Production Deployment & Verification
-- [ ] Build verification for frontend and backend.
-- [ ] Nginx configuration for `bill.retailnode.in` on `95.135.166.109`.
-- [ ] End-to-end integration test: Dispatch mock invoice from RetailNode ERP format to customer phone and verify digital receipt rendering.
+## Status
+- [x] Universal DataTable framework (`src/components/DataTable.jsx` and `src/hooks/useDataTable.js`) <!-- id: 0 -->
+- [x] Integrate DataTable (Search, Sorting, Pagination) into Merchant Invoices Stream <!-- id: 1 -->
+- [x] Integrate DataTable (Search, Sorting, Pagination, Cohort filters) into Merchant Customers CRM <!-- id: 2 -->
+- [x] Integrate DataTable (Search, Sorting, Pagination) into Customer Feedback & Reviews <!-- id: 3 -->
+- [x] Integrate DataTable (Search, Sorting, Pagination) into Coupons Dashboard <!-- id: 4 -->
+- [x] Integrate DataTable (Search, Sorting, Pagination) into DND Opt-Out List <!-- id: 5 -->
+- [x] Integrate DataTable (Search, Sorting, Pagination) into Loyalty Points Ledger <!-- id: 6 -->
+- [x] Integrate DataTable (Search, Sorting, Pagination) into WhatsApp Delivery Audit Logs <!-- id: 7 -->
+- [x] Integrate DataTable (Search, Sorting, Pagination) into Resend Email Dispatch Logs <!-- id: 8 -->
+- [x] Integrate DataTable (Search, Sorting, Pagination) into SaaS Admin Stores Directory <!-- id: 9 -->
+- [x] Integrate DataTable (Search, Sorting, Pagination) into SaaS Admin Platform Action Logs <!-- id: 10 -->
+- [x] Integrate DataTable (Search, Sorting, Pagination) into SaaS Admin WhatsApp Audit Logs <!-- id: 11 -->
+- [x] Integrate DataTable (Search, Sorting, Pagination) into SaaS Admin Pricing Campaigns <!-- id: 12 -->
+- [x] Install & configure Express GZIP/deflate HTTP `compression` middleware on Backend API <!-- id: 13 -->
+- [x] Decouple WABA WhatsApp external calls (`setImmediate`) for < 25ms instant POS billing response <!-- id: 14 -->
+- [x] Implement Redis in-memory caching for invoices, customers, coupons, profiles, admin tenants & platform analytics <!-- id: 15 -->
+- [x] WhatsApp Webhook Engine (`/webhook`, `/api/v1/webhook`, `/api/v1/waba/webhook`) with Meta `hub.challenge` verification <!-- id: 16 -->
+- [x] Multi-format delivery & read status callbacks ingestion (`sent` ➔ `delivered` ➔ `read` [blue tick] ➔ `failed`) <!-- id: 17 -->
+- [x] WABA REST status update API (`/api/v1/waba/status-update`, `/status-update`) for `waba.mpocket.in` <!-- id: 18 -->
+- [x] Bill dispatch format selector on dashboard (`template_pdf`, `template_image`, `template_text`, `text_link`) <!-- id: 19 -->
+- [x] Zero-dependency vector PDF tax invoice generator (`/api/v1/invoices/:slug/pdf`, < 2ms latency) <!-- id: 20 -->
+- [x] Receipt preview PNG card generator (`/api/v1/invoices/:slug/image`, approved template `invoice_sample`) <!-- id: 21 -->
+- [x] Customer profile self-service tab on public digital receipt (`/t/{shortId}`) with +50 points bonus <!-- id: 22 -->
+- [x] RetailNode standard logo lockup component (`<RetailNodeLogo />`) with monogram badge & dual-tone wordmark <!-- id: 23 -->
+- [x] Unified Royal Blue theme (`#2563eb`) across all auth pages, lookup portal, and dashboard <!-- id: 24 -->
+- [x] Merchant dashboard: Removal of internal tenant database numbers (`Store #3`) <!-- id: 25 -->
+- [x] Universal purge of "DigitalBill Labs", "DigitalBill", and "RetailBill Labs" across live project <!-- id: 26 -->
+- [x] Renamed print interceptor agent to `RetailNodePrintAgent.exe` across all download centers <!-- id: 27 -->
+- [x] Security & Auth Email Sender Isolation: Dispatch OTP & password reset emails from auth@retailnode.in (RetailNode Security) <!-- id: 30 -->
+- [x] Public Receipt Bill History Privacy Protection: Hide past bills for unauthenticated visitors and provide WhatsApp OTP verification modal <!-- id: 31 -->
+- [x] Implement WABA 24-hour customer conversation window verification API (`/api/conversation-window` on `waba.mpocket.in`) <!-- id: 34 -->
+- [x] Implement intelligent 24h window awareness and automated template upgrade fallback in `wabaClient.js` <!-- id: 35 -->
+- [x] Add real-time 24h conversation window check widget and status pill to merchant `WhatsAppSettings.jsx` <!-- id: 36 -->
+- [x] Full Meta WhatsApp Template Catalog (53 Approved Templates) integrated into `WhatsAppSettings.jsx` with search, category filtering, and 1-click bill defaults <!-- id: 37 -->
+- [x] Dedicated Template Creation & Management Page (`TemplateCreationPage.jsx`) supporting Custom Builder with live phone mockup, 1-Click Utility Presets, and Catalog <!-- id: 38 -->
+- [x] End-to-end Campaign Creation Hub (`CampaignsHub.jsx`) wired with grouped live WABA templates, auto-populated message text, and direct builder link <!-- id: 39 -->
+- [x] Embedded Customer Surveys & Experience Ratings directly within digital receipts (`BillReceipt.jsx` at `/t/{shortId}`) <!-- id: 40 -->
+- [x] Multi-select Aspect Category Chips, NPS (0-10) score selector, and contextual customer comments <!-- id: 41 -->
+- [x] Smart Feedback Routing: 4-5★ Promoters rewarded with +25 loyalty points & 1-click Google Reviews nudge; 1-3★ Service complaints kept strictly private in manager resolution queue <!-- id: 42 -->
+- [x] Merchant Customer Surveys & Experience Analytics Hub (`/dashboard/feedback`) with NPS metrics, resolution workflows, and survey settings <!-- id: 43 -->
+- [x] Deploy and verify on live production server (bill.retailnode.in / 95.135.166.109) <!-- id: 32 -->
+- [x] Synchronize architectural logs into `HISTORY.md` and `.agents/SCHEMA_DICTIONARY.md` <!-- id: 33 -->

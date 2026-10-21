@@ -271,6 +271,26 @@ export default function CustomerSegmentation() {
           <span>👥</span>
           <span>All Customers ({customers.length})</span>
         </Link>
+
+        <Link
+          to="/dashboard/segmentation/sku"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '7px 16px',
+            borderRadius: '8px',
+            border: '1px solid #e2e8f0',
+            backgroundColor: '#ffffff',
+            color: '#334155',
+            fontWeight: '700',
+            fontSize: '0.8rem',
+            textDecoration: 'none'
+          }}
+        >
+          <span>📦</span>
+          <span>SKU Segmentation / Products</span>
+        </Link>
       </div>
 
       {/* Summary KPI Cards */}

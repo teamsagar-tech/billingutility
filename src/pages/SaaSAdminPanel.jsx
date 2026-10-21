@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { 
   ShieldCheck, 
   Store, 
@@ -25,17 +25,72 @@ import {
   Tag,
   Trash2,
   Sparkles,
-  Clock
+  Clock,
+  Mail,
+  MessageSquare,
+  Send,
+  ExternalLink
 } from 'lucide-react';
+import { SortableTh, TablePagination, TableSearchInput } from '../components/DataTable';
+import { useDataTable } from '../hooks/useDataTable';
+import RetailNodeLogo from '../components/RetailNodeLogo';
 
-export default function SaaSAdminPanel() {
+export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('stores');
+  const { tab: routeTab } = useParams();
+
+  const TAB_MAP = {
+    'stores': 'stores',
+    'tenants': 'stores',
+    'pricing': 'pricing',
+    'campaigns': 'pricing',
+    'whatsapp-logs': 'whatsapp_logs',
+    'whatsapp': 'whatsapp_logs',
+    'whatsapp_logs': 'whatsapp_logs',
+    'logs': 'logs',
+    'action-logs': 'logs',
+    'gateways': 'gateways'
+  };
+
+  const activeTab = (routeTab && TAB_MAP[routeTab]) ? TAB_MAP[routeTab] : (defaultTab || 'stores');
+
+  const handleTabChange = (tabId) => {
+    const routeMap = {
+      'stores': '/saas-admin/stores',
+      'pricing': '/saas-admin/pricing',
+      'whatsapp_logs': '/saas-admin/whatsapp-logs',
+      'logs': '/saas-admin/logs',
+      'gateways': '/saas-admin/gateways'
+    };
+    navigate(routeMap[tabId] || `/saas-admin/${tabId}`);
+  };
+
   const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState(null);
   const [tenants, setTenants] = useState([]);
   const [actionLogs, setActionLogs] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [pageViewLogs, setPageViewLogs] = useState([]);
+  const [invoiceViewLogs, setInvoiceViewLogs] = useState([]);
+  const [logsSubTab, setLogsSubTab] = useState('auth'); // 'auth' | 'page_views' | 'invoice_views' | 'actions'
   const [gateways, setGateways] = useState({});
+  const [adminWhatsAppLogs, setAdminWhatsAppLogs] = useState([]);
+  const [emailGateway, setEmailGateway] = useState({
+    is_configured: false,
+    resend_api_key: '',
+    resend_from_email: 'billing@retailnode.in',
+    resend_from_name: 'RetailNode Invoices',
+    stats: { total_emails: 0, sent_count: 0, failed_count: 0 }
+  });
+  const [razorpayGateway, setRazorpayGateway] = useState({
+    is_configured: false,
+    key_id: '',
+    key_secret: '',
+    key_secret_masked: ''
+  });
+  const [savingRazorpay, setSavingRazorpay] = useState(false);
+  const [testEmailAddress, setTestEmailAddress] = useState('');
+  const [testEmailSending, setTestEmailSending] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
   // Modals
@@ -113,12 +168,36 @@ export default function SaaSAdminPanel() {
         setTenants(tenData.data || []);
       }
 
-      // 3. Action Logs
+      // 3. Action Logs & Security Audit Streams
       const logsRes = await fetch('/api/v1/admin/action-logs', { headers });
       const logsData = await logsRes.json();
       if (logsData.success) {
         setActionLogs(logsData.data || []);
       }
+
+      try {
+        const auditRes = await fetch('/api/v1/telemetry/audit-logs?limit=200', { headers });
+        const auditData = await auditRes.json();
+        if (auditData.success) {
+          setAuditLogs(auditData.data || []);
+        }
+      } catch (e) {}
+
+      try {
+        const pvRes = await fetch('/api/v1/telemetry/page-views?limit=200', { headers });
+        const pvData = await pvRes.json();
+        if (pvData.success) {
+          setPageViewLogs(pvData.data || []);
+        }
+      } catch (e) {}
+
+      try {
+        const ivRes = await fetch('/api/v1/telemetry/invoice-views?limit=200', { headers });
+        const ivData = await ivRes.json();
+        if (ivData.success) {
+          setInvoiceViewLogs(ivData.data || []);
+        }
+      } catch (e) {}
 
       // 4. Global Gateways
       const gwRes = await fetch('/api/v1/admin/gateways', { headers });
@@ -133,6 +212,38 @@ export default function SaaSAdminPanel() {
       if (campData.success) {
         setCampaigns(campData.data || []);
       }
+
+      // 6. WhatsApp Message Logs
+      try {
+        const waRes = await fetch('/api/v1/admin/whatsapp-logs', { headers });
+        const waData = await waRes.json();
+        if (waData.success) {
+          setAdminWhatsAppLogs(waData.data || []);
+        }
+      } catch (e) {}
+
+      // 7. Global Resend Email Gateway
+      try {
+        const emailRes = await fetch('/api/v1/admin/email-gateway', { headers });
+        const emailData = await emailRes.json();
+        if (emailData.success && emailData.data) {
+          setEmailGateway(emailData.data);
+        }
+      } catch (e) {}
+
+      // 8. Global Razorpay Payment Gateway
+      try {
+        const rpRes = await fetch('/api/v1/admin/payments/gateway', { headers });
+        const rpData = await rpRes.json();
+        if (rpData.success && rpData.data) {
+          setRazorpayGateway({
+            is_configured: rpData.data.is_configured,
+            key_id: rpData.data.key_id || '',
+            key_secret: '',
+            key_secret_masked: rpData.data.key_secret_masked || ''
+          });
+        }
+      } catch (e) {}
     } catch (err) {
       console.error('Failed to load SaaS admin data:', err);
     } finally {
@@ -279,6 +390,103 @@ export default function SaaSAdminPanel() {
     }
   };
 
+  const handleSaveEmailGateway = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/v1/admin/email-gateway', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          resend_api_key: emailGateway.resend_api_key,
+          resend_from_email: emailGateway.resend_from_email,
+          resend_from_name: emailGateway.resend_from_name
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToastMessage('Global Resend Email settings saved successfully!');
+        setTimeout(() => setToastMessage(''), 4000);
+        loadPlatformData();
+      } else {
+        alert(data.error || 'Failed to save email gateway settings');
+      }
+    } catch (err) {
+      alert('Error updating email gateway: ' + err.message);
+    }
+  };
+
+  const handleTestEmailGateway = async (e) => {
+    e.preventDefault();
+    if (!testEmailAddress) return;
+    setTestEmailSending(true);
+    try {
+      const res = await fetch('/api/v1/admin/email-gateway/test', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          test_email: testEmailAddress,
+          api_key: emailGateway.resend_api_key?.includes('••••') ? undefined : emailGateway.resend_api_key,
+          from_email: emailGateway.resend_from_email,
+          from_name: emailGateway.resend_from_name
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToastMessage(`Test email successfully sent to ${testEmailAddress} via Resend!`);
+        setTimeout(() => setToastMessage(''), 5000);
+        setTestEmailAddress('');
+        loadPlatformData();
+      } else {
+        alert(data.error || 'Test email failed. Please verify Resend API key.');
+      }
+    } catch (err) {
+      alert('Network error testing email gateway: ' + err.message);
+    } finally {
+      setTestEmailSending(false);
+    }
+  };
+
+  const handleSaveRazorpayGateway = async (e) => {
+    e.preventDefault();
+    setSavingRazorpay(true);
+    try {
+      const res = await fetch('/api/v1/admin/payments/gateway', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          key_id: razorpayGateway.key_id,
+          key_secret: razorpayGateway.key_secret || undefined
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToastMessage('Razorpay Gateway credentials saved successfully!');
+        setTimeout(() => setToastMessage(''), 4000);
+        setRazorpayGateway(prev => ({
+          ...prev,
+          is_configured: Boolean(prev.key_id),
+          key_secret: '',
+          key_secret_masked: '••••••••'
+        }));
+      } else {
+        alert(data.error || 'Failed to save Razorpay settings');
+      }
+    } catch (err) {
+      alert('Error updating Razorpay gateway: ' + err.message);
+    } finally {
+      setSavingRazorpay(false);
+    }
+  };
+
   const handleSaveCampaign = async (e) => {
     e.preventDefault();
     try {
@@ -355,14 +563,96 @@ export default function SaaSAdminPanel() {
     navigate('/login');
   };
 
-  const filteredTenants = tenants.filter(t => {
-    const q = searchQuery.toLowerCase();
-    return (
-      t.store_name.toLowerCase().includes(q) ||
-      (t.store_phone && t.store_phone.includes(q)) ||
-      (t.store_email && t.store_email.toLowerCase().includes(q)) ||
-      String(t.id).includes(q)
-    );
+  // 1. Tenants DataTable Hook
+  const tenantsTable = useDataTable(tenants, {
+    searchFields: ['store_name', 'store_phone', 'store_email', 'id', 'api_token'],
+    defaultSortKey: 'id',
+    defaultSortDir: 'desc',
+    defaultPageSize: 10,
+    customSortAccessor: (t, key) => {
+      if (key === 'id') return Number(t.id || 0);
+      if (key === 'total_invoices') return Number(t.total_invoices || 0);
+      if (key === 'messages_used') return Number(t.messages_used || 0);
+      if (key === 'message_quota') return Number(t.message_quota || 0);
+      if (key === 'plan_valid_until') return new Date(t.plan_valid_until || 0).getTime();
+      return t[key];
+    }
+  });
+
+  // 2. Action Logs DataTable Hook
+  const actionLogsTable = useDataTable(actionLogs, {
+    searchFields: ['store_name', 'short_id', 'action_type', 'customer_phone'],
+    defaultSortKey: 'created_at',
+    defaultSortDir: 'desc',
+    defaultPageSize: 10,
+    customSortAccessor: (l, key) => {
+      if (key === 'created_at') return new Date(l.created_at || 0).getTime();
+      return l[key];
+    }
+  });
+
+  // Security & Auth Audit Logs DataTable Hook
+  const auditLogsTable = useDataTable(auditLogs, {
+    searchFields: ['store_name', 'actor_email', 'actor_phone', 'event_name', 'ip_address', 'failure_reason'],
+    defaultSortKey: 'created_at',
+    defaultSortDir: 'desc',
+    defaultPageSize: 10,
+    customSortAccessor: (l, key) => {
+      if (key === 'created_at') return new Date(l.created_at || 0).getTime();
+      return l[key];
+    }
+  });
+
+  // Panel Page Views DataTable Hook
+  const pageViewsTable = useDataTable(pageViewLogs, {
+    searchFields: ['path', 'page_title', 'store_name', 'user_email', 'ip_address', 'panel_type'],
+    defaultSortKey: 'created_at',
+    defaultSortDir: 'desc',
+    defaultPageSize: 10,
+    customSortAccessor: (l, key) => {
+      if (key === 'created_at') return new Date(l.created_at || 0).getTime();
+      if (key === 'duration_seconds') return Number(l.duration_seconds || 0);
+      return l[key];
+    }
+  });
+
+  // Customer Invoice Views DataTable Hook
+  const invoiceViewsTable = useDataTable(invoiceViewLogs, {
+    searchFields: ['short_id', 'customer_phone', 'store_name', 'ip_address', 'device_type'],
+    defaultSortKey: 'created_at',
+    defaultSortDir: 'desc',
+    defaultPageSize: 10,
+    customSortAccessor: (l, key) => {
+      if (key === 'created_at') return new Date(l.created_at || 0).getTime();
+      if (key === 'view_number') return Number(l.view_number || 0);
+      return l[key];
+    }
+  });
+
+  // 3. Admin WhatsApp Logs DataTable Hook
+  const adminWhatsAppTable = useDataTable(adminWhatsAppLogs, {
+    searchFields: ['store_name', 'customer_phone', 'short_id', 'status', 'message_id'],
+    defaultSortKey: 'sent_at',
+    defaultSortDir: 'desc',
+    defaultPageSize: 10,
+    customSortAccessor: (l, key) => {
+      if (key === 'sent_at') return new Date(l.sent_at || 0).getTime();
+      return l[key];
+    }
+  });
+
+  // 4. Pricing Campaigns DataTable Hook
+  const campaignsTable = useDataTable(campaigns, {
+    searchFields: ['campaign_name', 'badge_text'],
+    defaultSortKey: 'id',
+    defaultSortDir: 'desc',
+    defaultPageSize: 10,
+    customSortAccessor: (c, key) => {
+      if (key === 'campaign_price') return Number(c.campaign_price || 0);
+      if (key === 'regular_price') return Number(c.regular_price || 0);
+      if (key === 'trial_days') return Number(c.trial_days || 0);
+      return c[key];
+    }
   });
 
   return (
@@ -381,20 +671,15 @@ export default function SaaSAdminPanel() {
         boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', boxShadow: '0 2px 4px rgba(79, 70, 229, 0.2)' }}>
-            <ShieldCheck style={{ width: '22px', height: '22px' }} />
+          <div style={{ position: 'relative' }}>
+            <RetailNodeLogo size="md" to="/saas-admin" badge="SUPERADMIN" />
           </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '1.125rem', fontWeight: '800', margin: 0, color: '#0f172a', letterSpacing: '-0.01em' }}>
-                RetailNode SaaS Command Center
-              </h1>
-              <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '9999px', backgroundColor: '#e0e7ff', color: '#4338ca', fontWeight: '800' }}>
-                SUPERADMIN
-              </span>
+          <div style={{ borderLeft: '1px solid #e2e8f0', paddingLeft: '12px' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: '800', margin: 0, color: '#0f172a' }}>
+              SaaS Command Center
             </div>
-            <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>
-              Cluster: 95.135.166.109 &bull; Billing Utility Microservice &bull; Engine: MySQL 8.0 + Redis
+            <p style={{ fontSize: '0.72rem', color: '#64748b', margin: 0 }}>
+              Cluster: 95.135.166.109 &bull; MySQL 8.0 + Redis &bull; 99.8% Open Rate
             </p>
           </div>
         </div>
@@ -516,15 +801,16 @@ export default function SaaSAdminPanel() {
           {[
             { id: 'stores', label: 'Tenants Directory', icon: Store, count: tenants.length },
             { id: 'pricing', label: 'Pricing Campaigns & Offers', icon: Tag, count: campaigns.length },
+            { id: 'whatsapp_logs', label: 'WhatsApp Message Logs', icon: MessageSquare, count: adminWhatsAppLogs.length },
             { id: 'logs', label: 'Live Action Logs', icon: Activity, count: actionLogs.length },
-            { id: 'gateways', label: 'Global WABA Gateway Config', icon: Settings }
+            { id: 'gateways', label: 'Global Gateways (WABA, Resend & Razorpay)', icon: Settings }
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -565,21 +851,17 @@ export default function SaaSAdminPanel() {
             {/* TAB 1: STORES DIRECTORY */}
             {activeTab === 'stores' && (
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                  <div style={{ position: 'relative', width: '360px' }}>
-                    <Search style={{ position: 'absolute', left: '12px', top: '10px', width: '16px', height: '16px', color: '#94a3b8' }} />
-                    <input
-                      type="text"
-                      placeholder="Filter stores by name, email, phone, ID..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
-                    />
-                  </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '10px' }}>
+                  <TableSearchInput
+                    value={tenantsTable.searchQuery}
+                    onChange={tenantsTable.setSearchQuery}
+                    placeholder="Filter stores by name, email, phone, ID..."
+                    width="360px"
+                  />
 
                   <button
                     onClick={loadPlatformData}
-                    style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: '600' }}
+                    style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: '600' }}
                   >
                     <RefreshCw style={{ width: '14px', height: '14px' }} />
                     <span>Sync Directory</span>
@@ -590,18 +872,25 @@ export default function SaaSAdminPanel() {
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        <th style={{ padding: '12px 16px' }}>Store ID &amp; Name</th>
-                        <th style={{ padding: '12px 16px' }}>Plan &amp; Validity</th>
-                        <th style={{ padding: '12px 16px' }}>Contact</th>
-                        <th style={{ padding: '12px 16px' }}>API Token</th>
-                        <th style={{ padding: '12px 16px' }}>Invoices</th>
-                        <th style={{ padding: '12px 16px' }}>WhatsApp Quota</th>
-                        <th style={{ padding: '12px 16px' }}>Status</th>
+                        <SortableTh sortKey="store_name" currentSort={tenantsTable.sortConfig} onSort={tenantsTable.handleSort}>Store ID &amp; Name</SortableTh>
+                        <SortableTh sortKey="plan_valid_until" currentSort={tenantsTable.sortConfig} onSort={tenantsTable.handleSort}>Plan &amp; Validity</SortableTh>
+                        <SortableTh sortKey="store_phone" currentSort={tenantsTable.sortConfig} onSort={tenantsTable.handleSort}>Contact</SortableTh>
+                        <SortableTh sortKey="api_token" currentSort={tenantsTable.sortConfig} onSort={tenantsTable.handleSort}>API Token</SortableTh>
+                        <SortableTh sortKey="total_invoices" currentSort={tenantsTable.sortConfig} onSort={tenantsTable.handleSort}>Invoices</SortableTh>
+                        <SortableTh sortKey="messages_used" currentSort={tenantsTable.sortConfig} onSort={tenantsTable.handleSort}>WhatsApp Quota</SortableTh>
+                        <SortableTh sortKey="is_active" currentSort={tenantsTable.sortConfig} onSort={tenantsTable.handleSort}>Status</SortableTh>
                         <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredTenants.map(t => (
+                      {tenantsTable.items.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+                            {tenantsTable.searchQuery ? 'No stores match your search.' : 'No stores enrolled yet.'}
+                          </td>
+                        </tr>
+                      ) : (
+                        tenantsTable.items.map(t => (
                         <tr key={t.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.15s' }}>
                           <td style={{ padding: '12px 16px' }}>
                             <div style={{ fontWeight: '700', color: '#0f172a' }}>{t.store_name}</div>
@@ -695,93 +984,643 @@ export default function SaaSAdminPanel() {
                             </button>
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
+                      ))
+                    )}
+                  </tbody>
                   </table>
+
+                  {/* Tenants Table Pagination */}
+                  <TablePagination
+                    currentPage={tenantsTable.currentPage}
+                    totalItems={tenantsTable.totalItems}
+                    pageSize={tenantsTable.pageSize}
+                    onPageChange={tenantsTable.setCurrentPage}
+                    onPageSizeChange={tenantsTable.setPageSize}
+                  />
                 </div>
               </div>
             )}
 
-            {/* TAB 2: ACTION LOGS - Clean Modern Light Table */}
+            {/* TAB 2: AUDIT & TELEMETRY STREAM COMMAND CENTER */}
             {activeTab === 'logs' && (
               <div>
-                <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                  <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>
-                      Real-Time Platform Action Audit Stream
-                    </h3>
-                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                      Showing latest {actionLogs.length} customer interactions
-                    </span>
+                {/* Sub-Tab Navigation Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: '800', margin: '0 0 4px', color: '#0f172a' }}>
+                      Universal Activity & Security Audit Command Center
+                    </h2>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
+                      Real-time audit stream of signups, logins, panel navigation, customer receipt opens, and interactive actions
+                    </p>
                   </div>
 
+                  {/* Sub-tab Pill Selectors */}
+                  <div style={{ display: 'flex', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '10px', gap: '4px', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => setLogsSubTab('auth')}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '7px',
+                        border: 'none',
+                        fontSize: '0.8rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        backgroundColor: logsSubTab === 'auth' ? '#ffffff' : 'transparent',
+                        color: logsSubTab === 'auth' ? '#0f172a' : '#64748b',
+                        boxShadow: logsSubTab === 'auth' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      🛡️ Security & Auth ({auditLogs.length})
+                    </button>
+                    <button
+                      onClick={() => setLogsSubTab('page_views')}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '7px',
+                        border: 'none',
+                        fontSize: '0.8rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        backgroundColor: logsSubTab === 'page_views' ? '#ffffff' : 'transparent',
+                        color: logsSubTab === 'page_views' ? '#0f172a' : '#64748b',
+                        boxShadow: logsSubTab === 'page_views' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      🧭 Panel Navigation ({pageViewLogs.length})
+                    </button>
+                    <button
+                      onClick={() => setLogsSubTab('invoice_views')}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '7px',
+                        border: 'none',
+                        fontSize: '0.8rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        backgroundColor: logsSubTab === 'invoice_views' ? '#ffffff' : 'transparent',
+                        color: logsSubTab === 'invoice_views' ? '#0f172a' : '#64748b',
+                        boxShadow: logsSubTab === 'invoice_views' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      👁️ Invoice Views ({invoiceViewLogs.length})
+                    </button>
+                    <button
+                      onClick={() => setLogsSubTab('actions')}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '7px',
+                        border: 'none',
+                        fontSize: '0.8rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        backgroundColor: logsSubTab === 'actions' ? '#ffffff' : 'transparent',
+                        color: logsSubTab === 'actions' ? '#0f172a' : '#64748b',
+                        boxShadow: logsSubTab === 'actions' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      ⚡ Clicks & Engagement ({actionLogs.length})
+                    </button>
+                  </div>
+                </div>
+
+                {/* SUB-VIEW 1: SECURITY & AUTH AUDIT LOGS */}
+                {logsSubTab === 'auth' && (
+                  <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>
+                          Signups & Login Security Audit Ledger
+                        </h3>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                          Verified client IP addresses, authentication timestamps, and failure causes
+                        </span>
+                      </div>
+                      <TableSearchInput
+                        value={auditLogsTable.searchQuery}
+                        onChange={auditLogsTable.setSearchQuery}
+                        placeholder="Search IP, email, phone, store..."
+                        width="300px"
+                      />
+                    </div>
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          <SortableTh sortKey="created_at" currentSort={auditLogsTable.sortConfig} onSort={auditLogsTable.handleSort}>Timestamp</SortableTh>
+                          <SortableTh sortKey="event_name" currentSort={auditLogsTable.sortConfig} onSort={auditLogsTable.handleSort}>Event / Action</SortableTh>
+                          <SortableTh sortKey="status" currentSort={auditLogsTable.sortConfig} onSort={auditLogsTable.handleSort}>Status</SortableTh>
+                          <SortableTh sortKey="actor_email" currentSort={auditLogsTable.sortConfig} onSort={auditLogsTable.handleSort}>User / Actor</SortableTh>
+                          <SortableTh sortKey="store_name" currentSort={auditLogsTable.sortConfig} onSort={auditLogsTable.handleSort}>Retail Store</SortableTh>
+                          <SortableTh sortKey="ip_address" currentSort={auditLogsTable.sortConfig} onSort={auditLogsTable.handleSort}>Client IP</SortableTh>
+                          <th style={{ padding: '12px 16px' }}>Device / Platform</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {auditLogsTable.items.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+                              {auditLogsTable.searchQuery ? 'No audit records match your search.' : 'No authentication audit records logged yet.'}
+                            </td>
+                          </tr>
+                        ) : (
+                          auditLogsTable.items.map(log => {
+                            const isSuccess = log.status === 'success';
+                            return (
+                              <tr key={log.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '12px 16px', color: '#64748b', fontSize: '0.8rem' }}>
+                                  {new Date(log.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                                </td>
+                                <td style={{ padding: '12px 16px' }}>
+                                  <span style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    padding: '3px 8px',
+                                    borderRadius: '9999px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '700',
+                                    backgroundColor: log.event_name.includes('signup') ? '#f3e8ff' : (isSuccess ? '#ecfdf5' : '#fef2f2'),
+                                    color: log.event_name.includes('signup') ? '#7e22ce' : (isSuccess ? '#065f46' : '#991b1b')
+                                  }}>
+                                    {log.event_name}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '12px 16px' }}>
+                                  <span style={{
+                                    fontSize: '0.75rem',
+                                    fontWeight: '700',
+                                    color: isSuccess ? '#16a34a' : '#dc2626'
+                                  }}>
+                                    {isSuccess ? '✓ SUCCESS' : `✕ FAILED (${log.failure_reason || 'Unknown'})`}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '12px 16px', color: '#0f172a', fontWeight: '600' }}>
+                                  {log.actor_email || log.actor_phone || 'Anonymous'}
+                                  {log.actor_role && (
+                                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 'normal' }}>
+                                      Role: {log.actor_role}
+                                    </div>
+                                  )}
+                                </td>
+                                <td style={{ padding: '12px 16px', color: '#475569' }}>
+                                  {log.store_name || (log.tenant_id ? `Tenant #${log.tenant_id}` : 'Platform SuperAdmin')}
+                                </td>
+                                <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: '#0284c7', fontWeight: '600', fontSize: '0.8rem' }}>
+                                  {log.ip_address}
+                                </td>
+                                <td style={{ padding: '12px 16px', color: '#64748b', fontSize: '0.75rem' }}>
+                                  <span style={{ textTransform: 'capitalize', fontWeight: '600', color: '#334155' }}>
+                                    {log.device_type || 'Desktop'}
+                                  </span>
+                                  {log.user_agent && (
+                                    <div style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', opacity: 0.7 }} title={log.user_agent}>
+                                      {log.user_agent}
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+
+                    <TablePagination
+                      currentPage={auditLogsTable.currentPage}
+                      totalItems={auditLogsTable.totalItems}
+                      pageSize={auditLogsTable.pageSize}
+                      onPageChange={auditLogsTable.setCurrentPage}
+                      onPageSizeChange={auditLogsTable.setPageSize}
+                    />
+                  </div>
+                )}
+
+                {/* SUB-VIEW 2: PANEL NAVIGATION STREAM */}
+                {logsSubTab === 'page_views' && (
+                  <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>
+                          Real-Time Panel Navigation & Screen Telemetry
+                        </h3>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                          Screen transitions, dwell durations, and page access frequency across panels
+                        </span>
+                      </div>
+                      <TableSearchInput
+                        value={pageViewsTable.searchQuery}
+                        onChange={pageViewsTable.setSearchQuery}
+                        placeholder="Search screen, path, email, IP..."
+                        width="300px"
+                      />
+                    </div>
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          <SortableTh sortKey="created_at" currentSort={pageViewsTable.sortConfig} onSort={pageViewsTable.handleSort}>Timestamp</SortableTh>
+                          <SortableTh sortKey="path" currentSort={pageViewsTable.sortConfig} onSort={pageViewsTable.handleSort}>Screen / Route</SortableTh>
+                          <SortableTh sortKey="panel_type" currentSort={pageViewsTable.sortConfig} onSort={pageViewsTable.handleSort}>Panel</SortableTh>
+                          <SortableTh sortKey="store_name" currentSort={pageViewsTable.sortConfig} onSort={pageViewsTable.handleSort}>Store / Tenant</SortableTh>
+                          <SortableTh sortKey="user_email" currentSort={pageViewsTable.sortConfig} onSort={pageViewsTable.handleSort}>Staff User</SortableTh>
+                          <SortableTh sortKey="duration_seconds" currentSort={pageViewsTable.sortConfig} onSort={pageViewsTable.handleSort}>Dwell Time</SortableTh>
+                          <SortableTh sortKey="ip_address" currentSort={pageViewsTable.sortConfig} onSort={pageViewsTable.handleSort}>Client IP</SortableTh>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pageViewsTable.items.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+                              {pageViewsTable.searchQuery ? 'No page navigation records match your query.' : 'No panel navigation telemetry recorded yet.'}
+                            </td>
+                          </tr>
+                        ) : (
+                          pageViewsTable.items.map(pv => (
+                            <tr key={pv.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                              <td style={{ padding: '12px 16px', color: '#64748b', fontSize: '0.8rem' }}>
+                                {new Date(pv.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                              </td>
+                              <td style={{ padding: '12px 16px', fontWeight: '700', color: '#0f172a' }}>
+                                {pv.path}
+                                {pv.page_title && (
+                                  <div style={{ fontSize: '0.725rem', color: '#64748b', fontWeight: 'normal' }}>
+                                    {pv.page_title}
+                                  </div>
+                                )}
+                              </td>
+                              <td style={{ padding: '12px 16px' }}>
+                                <span style={{
+                                  padding: '3px 8px',
+                                  borderRadius: '9999px',
+                                  fontSize: '0.725rem',
+                                  fontWeight: '700',
+                                  backgroundColor: pv.panel_type === 'merchant_panel' ? '#eff6ff' : (pv.panel_type === 'saas_admin' ? '#f5f3ff' : '#f8fafc'),
+                                  color: pv.panel_type === 'merchant_panel' ? '#1e40af' : (pv.panel_type === 'saas_admin' ? '#6b21a8' : '#475569')
+                                }}>
+                                  {pv.panel_type}
+                                </span>
+                              </td>
+                              <td style={{ padding: '12px 16px', color: '#334155' }}>
+                                {pv.store_name || (pv.tenant_id ? `Tenant #${pv.tenant_id}` : 'Platform SuperAdmin')}
+                              </td>
+                              <td style={{ padding: '12px 16px', color: '#0284c7', fontSize: '0.8rem' }}>
+                                {pv.user_email || 'Session ' + (pv.session_id ? pv.session_id.slice(-6) : 'Anon')}
+                              </td>
+                              <td style={{ padding: '12px 16px', color: '#334155', fontWeight: '600' }}>
+                                {pv.duration_seconds > 0 ? `${pv.duration_seconds}s` : '< 1s'}
+                              </td>
+                              <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: '#64748b', fontSize: '0.8rem' }}>
+                                {pv.ip_address}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+
+                    <TablePagination
+                      currentPage={pageViewsTable.currentPage}
+                      totalItems={pageViewsTable.totalItems}
+                      pageSize={pageViewsTable.pageSize}
+                      onPageChange={pageViewsTable.setCurrentPage}
+                      onPageSizeChange={pageViewsTable.setPageSize}
+                    />
+                  </div>
+                )}
+
+                {/* SUB-VIEW 3: CUSTOMER INVOICE VIEWS STREAM */}
+                {logsSubTab === 'invoice_views' && (
+                  <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>
+                          Customer Digital Receipt Open Audit Trail
+                        </h3>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                          Real-time stream of retail shoppers viewing their digital bills (/t/{'{shortId}'})
+                        </span>
+                      </div>
+                      <TableSearchInput
+                        value={invoiceViewsTable.searchQuery}
+                        onChange={invoiceViewsTable.setSearchQuery}
+                        placeholder="Search short ID, phone, store, IP..."
+                        width="300px"
+                      />
+                    </div>
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          <SortableTh sortKey="created_at" currentSort={invoiceViewsTable.sortConfig} onSort={invoiceViewsTable.handleSort}>Timestamp</SortableTh>
+                          <SortableTh sortKey="short_id" currentSort={invoiceViewsTable.sortConfig} onSort={invoiceViewsTable.handleSort}>Receipt Slug</SortableTh>
+                          <SortableTh sortKey="store_name" currentSort={invoiceViewsTable.sortConfig} onSort={invoiceViewsTable.handleSort}>Store</SortableTh>
+                          <SortableTh sortKey="customer_phone" currentSort={invoiceViewsTable.sortConfig} onSort={invoiceViewsTable.handleSort}>Customer Phone</SortableTh>
+                          <SortableTh sortKey="view_number" currentSort={invoiceViewsTable.sortConfig} onSort={invoiceViewsTable.handleSort}>View #</SortableTh>
+                          <th style={{ padding: '12px 16px' }}>Channel / Browser</th>
+                          <SortableTh sortKey="ip_address" currentSort={invoiceViewsTable.sortConfig} onSort={invoiceViewsTable.handleSort}>Client IP</SortableTh>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {invoiceViewsTable.items.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+                              {invoiceViewsTable.searchQuery ? 'No customer receipt views match your search.' : 'No customer receipt views recorded yet.'}
+                            </td>
+                          </tr>
+                        ) : (
+                          invoiceViewsTable.items.map(iv => (
+                            <tr key={iv.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                              <td style={{ padding: '12px 16px', color: '#64748b', fontSize: '0.8rem' }}>
+                                {new Date(iv.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                              </td>
+                              <td style={{ padding: '12px 16px' }}>
+                                <a
+                                  href={`/t/${iv.short_id}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  style={{ color: '#0284c7', fontWeight: '700', textDecoration: 'none' }}
+                                >
+                                  /t/{iv.short_id} ↗
+                                </a>
+                              </td>
+                              <td style={{ padding: '12px 16px', fontWeight: '600', color: '#0f172a' }}>
+                                {iv.store_name || `Tenant #${iv.tenant_id}`}
+                              </td>
+                              <td style={{ padding: '12px 16px', color: '#334155' }}>
+                                {iv.customer_phone}
+                              </td>
+                              <td style={{ padding: '12px 16px' }}>
+                                <span style={{
+                                  padding: '2px 8px',
+                                  borderRadius: '9999px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: '800',
+                                  backgroundColor: iv.view_number === 1 ? '#ecfdf5' : '#f0f9ff',
+                                  color: iv.view_number === 1 ? '#047857' : '#0369a1'
+                                }}>
+                                  {iv.view_number === 1 ? '1st Open (New)' : `${iv.view_number}th Open`}
+                                </span>
+                              </td>
+                              <td style={{ padding: '12px 16px' }}>
+                                {iv.is_whatsapp_webview ? (
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: '700', backgroundColor: '#dcfce7', color: '#166534' }}>
+                                    WhatsApp In-App
+                                  </span>
+                                ) : (
+                                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                                    {iv.device_type === 'mobile' ? 'Mobile Browser' : 'Desktop Browser'}
+                                  </span>
+                                )}
+                              </td>
+                              <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: '#0284c7', fontSize: '0.8rem' }}>
+                                {iv.ip_address}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+
+                    <TablePagination
+                      currentPage={invoiceViewsTable.currentPage}
+                      totalItems={invoiceViewsTable.totalItems}
+                      pageSize={invoiceViewsTable.pageSize}
+                      onPageChange={invoiceViewsTable.setCurrentPage}
+                      onPageSizeChange={invoiceViewsTable.setPageSize}
+                    />
+                  </div>
+                )}
+
+                {/* SUB-VIEW 4: INTERACTIVE CLICKS & ENGAGEMENT */}
+                {logsSubTab === 'actions' && (
+                  <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>
+                          Customer Interaction Clicks (Reviews & Social)
+                        </h3>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                          Showing latest customer clicks on Google Reviews, Instagram, and social channels
+                        </span>
+                      </div>
+
+                      <TableSearchInput
+                        value={actionLogsTable.searchQuery}
+                        onChange={actionLogsTable.setSearchQuery}
+                        placeholder="Search store, short ID, action, phone..."
+                        width="300px"
+                      />
+                    </div>
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          <SortableTh sortKey="created_at" currentSort={actionLogsTable.sortConfig} onSort={actionLogsTable.handleSort}>Timestamp</SortableTh>
+                          <SortableTh sortKey="store_name" currentSort={actionLogsTable.sortConfig} onSort={actionLogsTable.handleSort}>Retail Store</SortableTh>
+                          <SortableTh sortKey="short_id" currentSort={actionLogsTable.sortConfig} onSort={actionLogsTable.handleSort}>Short ID</SortableTh>
+                          <SortableTh sortKey="action_type" currentSort={actionLogsTable.sortConfig} onSort={actionLogsTable.handleSort}>Action Trigger</SortableTh>
+                          <SortableTh sortKey="customer_phone" currentSort={actionLogsTable.sortConfig} onSort={actionLogsTable.handleSort}>Customer Phone</SortableTh>
+                          <th style={{ padding: '12px 16px' }}>Metadata</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {actionLogsTable.items.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+                              {actionLogsTable.searchQuery ? 'No action logs match your search.' : 'No action logs recorded yet.'}
+                            </td>
+                          </tr>
+                        ) : (
+                          actionLogsTable.items.map(log => (
+                            <tr key={log.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.15s' }}>
+                              <td style={{ padding: '12px 16px', color: '#64748b', fontSize: '0.8rem' }}>
+                                {new Date(log.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                              </td>
+                              <td style={{ padding: '12px 16px', fontWeight: '700', color: '#0f172a' }}>
+                                {log.store_name || `Tenant #${log.tenant_id}`}
+                              </td>
+                              <td style={{ padding: '12px 16px', color: '#0284c7', fontWeight: '600' }}>
+                                {log.short_id}
+                              </td>
+                              <td style={{ padding: '12px 16px' }}>
+                                <span style={{
+                                  padding: '3px 8px',
+                                  borderRadius: '9999px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: '700',
+                                  backgroundColor: log.action_type.includes('review') ? '#fef3c7' : (log.action_type.includes('instagram') ? '#fce7f3' : (log.action_type.includes('youtube') ? '#fee2e2' : '#e0f2fe')),
+                                  color: log.action_type.includes('review') ? '#92400e' : (log.action_type.includes('instagram') ? '#9d174d' : (log.action_type.includes('youtube') ? '#991b1b' : '#0369a1'))
+                                }}>
+                                  {log.action_type}
+                                </span>
+                              </td>
+                              <td style={{ padding: '12px 16px', color: '#334155' }}>
+                                {log.customer_phone || 'Anonymous'}
+                              </td>
+                              <td style={{ padding: '12px 16px', color: '#64748b', fontSize: '0.75rem', fontFamily: 'monospace' }}>
+                                {typeof log.metadata === 'object' ? JSON.stringify(log.metadata) : (log.metadata || '-')}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+
+                    <TablePagination
+                      currentPage={actionLogsTable.currentPage}
+                      totalItems={actionLogsTable.totalItems}
+                      pageSize={actionLogsTable.pageSize}
+                      onPageChange={actionLogsTable.setCurrentPage}
+                      onPageSizeChange={actionLogsTable.setPageSize}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 3: WHATSAPP MESSAGE LOGS (MULTI-TENANT AUDIT) */}
+            {activeTab === 'whatsapp_logs' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: '800', margin: '0 0 4px', color: '#0f172a' }}>
+                      Platform-Wide WhatsApp Delivery Audit Stream
+                    </h2>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
+                      Real-time stream of all digital invoices and OTPs dispatched via WABA Gateway (waba.mpocket.in)
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <TableSearchInput
+                      value={adminWhatsAppTable.searchQuery}
+                      onChange={adminWhatsAppTable.setSearchQuery}
+                      placeholder="Search store, phone, receipt #, status..."
+                      width="280px"
+                    />
+                    <button
+                      onClick={loadPlatformData}
+                      style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: '600' }}
+                    >
+                      <RefreshCw style={{ width: '14px', height: '14px' }} />
+                      <span>Refresh Stream</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        <th style={{ padding: '12px 16px' }}>Timestamp</th>
-                        <th style={{ padding: '12px 16px' }}>Retail Store</th>
-                        <th style={{ padding: '12px 16px' }}>Short ID</th>
-                        <th style={{ padding: '12px 16px' }}>Action Trigger</th>
-                        <th style={{ padding: '12px 16px' }}>Customer Phone</th>
-                        <th style={{ padding: '12px 16px' }}>Metadata</th>
+                        <SortableTh sortKey="sent_at" currentSort={adminWhatsAppTable.sortConfig} onSort={adminWhatsAppTable.handleSort}>Sent Timestamp</SortableTh>
+                        <SortableTh sortKey="store_name" currentSort={adminWhatsAppTable.sortConfig} onSort={adminWhatsAppTable.handleSort}>Store / Merchant</SortableTh>
+                        <SortableTh sortKey="customer_phone" currentSort={adminWhatsAppTable.sortConfig} onSort={adminWhatsAppTable.handleSort}>Recipient Mobile</SortableTh>
+                        <SortableTh sortKey="short_id" currentSort={adminWhatsAppTable.sortConfig} onSort={adminWhatsAppTable.handleSort}>Digital Receipt</SortableTh>
+                        <SortableTh sortKey="gateway" currentSort={adminWhatsAppTable.sortConfig} onSort={adminWhatsAppTable.handleSort}>Gateway</SortableTh>
+                        <SortableTh sortKey="message_id" currentSort={adminWhatsAppTable.sortConfig} onSort={adminWhatsAppTable.handleSort}>WABA Message ID (WAMID)</SortableTh>
+                        <SortableTh sortKey="status" currentSort={adminWhatsAppTable.sortConfig} onSort={adminWhatsAppTable.handleSort} align="right">Status</SortableTh>
                       </tr>
                     </thead>
                     <tbody>
-                      {actionLogs.length === 0 ? (
+                      {adminWhatsAppTable.items.length === 0 ? (
                         <tr>
-                          <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
-                            No action logs recorded yet.
+                          <td colSpan="7" style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+                            {adminWhatsAppTable.searchQuery ? 'No WhatsApp messages match your search.' : 'No WhatsApp messages dispatched yet.'}
                           </td>
                         </tr>
                       ) : (
-                        actionLogs.map(log => (
-                          <tr key={log.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.15s' }}>
-                            <td style={{ padding: '12px 16px', color: '#64748b', fontSize: '0.8rem' }}>
-                              {new Date(log.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                        adminWhatsAppTable.items.map((log) => (
+                          <tr key={log.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '12px 16px', color: '#64748b', whiteSpace: 'nowrap' }}>
+                              {new Date(log.sent_at).toLocaleString('en-IN', {
+                                day: 'numeric',
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
                             </td>
                             <td style={{ padding: '12px 16px', fontWeight: '700', color: '#0f172a' }}>
-                              {log.store_name || `Tenant #${log.tenant_id}`}
+                              {log.store_name || `Store #${log.tenant_id}`}
                             </td>
-                            <td style={{ padding: '12px 16px', color: '#0284c7', fontWeight: '600' }}>
-                              {log.short_id}
+                            <td style={{ padding: '12px 16px', fontWeight: '600', color: '#334155' }}>
+                              +{log.customer_phone}
                             </td>
                             <td style={{ padding: '12px 16px' }}>
+                              {log.short_id ? (
+                                <a
+                                  href={`https://bill.retailnode.in/t/${log.short_id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#4f46e5', textDecoration: 'none', fontWeight: '700' }}
+                                >
+                                  <span>/t/{log.short_id}</span>
+                                  <ExternalLink style={{ width: '12px', height: '12px' }} />
+                                </a>
+                              ) : (
+                                <span style={{ color: '#94a3b8' }}>Direct Message</span>
+                              )}
+                            </td>
+                            <td style={{ padding: '12px 16px', color: '#047857', fontWeight: '700', fontSize: '0.78rem' }}>
+                              {log.gateway || 'waba.mpocket.in'}
+                            </td>
+                            <td style={{ padding: '12px 16px', color: '#64748b', fontFamily: 'monospace', fontSize: '0.72rem' }}>
+                              {log.message_id ? (
+                                <span title={log.message_id}>{log.message_id.slice(0, 24)}...</span>
+                              ) : '—'}
+                            </td>
+                            <td style={{ padding: '12px 16px', textAlign: 'right' }}>
                               <span style={{
-                                padding: '3px 8px',
-                                borderRadius: '9999px',
-                                fontSize: '0.75rem',
-                                fontWeight: '700',
-                                backgroundColor: log.action_type.includes('review') ? '#fef3c7' : (log.action_type.includes('instagram') ? '#fce7f3' : (log.action_type.includes('youtube') ? '#fee2e2' : '#e0f2fe')),
-                                color: log.action_type.includes('review') ? '#92400e' : (log.action_type.includes('instagram') ? '#9d174d' : (log.action_type.includes('youtube') ? '#991b1b' : '#0369a1'))
+                                padding: '4px 9px',
+                                borderRadius: '6px',
+                                fontSize: '0.72rem',
+                                fontWeight: '800',
+                                backgroundColor: log.status === 'sent' || log.status === 'delivered' || log.status === 'read' ? '#dcfce7' : '#fee2e2',
+                                color: log.status === 'sent' || log.status === 'delivered' || log.status === 'read' ? '#15803d' : '#b91c1c'
                               }}>
-                                {log.action_type}
+                                {log.status ? log.status.toUpperCase() : 'SENT'}
                               </span>
-                            </td>
-                            <td style={{ padding: '12px 16px', color: '#334155' }}>
-                              {log.customer_phone || 'Anonymous'}
-                            </td>
-                            <td style={{ padding: '12px 16px', color: '#64748b', fontSize: '0.75rem', fontFamily: 'monospace' }}>
-                              {typeof log.metadata === 'object' ? JSON.stringify(log.metadata) : (log.metadata || '-')}
                             </td>
                           </tr>
                         ))
                       )}
                     </tbody>
                   </table>
+
+                  {/* Admin WhatsApp Logs Table Pagination */}
+                  <TablePagination
+                    currentPage={adminWhatsAppTable.currentPage}
+                    totalItems={adminWhatsAppTable.totalItems}
+                    pageSize={adminWhatsAppTable.pageSize}
+                    onPageChange={adminWhatsAppTable.setCurrentPage}
+                    onPageSizeChange={adminWhatsAppTable.setPageSize}
+                  />
                 </div>
               </div>
             )}
 
-            {/* TAB 3: GLOBAL GATEWAYS */}
+            {/* TAB 4: GLOBAL GATEWAYS (WABA + RESEND EMAIL) */}
             {activeTab === 'gateways' && (
-              <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+              <div style={{ maxWidth: '900px', margin: '0 auto', display: 'grid', gap: '1.5rem' }}>
+                
+                {/* 1. Global WABA Gateway */}
                 <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                  <h3 style={{ margin: '0 0 4px', fontSize: '1.25rem', fontWeight: '800', color: '#0f172a' }}>
-                    Global WABA Gateway &amp; SMS Fallback
-                  </h3>
-                  <p style={{ margin: '0 0 1.5rem', fontSize: '0.85rem', color: '#64748b' }}>
-                    These system-wide credentials are used for stores that do not provide their own custom Meta WABA accounts.
-                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+                    <div>
+                      <h3 style={{ margin: '0 0 4px', fontSize: '1.25rem', fontWeight: '800', color: '#0f172a' }}>
+                        Global WABA Gateway &amp; SMS Fallback
+                      </h3>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+                        System-wide default credentials used for retail stores opting into the platform shared gateway.
+                      </p>
+                    </div>
+                    <span style={{ fontSize: '0.75rem', backgroundColor: '#ecfdf5', color: '#065f46', padding: '4px 10px', borderRadius: '6px', border: '1px solid #a7f3d0', fontWeight: '700' }}>
+                      361462453714220 &bull; ACTIVE
+                    </span>
+                  </div>
 
                   <form onSubmit={handleSaveGateways} style={{ display: 'grid', gap: '1.25rem' }}>
                     <div>
@@ -821,16 +1660,211 @@ export default function SaaSAdminPanel() {
                       />
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
                       <button
                         type="submit"
                         style={{ padding: '10px 20px', borderRadius: '8px', backgroundColor: '#4f46e5', color: '#ffffff', fontWeight: '700', border: 'none', cursor: 'pointer' }}
                       >
-                        Save Global Gateways
+                        Save Global WABA Gateway
                       </button>
                     </div>
                   </form>
                 </div>
+
+                {/* 2. Global Resend Email Gateway */}
+                <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+                    <div>
+                      <h3 style={{ margin: '0 0 4px', fontSize: '1.25rem', fontWeight: '800', color: '#0f172a' }}>
+                        Global Resend.com Email Gateway
+                      </h3>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+                        Platform-wide Resend API key and fallback sender for digital invoice HTML emails.
+                      </p>
+                    </div>
+                    <span style={{
+                      fontSize: '0.75rem',
+                      backgroundColor: emailGateway.is_configured ? '#ecfdf5' : '#fef3c7',
+                      color: emailGateway.is_configured ? '#065f46' : '#92400e',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid',
+                      borderColor: emailGateway.is_configured ? '#a7f3d0' : '#fde68a',
+                      fontWeight: '700'
+                    }}>
+                      {emailGateway.is_configured ? 'RESEND KEY CONFIGURED' : 'AWAITING KEY'}
+                    </span>
+                  </div>
+
+                  <form onSubmit={handleSaveEmailGateway} style={{ display: 'grid', gap: '1.25rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', textTransform: 'uppercase', marginBottom: '6px' }}>
+                        Global Resend API Key (re_...)
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="re_••••••••••••••••••••••••"
+                        value={emailGateway.resend_api_key || ''}
+                        onChange={(e) => setEmailGateway({ ...emailGateway, resend_api_key: e.target.value })}
+                        style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', textTransform: 'uppercase', marginBottom: '6px' }}>
+                          Default From Email
+                        </label>
+                        <input
+                          type="email"
+                          placeholder="billing@retailnode.in (or onboarding@resend.dev)"
+                          value={emailGateway.resend_from_email || ''}
+                          onChange={(e) => setEmailGateway({ ...emailGateway, resend_from_email: e.target.value })}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', textTransform: 'uppercase', marginBottom: '6px' }}>
+                          Default From Name
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="RetailNode Digital Invoices"
+                          value={emailGateway.resend_from_name || ''}
+                          onChange={(e) => setEmailGateway({ ...emailGateway, resend_from_name: e.target.value })}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                      <button
+                        type="submit"
+                        style={{ padding: '10px 20px', borderRadius: '8px', backgroundColor: '#0284c7', color: '#ffffff', fontWeight: '700', border: 'none', cursor: 'pointer' }}
+                      >
+                        Save Global Email Gateway
+                      </button>
+                    </div>
+                  </form>
+
+                  {/* SuperAdmin Test Email Box */}
+                  <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #e2e8f0' }}>
+                    <h4 style={{ margin: '0 0 6px', fontSize: '0.95rem', fontWeight: '800', color: '#0f172a' }}>
+                      Send Platform Test Email via Resend
+                    </h4>
+                    <p style={{ margin: '0 0 1rem', fontSize: '0.8rem', color: '#64748b' }}>
+                      Verify that your Resend API Key is active and authorized to send outbound emails.
+                    </p>
+
+                    <form onSubmit={handleTestEmailGateway} style={{ display: 'flex', gap: '10px' }}>
+                      <input
+                        type="email"
+                        required
+                        placeholder="Enter recipient email (e.g. admin@retailnode.in)"
+                        value={testEmailAddress}
+                        onChange={(e) => setTestEmailAddress(e.target.value)}
+                        style={{ flex: 1, padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                      />
+                      <button
+                        type="submit"
+                        disabled={testEmailSending}
+                        style={{
+                          padding: '9px 18px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          backgroundColor: '#4f46e5',
+                          color: '#ffffff',
+                          fontWeight: '700',
+                          fontSize: '0.825rem',
+                          cursor: testEmailSending ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <Send style={{ width: '14px', height: '14px' }} />
+                        <span>{testEmailSending ? 'Dispatching...' : 'Dispatch Test Email'}</span>
+                      </button>
+                    </form>
+                  </div>
+
+                </div>
+
+                {/* 3. Global Razorpay Payment Gateway */}
+                <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff' }}>
+                        <CreditCard style={{ width: '22px', height: '22px' }} />
+                      </div>
+                      <div>
+                        <h3 style={{ margin: '0 0 4px', fontSize: '1.25rem', fontWeight: '800', color: '#0f172a' }}>
+                          Razorpay Payment Gateway Integration
+                        </h3>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+                          Collects merchant subscription payments (Growth Plan ₹6,000/yr) &amp; message quota top-ups.
+                        </p>
+                      </div>
+                    </div>
+                    <span style={{
+                      fontSize: '0.75rem',
+                      backgroundColor: razorpayGateway.is_configured ? '#ecfdf5' : '#fef3c7',
+                      color: razorpayGateway.is_configured ? '#065f46' : '#92400e',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid',
+                      borderColor: razorpayGateway.is_configured ? '#a7f3d0' : '#fde68a',
+                      fontWeight: '700'
+                    }}>
+                      {razorpayGateway.is_configured ? 'RAZORPAY ACTIVE' : 'PENDING KEYS'}
+                    </span>
+                  </div>
+
+                  <form onSubmit={handleSaveRazorpayGateway} style={{ display: 'grid', gap: '1.25rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', textTransform: 'uppercase', marginBottom: '6px' }}>
+                          Razorpay Key ID (`rzp_live_...` or `rzp_test_...`)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="rzp_live_xxxxxxxxxxxxxxxx"
+                          value={razorpayGateway.key_id}
+                          onChange={(e) => setRazorpayGateway({ ...razorpayGateway, key_id: e.target.value })}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', textTransform: 'uppercase', marginBottom: '6px' }}>
+                          Razorpay Key Secret
+                        </label>
+                        <input
+                          type="password"
+                          placeholder={razorpayGateway.key_secret_masked || "Enter Razorpay Secret Key"}
+                          value={razorpayGateway.key_secret}
+                          onChange={(e) => setRazorpayGateway({ ...razorpayGateway, key_secret: e.target.value })}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+                      <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>
+                        Used automatically on checkout for annual subscriptions and quota top-ups with HMAC SHA256 verification.
+                      </p>
+                      <button
+                        type="submit"
+                        disabled={savingRazorpay}
+                        style={{ padding: '10px 22px', borderRadius: '8px', backgroundColor: '#0284c7', color: '#ffffff', fontWeight: '700', border: 'none', cursor: savingRazorpay ? 'not-allowed' : 'pointer' }}
+                      >
+                        {savingRazorpay ? 'Saving...' : 'Save Razorpay Credentials'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
               </div>
             )}
 
@@ -1001,36 +2035,42 @@ export default function SaaSAdminPanel() {
 
                 {/* Campaigns Table */}
                 <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                  <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                     <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>
                       All Platform Pricing Campaigns ({campaigns.length})
                     </h3>
+                    <TableSearchInput
+                      value={campaignsTable.searchQuery}
+                      onChange={campaignsTable.setSearchQuery}
+                      placeholder="Search campaign, badge..."
+                      width="240px"
+                    />
                   </div>
 
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#4b5563', fontSize: '0.72rem', textTransform: 'uppercase' }}>
                         <th style={{ padding: '12px 16px' }}>#</th>
-                        <th style={{ padding: '12px 16px' }}>Campaign Name</th>
-                        <th style={{ padding: '12px 16px' }}>Offer Price</th>
-                        <th style={{ padding: '12px 16px' }}>Regular Price</th>
-                        <th style={{ padding: '12px 16px' }}>Trial</th>
-                        <th style={{ padding: '12px 16px' }}>Ribbon Badge</th>
-                        <th style={{ padding: '12px 16px' }}>Status</th>
+                        <SortableTh sortKey="campaign_name" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Campaign Name</SortableTh>
+                        <SortableTh sortKey="campaign_price" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Offer Price</SortableTh>
+                        <SortableTh sortKey="regular_price" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Regular Price</SortableTh>
+                        <SortableTh sortKey="trial_days" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Trial</SortableTh>
+                        <SortableTh sortKey="badge_text" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Ribbon Badge</SortableTh>
+                        <SortableTh sortKey="is_active" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Status</SortableTh>
                         <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {campaigns.length === 0 ? (
+                      {campaignsTable.items.length === 0 ? (
                         <tr>
                           <td colSpan="8" style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
-                            Loading pricing campaigns...
+                            {campaignsTable.searchQuery ? 'No campaigns match your search.' : 'No pricing campaigns found.'}
                           </td>
                         </tr>
                       ) : (
-                        campaigns.map((camp, idx) => (
+                        campaignsTable.items.map((camp, idx) => (
                           <tr key={camp.id} style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: camp.is_active ? '#f0fdf4' : '#ffffff' }}>
-                            <td style={{ padding: '12px 16px', color: '#94a3b8' }}>{idx + 1}</td>
+                            <td style={{ padding: '12px 16px', color: '#94a3b8' }}>{(campaignsTable.currentPage - 1) * campaignsTable.pageSize + idx + 1}</td>
                             <td style={{ padding: '12px 16px', fontWeight: '700', color: '#0f172a' }}>
                               {camp.campaign_name}
                               {camp.is_active ? (
@@ -1105,6 +2145,15 @@ export default function SaaSAdminPanel() {
                       )}
                     </tbody>
                   </table>
+
+                  {/* Campaigns Table Pagination */}
+                  <TablePagination
+                    currentPage={campaignsTable.currentPage}
+                    totalItems={campaignsTable.totalItems}
+                    pageSize={campaignsTable.pageSize}
+                    onPageChange={campaignsTable.setCurrentPage}
+                    onPageSizeChange={campaignsTable.setPageSize}
+                  />
                 </div>
               </div>
             )}

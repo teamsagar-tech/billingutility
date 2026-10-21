@@ -15,6 +15,8 @@ import {
 import CustomerSubnav from '../../components/CustomerSubnav';
 import ProfileModal from '../../components/ProfileModal';
 import { formatCurrency, maskPhone, getCohortBadge, formatDisplayDate } from '../../utils/merchantUtils';
+import { SortableTh, TablePagination, TableSearchInput } from '../../components/DataTable';
+import { useDataTable } from '../../hooks/useDataTable';
 
 export default function CustomersPage() {
   const { profile, token, notifyToast } = useOutletContext();
@@ -22,7 +24,6 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState([]);
   const [insights, setInsights] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
 
   // Filters matching BillFree
   const [dormantFilter, setDormantFilter] = useState('all');
@@ -55,38 +56,60 @@ export default function CustomersPage() {
     fetchCustomers();
   }, [token]);
 
-  const filteredCustomers = customers.filter((c) => {
-    const q = searchQuery.toLowerCase();
-    const name = (c.customer_name || c.name || '').toLowerCase();
-    const phone = (c.phone || c.customer_phone || '').toLowerCase();
-    const matchesSearch = name.includes(q) || phone.includes(q);
+  // Universal Data Table Hook with search, multi-filter, column sorting & pagination
+  const {
+    items: paginatedCustomers,
+    totalItems,
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    searchQuery,
+    setSearchQuery,
+    sortConfig,
+    handleSort
+  } = useDataTable(customers, {
+    searchFields: ['customer_name', 'name', 'phone', 'customer_phone', 'city', 'state'],
+    defaultSortKey: 'total_spent',
+    defaultSortDir: 'desc',
+    defaultPageSize: 10,
+    customFilter: (c) => {
+      let matchesDormant = true;
+      if (dormantFilter !== 'all') {
+        matchesDormant = (c.dormancy_bucket || c.dormancy) === dormantFilter;
+      }
 
-    let matchesDormant = true;
-    if (dormantFilter !== 'all') {
-      matchesDormant = (c.dormancy_bucket || c.dormancy) === dormantFilter;
+      let matchesVisit = true;
+      if (visitFilter !== 'all') {
+        const v = Number(c.visits_count || c.no_of_visits || 1);
+        if (visitFilter === '1') matchesVisit = v === 1;
+        else if (visitFilter === '2') matchesVisit = v === 2;
+        else if (visitFilter === '3') matchesVisit = v === 3;
+        else if (visitFilter === '4') matchesVisit = v === 4;
+        else if (visitFilter === '5') matchesVisit = v >= 5 && v < 10;
+        else if (visitFilter === '10') matchesVisit = v >= 10;
+      }
+
+      let matchesCohort = true;
+      if (cohortFilter !== 'all') {
+        matchesCohort = (c.cohort || c.rfm_cohort) === cohortFilter;
+      }
+
+      let matchesProfile = true;
+      if (profileStatusFilter === 'complete') matchesProfile = c.profile_status === 'complete';
+      if (profileStatusFilter === 'not_exist') matchesProfile = c.profile_status !== 'complete';
+
+      return matchesDormant && matchesVisit && matchesCohort && matchesProfile;
+    },
+    customSortAccessor: (c, key) => {
+      if (key === 'total_spent') return Number(c.total_spent || c.lifetime_value || 0);
+      if (key === 'visits_count') return Number(c.visits_count || c.no_of_visits || 1);
+      if (key === 'last_bill_amount') return Number(c.last_bill_amount || c.last_bill_value || 0);
+      if (key === 'max_bill_value') return Number(c.max_bill_value || c.max_bill_amount || 0);
+      if (key === 'loyalty_points') return Number(c.loyalty_points || 0);
+      if (key === 'last_visit') return new Date(c.last_visit || 0).getTime();
+      return c[key];
     }
-
-    let matchesVisit = true;
-    if (visitFilter !== 'all') {
-      const v = Number(c.visits_count || c.no_of_visits || 1);
-      if (visitFilter === '1') matchesVisit = v === 1;
-      else if (visitFilter === '2') matchesVisit = v === 2;
-      else if (visitFilter === '3') matchesVisit = v === 3;
-      else if (visitFilter === '4') matchesVisit = v === 4;
-      else if (visitFilter === '5') matchesVisit = v >= 5 && v < 10;
-      else if (visitFilter === '10') matchesVisit = v >= 10;
-    }
-
-    let matchesCohort = true;
-    if (cohortFilter !== 'all') {
-      matchesCohort = (c.cohort || c.rfm_cohort) === cohortFilter;
-    }
-
-    let matchesProfile = true;
-    if (profileStatusFilter === 'complete') matchesProfile = c.profile_status === 'complete';
-    if (profileStatusFilter === 'not_exist') matchesProfile = c.profile_status !== 'complete';
-
-    return matchesSearch && matchesDormant && matchesVisit && matchesCohort && matchesProfile;
   });
 
   const clearAllFilters = () => {
@@ -202,16 +225,12 @@ export default function CustomersPage() {
 
       {/* Filter and Search Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '1rem', flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', width: '320px' }}>
-          <Search style={{ position: 'absolute', left: '12px', top: '10px', width: '15px', height: '15px', color: '#9ca3af' }} />
-          <input
-            type="text"
-            placeholder="Search by customer phone or name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.825rem' }}
-          />
-        </div>
+        <TableSearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search by customer phone, name or city..."
+          width="320px"
+        />
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <select
@@ -253,17 +272,17 @@ export default function CustomersPage() {
               <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 <th style={{ padding: '10px 12px', width: '40px' }}>#</th>
                 <th style={{ padding: '10px 12px', minWidth: '130px' }}>Store Outlet</th>
-                <th style={{ padding: '10px 12px', minWidth: '150px' }}>Demographic Profile</th>
-                <th style={{ padding: '10px 12px', minWidth: '130px' }}>Customer Name</th>
-                <th style={{ padding: '10px 12px', minWidth: '120px' }}>Mobile No.</th>
-                <th style={{ padding: '10px 12px', textAlign: 'center' }}>Visits</th>
-                <th style={{ padding: '10px 12px', textAlign: 'right' }}>Total Spends</th>
-                <th style={{ padding: '10px 12px', textAlign: 'right' }}>Last Bill</th>
-                <th style={{ padding: '10px 12px', minWidth: '110px' }}>Last Bill Date</th>
-                <th style={{ padding: '10px 12px', textAlign: 'right' }}>Max Bill</th>
-                <th style={{ padding: '10px 12px', textAlign: 'center' }}>Earned</th>
+                <SortableTh sortKey="profile_status" currentSort={sortConfig} onSort={handleSort} minWidth="150px">Demographic Profile</SortableTh>
+                <SortableTh sortKey="customer_name" currentSort={sortConfig} onSort={handleSort} minWidth="130px">Customer Name</SortableTh>
+                <SortableTh sortKey="phone" currentSort={sortConfig} onSort={handleSort} minWidth="120px">Mobile No.</SortableTh>
+                <SortableTh sortKey="visits_count" currentSort={sortConfig} onSort={handleSort} align="center">Visits</SortableTh>
+                <SortableTh sortKey="total_spent" currentSort={sortConfig} onSort={handleSort} align="right">Total Spends</SortableTh>
+                <SortableTh sortKey="last_bill_amount" currentSort={sortConfig} onSort={handleSort} align="right">Last Bill</SortableTh>
+                <SortableTh sortKey="last_visit" currentSort={sortConfig} onSort={handleSort} minWidth="110px">Last Bill Date</SortableTh>
+                <SortableTh sortKey="max_bill_value" currentSort={sortConfig} onSort={handleSort} align="right">Max Bill</SortableTh>
+                <SortableTh sortKey="loyalty_points" currentSort={sortConfig} onSort={handleSort} align="center">Earned</SortableTh>
                 <th style={{ padding: '10px 12px', textAlign: 'center' }}>Redeemed</th>
-                <th style={{ padding: '10px 12px', textAlign: 'center' }}>Balance</th>
+                <SortableTh sortKey="loyalty_points" currentSort={sortConfig} onSort={handleSort} align="center">Balance</SortableTh>
                 <th style={{ padding: '10px 12px', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
@@ -275,7 +294,7 @@ export default function CustomersPage() {
                     <p style={{ margin: 0, fontSize: '0.85rem' }}>Loading customer directory...</p>
                   </td>
                 </tr>
-              ) : filteredCustomers.length === 0 ? (
+              ) : paginatedCustomers.length === 0 ? (
                 <tr>
                   <td colSpan={14} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
                     <Users style={{ width: '32px', height: '32px', margin: '0 auto 8px', opacity: 0.4 }} />
@@ -283,7 +302,7 @@ export default function CustomersPage() {
                   </td>
                 </tr>
               ) : (
-                filteredCustomers.map((c, idx) => {
+                paginatedCustomers.map((c, idx) => {
                   const custPhone = c.phone || c.customer_phone || '';
                   const custName = c.customer_name || c.name || 'Valued Shopper';
                   const totalSpent = Number(c.total_spent || c.lifetime_value || 0);
@@ -404,6 +423,16 @@ export default function CustomersPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Table Pagination */}
+        <TablePagination
+          currentPage={currentPage}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          accentColor="#0284c7"
+        />
       </div>
 
       {/* Profile Modal */}

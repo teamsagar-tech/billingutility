@@ -1,0 +1,16 @@
+{
+  "name": "retailnode-print-agent",
+  "version": "1.0.0",
+  "description": "RetailNode Digital Invoice & POS Print Interceptor Agent for Windows",
+  "main": "agent.js",
+  "bin": "agent.js",
+  "scripts": {
+    "start": "node agent.js"
+  },
+  "pkg": {
+    "targets": [
+      "node18-win-x64"
+    ],
+    "outputPath": "dist"
+  }
+}

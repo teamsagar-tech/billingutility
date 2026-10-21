@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Store, ShieldCheck, ArrowRight, Lock, Mail, Receipt, Smartphone } from 'lucide-react';
+import RetailNodeLogo from '../components/RetailNodeLogo';
 
 export default function UnifiedLogin() {
   const [role, setRole] = useState('merchant'); // 'merchant' | 'superadmin' | 'customer'
@@ -72,17 +73,13 @@ export default function UnifiedLogin() {
       fontFamily: 'Inter, system-ui, sans-serif'
     }}>
       <div style={{ width: '100%', maxWidth: '440px' }}>
-        {/* Brand Header */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <img
-            src="/retailnode-logo.png"
-            alt="RetailNode"
-            style={{ height: '48px', width: 'auto', display: 'block', margin: '0 auto 12px' }}
-          />
-          <h1 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0f172a', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
-            Billing & Messaging SaaS
+        {/* Standard RetailNode Brand Header */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem' }}>
+          <RetailNodeLogo size="lg" to="/login" badge="UNIFIED ACCESS" />
+          <h1 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#0f172a', margin: '14px 0 4px', letterSpacing: '-0.02em', textAlign: 'center' }}>
+            Billing &amp; Messaging SaaS
           </h1>
-          <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
+          <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0, textAlign: 'center' }}>
             Unified portal for shoppers, merchants, and administrators
           </p>
         </div>
@@ -125,7 +122,7 @@ export default function UnifiedLogin() {
                 transition: 'all 0.2s'
               }}
             >
-              <Store style={{ width: '14px', height: '14px', color: '#0f766e' }} />
+              <Store style={{ width: '14px', height: '14px', color: '#2563eb' }} />
               <span>Merchant</span>
             </button>
             <button
@@ -146,7 +143,7 @@ export default function UnifiedLogin() {
                 transition: 'all 0.2s'
               }}
             >
-              <ShieldCheck style={{ width: '14px', height: '14px', color: '#4f46e5' }} />
+              <ShieldCheck style={{ width: '14px', height: '14px', color: '#2563eb' }} />
               <span>SuperAdmin</span>
             </button>
             <button
@@ -290,14 +287,14 @@ export default function UnifiedLogin() {
                 fontWeight: '700',
                 fontSize: '0.875rem',
                 color: '#ffffff',
-                backgroundColor: role === 'superadmin' ? '#4f46e5' : (role === 'customer' ? '#2563eb' : '#0f766e'),
+                backgroundColor: '#2563eb',
                 border: 'none',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+                boxShadow: '0 4px 10px -1px rgba(37, 99, 235, 0.35)',
                 transition: 'all 0.2s'
               }}
             >

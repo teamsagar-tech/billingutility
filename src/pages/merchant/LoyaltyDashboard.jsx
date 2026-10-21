@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Award, Save, RefreshCw, CheckCircle, ArrowUpRight, Search } from 'lucide-react';
 import { formatCurrency, maskPhone } from '../../utils/merchantUtils';
+import { SortableTh, TablePagination, TableSearchInput } from '../../components/DataTable';
+import { useDataTable } from '../../hooks/useDataTable';
 
 export default function LoyaltyDashboard() {
   const { token, notifyToast } = useOutletContext();
@@ -14,6 +16,31 @@ export default function LoyaltyDashboard() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const {
+    items: paginatedLedger,
+    totalItems,
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    searchQuery,
+    setSearchQuery,
+    sortConfig,
+    handleSort
+  } = useDataTable(transactions, {
+    searchFields: ['customerName', 'phone', 'billNo'],
+    defaultSortKey: 'date',
+    defaultSortDir: 'desc',
+    defaultPageSize: 10,
+    customSortAccessor: (t, key) => {
+      if (key === 'earned') return Number(t.earned || 0);
+      if (key === 'redeemed') return Number(t.redeemed || 0);
+      if (key === 'balance') return Number(t.balance || 0);
+      if (key === 'date') return new Date(t.date || 0).getTime();
+      return t[key];
+    }
+  });
 
   const fetchLoyaltyData = async () => {
     setLoading(true);
@@ -162,33 +189,49 @@ export default function LoyaltyDashboard() {
         </div>
 
         {/* Recent Points Ledger Table */}
-        <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem', fontWeight: '800', color: '#111827' }}>
-            Points Transaction Ledger
-          </h3>
+        <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#111827' }}>
+              Points Transaction Ledger
+            </h3>
+            <TableSearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search customer, phone, bill #..."
+              width="240px"
+            />
+          </div>
 
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.825rem' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.72rem', textTransform: 'uppercase' }}>
-                  <th style={{ padding: '10px 12px' }}>Timestamp</th>
-                  <th style={{ padding: '10px 12px' }}>Customer</th>
-                  <th style={{ padding: '10px 12px' }}>Invoice</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'center' }}>Earned</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'center' }}>Redeemed</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'center' }}>Balance</th>
+                  <SortableTh sortKey="date" currentSort={sortConfig} onSort={handleSort}>Timestamp</SortableTh>
+                  <SortableTh sortKey="customerName" currentSort={sortConfig} onSort={handleSort}>Customer</SortableTh>
+                  <SortableTh sortKey="billNo" currentSort={sortConfig} onSort={handleSort}>Invoice</SortableTh>
+                  <SortableTh sortKey="earned" currentSort={sortConfig} onSort={handleSort} align="center">Earned</SortableTh>
+                  <SortableTh sortKey="redeemed" currentSort={sortConfig} onSort={handleSort} align="center">Redeemed</SortableTh>
+                  <SortableTh sortKey="balance" currentSort={sortConfig} onSort={handleSort} align="center">Balance</SortableTh>
                 </tr>
               </thead>
               <tbody>
-                {transactions.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} style={{ padding: '2.5rem', textAlign: 'center', color: '#64748b' }}>
+                      Loading points ledger...
+                    </td>
+                  </tr>
+                ) : paginatedLedger.length === 0 ? (
                   <tr>
                     <td colSpan={6} style={{ padding: '2.5rem', textAlign: 'center', color: '#64748b' }}>
                       <Award style={{ width: '28px', height: '28px', margin: '0 auto 8px', opacity: 0.4 }} />
-                      <p style={{ margin: 0, fontSize: '0.85rem' }}>No loyalty points transactions recorded yet. Points will be automatically awarded on POS bills.</p>
+                      <p style={{ margin: 0, fontSize: '0.85rem' }}>
+                        {searchQuery ? 'No points ledger records match your search.' : 'No loyalty points transactions recorded yet. Points will be automatically awarded on POS bills.'}
+                      </p>
                     </td>
                   </tr>
                 ) : (
-                  transactions.map((t) => (
+                  paginatedLedger.map((t) => (
                     <tr key={t.id || t.shortId} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: '12px', color: '#64748b' }}>
                         {t.date ? new Date(t.date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'Recent'}
@@ -213,6 +256,15 @@ export default function LoyaltyDashboard() {
               </tbody>
             </table>
           </div>
+
+          {/* Table Pagination */}
+          <TablePagination
+            currentPage={currentPage}
+            totalItems={totalItems}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+          />
         </div>
       </div>
     </div>

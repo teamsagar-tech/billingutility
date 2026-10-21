@@ -31,6 +31,8 @@ import GreetingCards from './pages/merchant/GreetingCards';
 import DownloadCenter from './pages/merchant/DownloadCenter';
 import StoreSettings from './pages/merchant/StoreSettings';
 import WhatsAppSettings from './pages/merchant/WhatsAppSettings';
+import ProductsPage from './pages/merchant/ProductsPage';
+import TemplateCreationPage from './pages/merchant/TemplateCreationPage';
 
 // Marketing & Portal Pages
 import Navbar from './components/Navbar';
@@ -49,6 +51,7 @@ import Electronics from './pages/Electronics';
 
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsConditions from './pages/TermsConditions';
+import RouteTracker from './components/RouteTracker';
 
 function MarketingLayout({ children }) {
   return (
@@ -65,6 +68,7 @@ function MarketingLayout({ children }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <RouteTracker />
       <Routes>
         {/* Target Route 1: bill.retailnode.in root shows JUST RetailNode logo and nothing else */}
         <Route path="/" element={<LogoSplash />} />
@@ -95,9 +99,13 @@ export default function App() {
           <Route path="campaigns" element={<CampaignsHub />} />
           <Route path="campaigns-hub" element={<CampaignsHub />} />
           <Route path="invoices" element={<InvoicesPage />} />
-          <Route path="digital-bill" element={<InvoicesPage />} />
+          <Route path="products" element={<ProductsPage />} />
+          <Route path="segmentation/sku" element={<ProductsPage />} />
+          <Route path="sku" element={<Navigate to="/dashboard/products" replace />} />
           <Route path="customers" element={<CustomersPage />} />
           <Route path="profiles" element={<CustomerProfiles />} />
+          <Route path="profiles/customers" element={<CustomersPage />} />
+          <Route path="profiles/create" element={<CustomerProfiles />} />
           <Route path="customer-journey" element={<CustomerJourney />} />
           <Route path="customer-journey/:phone" element={<CustomerJourney />} />
           <Route path="optout-customers" element={<OptOutCustomers />} />
@@ -110,12 +118,23 @@ export default function App() {
           <Route path="downloads" element={<DownloadCenter />} />
           <Route path="settings" element={<StoreSettings />} />
           <Route path="whatsapp" element={<WhatsAppSettings />} />
+          <Route path="templates" element={<TemplateCreationPage />} />
+          <Route path="whatsapp/templates" element={<TemplateCreationPage />} />
+          <Route path="template-builder" element={<TemplateCreationPage />} />
+          <Route path="email" element={<WhatsAppSettings defaultTab="email" />} />
+          <Route path="whatsapp-logs" element={<WhatsAppSettings defaultTab="logs" />} />
         </Route>
 
         {/* Convenient Top-Level Aliases Redirecting into /dashboard/... */}
         <Route path="/invoices" element={<Navigate to="/dashboard/invoices" replace />} />
+        <Route path="/products" element={<Navigate to="/dashboard/products" replace />} />
+        <Route path="/templates" element={<Navigate to="/dashboard/templates" replace />} />
+        <Route path="/whatsapp/templates" element={<Navigate to="/dashboard/templates" replace />} />
+        <Route path="/segmentation/sku" element={<Navigate to="/dashboard/segmentation/sku" replace />} />
         <Route path="/customers" element={<Navigate to="/dashboard/customers" replace />} />
         <Route path="/profiles" element={<Navigate to="/dashboard/profiles" replace />} />
+        <Route path="/profiles/customers" element={<Navigate to="/dashboard/profiles/customers" replace />} />
+        <Route path="/profiles/create" element={<Navigate to="/dashboard/profiles/create" replace />} />
         <Route path="/customer-journey" element={<Navigate to="/dashboard/customer-journey" replace />} />
         <Route path="/customer-journey/:phone" element={<Navigate to="/dashboard/customer-journey/:phone" replace />} />
         <Route path="/campaigns" element={<Navigate to="/dashboard/campaigns" replace />} />
@@ -129,9 +148,21 @@ export default function App() {
         <Route path="/downloads" element={<Navigate to="/dashboard/downloads" replace />} />
         <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
         <Route path="/whatsapp" element={<Navigate to="/dashboard/whatsapp" replace />} />
+        <Route path="/email" element={<Navigate to="/dashboard/email" replace />} />
+        <Route path="/whatsapp-logs" element={<Navigate to="/dashboard/whatsapp-logs" replace />} />
 
-        {/* SaaS SuperAdmin Platform Panel */}
-        <Route path="/saas-admin" element={<SaaSAdminPanel />} />
+        {/* SaaS SuperAdmin Platform Panel - Dedicated Separate Routes */}
+        <Route path="/saas-admin" element={<Navigate to="/saas-admin/stores" replace />} />
+        <Route path="/saas-admin/stores" element={<SaaSAdminPanel defaultTab="stores" />} />
+        <Route path="/saas-admin/tenants" element={<Navigate to="/saas-admin/stores" replace />} />
+        <Route path="/saas-admin/pricing" element={<SaaSAdminPanel defaultTab="pricing" />} />
+        <Route path="/saas-admin/campaigns" element={<Navigate to="/saas-admin/pricing" replace />} />
+        <Route path="/saas-admin/whatsapp-logs" element={<SaaSAdminPanel defaultTab="whatsapp_logs" />} />
+        <Route path="/saas-admin/whatsapp" element={<Navigate to="/saas-admin/whatsapp-logs" replace />} />
+        <Route path="/saas-admin/logs" element={<SaaSAdminPanel defaultTab="logs" />} />
+        <Route path="/saas-admin/action-logs" element={<Navigate to="/saas-admin/logs" replace />} />
+        <Route path="/saas-admin/gateways" element={<SaaSAdminPanel defaultTab="gateways" />} />
+        <Route path="/saas-admin/:tab" element={<SaaSAdminPanel />} />
 
         {/* Target Route 3: bill.retailnode.in/t/ or /i/ random key will show digital bill */}
         <Route path="/i/:slug" element={<BillReceipt />} />

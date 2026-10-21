@@ -17,7 +17,7 @@ const IntegrationsSection = () => {
               Seamlessly integrates with your existing tools
             </h2>
             <p style={{ color: '#cbd5e1', fontSize: '1.125rem', lineHeight: 1.6 }}>
-              RetailBill is not an ERP. It's a powerful integration layer that connects with over 100+ POS, invoicing, and ERP systems to supercharge your customer engagement.
+              RetailNode Billing is a high-throughput integration layer that connects seamlessly with RetailNode ERP and over 100+ third-party POS systems (Tally, Busy, Marg) to supercharge customer engagement.
             </p>
             <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
               <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>

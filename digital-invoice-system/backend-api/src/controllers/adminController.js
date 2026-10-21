@@ -3,9 +3,17 @@ const bcrypt = require('bcrypt');
 const db = require('../config/database');
 const redis = require('../config/redis');
 
-// 1. Platform-Wide Analytics
+// 1. Platform-Wide Analytics (Redis In-Memory Caching)
 exports.getPlatformAnalytics = async (req, res) => {
   try {
+    const cacheKey = 'admin:platform:analytics';
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        return res.status(200).json(JSON.parse(cached));
+      }
+    } catch (e) {}
+
     const [tenantStats] = await db.query(`
       SELECT 
         COUNT(*) as total_stores,
@@ -39,7 +47,7 @@ exports.getPlatformAnalytics = async (req, res) => {
       if (cached) redisReviewClicks = parseInt(cached, 10);
     } catch (e) {}
 
-    res.status(200).json({
+    const payload = {
       success: true,
       data: {
         stores: {
@@ -64,16 +72,30 @@ exports.getPlatformAnalytics = async (req, res) => {
           youtubeClicks: actionStats[0].youtube_clicks || 0
         }
       }
-    });
+    };
+
+    try {
+      await redis.setex(cacheKey, 15, JSON.stringify(payload));
+    } catch (e) {}
+
+    res.status(200).json(payload);
   } catch (error) {
     console.error('Error fetching SaaS platform analytics:', error);
     res.status(500).json({ success: false, error: 'Server error fetching platform analytics' });
   }
 };
 
-// 2. Tenants Directory
+// 2. Tenants Directory (Redis In-Memory Caching)
 exports.getAllTenants = async (req, res) => {
   try {
+    const cacheKey = 'admin:tenants:list';
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        return res.status(200).json(JSON.parse(cached));
+      }
+    } catch (e) {}
+
     const [rows] = await db.query(`
       SELECT 
         t.id, 
@@ -108,7 +130,12 @@ exports.getAllTenants = async (req, res) => {
       ORDER BY t.id DESC
     `);
 
-    res.status(200).json({ success: true, data: rows });
+    const payload = { success: true, data: rows };
+    try {
+      await redis.setex(cacheKey, 30, JSON.stringify(payload));
+    } catch (e) {}
+
+    res.status(200).json(payload);
   } catch (error) {
     console.error('Error fetching tenants list:', error);
     res.status(500).json({ success: false, error: 'Server error fetching tenants directory' });
@@ -180,6 +207,11 @@ exports.createTenant = async (req, res) => {
        VALUES (?, 'SYSTEM', 'TENANT_ONBOARDED', ?)`,
       [tenantId, JSON.stringify({ store_name, apiToken, plan_tier: plan_tier || 'growth', plan_valid_until: defaultExpiry })]
     );
+
+    try {
+      await redis.del('admin:tenants:list');
+      await redis.del('admin:platform:analytics');
+    } catch (e) {}
 
     res.status(201).json({
       success: true,
@@ -264,6 +296,8 @@ exports.updateTenant = async (req, res) => {
     // Invalidate Redis profile cache
     try {
       await redis.del(`tenant:profile:${id}`);
+      await redis.del('admin:tenants:list');
+      await redis.del('admin:platform:analytics');
     } catch (e) {}
 
     res.status(200).json({ 
@@ -296,6 +330,8 @@ exports.topupQuota = async (req, res) => {
     // Invalidate profile cache
     try {
       await redis.del(`tenant:profile:${id}`);
+      await redis.del('admin:tenants:list');
+      await redis.del('admin:platform:analytics');
     } catch (e) {}
 
     // Audit log
@@ -586,3 +622,216 @@ exports.deletePricingCampaign = async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to delete campaign' });
   }
 };
+
+// 13. SuperAdmin Global Email Gateway (Resend)
+const { testResendConnection } = require('../services/emailClient');
+
+exports.getEmailGateway = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT config_key, config_value, is_secret FROM global_configs 
+       WHERE config_key IN ('DEFAULT_RESEND_API_KEY', 'DEFAULT_RESEND_FROM_EMAIL', 'DEFAULT_RESEND_FROM_NAME')`
+    );
+
+    let apiKey = '';
+    let fromEmail = 'billing@retailnode.in';
+    let fromName = 'RetailNode Digital Invoices';
+
+    rows.forEach(r => {
+      if (r.config_key === 'DEFAULT_RESEND_API_KEY') apiKey = r.config_value;
+      if (r.config_key === 'DEFAULT_RESEND_FROM_EMAIL') fromEmail = r.config_value;
+      if (r.config_key === 'DEFAULT_RESEND_FROM_NAME') fromName = r.config_value;
+    });
+
+    // Email stats
+    const [stats] = await db.query(`
+      SELECT 
+        COUNT(*) as total_emails,
+        SUM(CASE WHEN status = 'sent' THEN 1 ELSE 0 END) as sent_count,
+        SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_count
+      FROM email_logs
+    `);
+
+    const hasKey = Boolean(apiKey && apiKey.trim().length > 5);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        is_configured: hasKey,
+        resend_api_key_masked: hasKey ? `${apiKey.slice(0, 7)}••••••••${apiKey.slice(-4)}` : '',
+        resend_from_email: fromEmail,
+        resend_from_name: fromName,
+        stats: {
+          total_emails: stats[0]?.total_emails || 0,
+          sent_count: stats[0]?.sent_count || 0,
+          failed_count: stats[0]?.failed_count || 0
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching global email gateway:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch email gateway settings' });
+  }
+};
+
+exports.updateEmailGateway = async (req, res) => {
+  try {
+    const { resend_api_key, resend_from_email, resend_from_name } = req.body;
+
+    if (resend_api_key !== undefined && !resend_api_key.includes('••••')) {
+      await db.query(`
+        INSERT INTO global_configs (config_key, config_value, is_secret)
+        VALUES ('DEFAULT_RESEND_API_KEY', ?, 1)
+        ON DUPLICATE KEY UPDATE config_value = VALUES(config_value)
+      `, [resend_api_key.trim()]);
+    }
+
+    if (resend_from_email !== undefined) {
+      await db.query(`
+        INSERT INTO global_configs (config_key, config_value, is_secret)
+        VALUES ('DEFAULT_RESEND_FROM_EMAIL', ?, 0)
+        ON DUPLICATE KEY UPDATE config_value = VALUES(config_value)
+      `, [resend_from_email.trim()]);
+    }
+
+    if (resend_from_name !== undefined) {
+      await db.query(`
+        INSERT INTO global_configs (config_key, config_value, is_secret)
+        VALUES ('DEFAULT_RESEND_FROM_NAME', ?, 0)
+        ON DUPLICATE KEY UPDATE config_value = VALUES(config_value)
+      `, [resend_from_name.trim()]);
+    }
+
+    res.status(200).json({ success: true, message: 'Global Resend Email settings saved successfully!' });
+  } catch (error) {
+    console.error('Error updating global email gateway:', error);
+    res.status(500).json({ success: false, error: 'Failed to save email settings' });
+  }
+};
+
+exports.testAdminEmailGateway = async (req, res) => {
+  try {
+    const { test_email, api_key, from_email, from_name } = req.body;
+
+    if (!test_email || !test_email.includes('@')) {
+      return res.status(400).json({ success: false, error: 'Please enter a valid test recipient email address' });
+    }
+
+    let key = api_key;
+    let from = from_email;
+    let name = from_name;
+
+    if (!key || key.includes('••••')) {
+      const [rows] = await db.query(
+        "SELECT config_value FROM global_configs WHERE config_key = 'DEFAULT_RESEND_API_KEY'"
+      );
+      key = rows[0]?.config_value;
+    }
+
+    if (!from) {
+      const [rows] = await db.query(
+        "SELECT config_value FROM global_configs WHERE config_key = 'DEFAULT_RESEND_FROM_EMAIL'"
+      );
+      from = rows[0]?.config_value || 'billing@retailnode.in';
+    }
+
+    if (!name) {
+      const [rows] = await db.query(
+        "SELECT config_value FROM global_configs WHERE config_key = 'DEFAULT_RESEND_FROM_NAME'"
+      );
+      name = rows[0]?.config_value || 'RetailNode SuperAdmin Test';
+    }
+
+    if (!key) {
+      return res.status(400).json({ success: false, error: 'No Resend API Key configured to test with.' });
+    }
+
+    const testRes = await testResendConnection({
+      apiKey: key,
+      fromEmail: from,
+      fromName: name,
+      toEmail: test_email
+    });
+
+    if (testRes.success) {
+      // Log to email_logs
+      try {
+        await db.query(
+          `INSERT INTO email_logs (
+            tenant_id, recipient_email, sender_email, subject, resend_email_id, status, is_default_gateway
+          ) VALUES (1, ?, ?, 'SuperAdmin Resend Test Verification', ?, 'sent', 1)`,
+          [test_email, from, testRes.emailId || 'admin_test']
+        );
+      } catch (e) {}
+
+      return res.status(200).json(testRes);
+    } else {
+      return res.status(400).json(testRes);
+    }
+  } catch (error) {
+    console.error('Error testing admin email gateway:', error);
+    res.status(500).json({ success: false, error: 'Failed to test email gateway' });
+  }
+};
+
+exports.getAdminEmailLogs = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        el.id,
+        el.tenant_id,
+        t.store_name,
+        el.invoice_id,
+        el.recipient_email,
+        el.sender_email,
+        el.subject,
+        el.resend_email_id,
+        el.status,
+        el.error_reason,
+        el.is_default_gateway,
+        el.created_at
+      FROM email_logs el
+      LEFT JOIN tenants t ON el.tenant_id = t.id
+      ORDER BY el.id DESC
+      LIMIT 100
+    `);
+
+    res.status(200).json({ success: true, data: rows });
+  } catch (error) {
+    console.error('Error fetching admin email logs:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch email logs' });
+  }
+};
+
+// 14. SuperAdmin WhatsApp Message Audit Logs
+exports.getAdminWhatsAppLogs = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        bm.id,
+        bm.tenant_id,
+        t.store_name,
+        bm.invoice_id,
+        i.short_id,
+        bm.customer_phone,
+        bm.gateway,
+        bm.template_name,
+        bm.message_id,
+        bm.status,
+        bm.error_reason,
+        bm.sent_at
+      FROM billing_messages bm
+      LEFT JOIN tenants t ON bm.tenant_id = t.id
+      LEFT JOIN invoices i ON bm.invoice_id = i.id
+      ORDER BY bm.id DESC
+      LIMIT 150
+    `);
+
+    res.status(200).json({ success: true, data: rows });
+  } catch (error) {
+    console.error('Error fetching admin WhatsApp logs:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch WhatsApp logs' });
+  }
+};
+
+

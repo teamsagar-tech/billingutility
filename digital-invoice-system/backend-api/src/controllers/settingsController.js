@@ -25,6 +25,10 @@ exports.getStoreProfile = async (req, res) => {
         waba_provider, 
         phone_number_id, 
         waba_template_name, 
+        bill_dispatch_format,
+        pdf_template_name,
+        image_template_name,
+        custom_bill_image_url,
         plan_tier, 
         plan_valid_until,
         DATEDIFF(plan_valid_until, CURRENT_DATE) as plan_days_remaining,
@@ -37,6 +41,10 @@ exports.getStoreProfile = async (req, res) => {
         message_quota, 
         messages_used, 
         is_active, 
+        resend_api_key,
+        resend_from_email,
+        resend_from_name,
+        email_billing_enabled,
         created_at 
        FROM tenants WHERE id = ?`,
       [tenantId]
@@ -70,7 +78,11 @@ exports.updateStoreProfile = async (req, res) => {
       google_review_url, 
       google_place_id,
       fb_pixel_id, 
-      feedback_enabled 
+      feedback_enabled,
+      resend_api_key,
+      resend_from_email,
+      resend_from_name,
+      email_billing_enabled
     } = req.body;
 
     if (!store_name) {
@@ -93,7 +105,11 @@ exports.updateStoreProfile = async (req, res) => {
          google_review_url = ?, 
          google_place_id = ?,
          fb_pixel_id = ?, 
-         feedback_enabled = ?
+         feedback_enabled = ?,
+         resend_api_key = COALESCE(?, resend_api_key),
+         resend_from_email = COALESCE(?, resend_from_email),
+         resend_from_name = COALESCE(?, resend_from_name),
+         email_billing_enabled = COALESCE(?, email_billing_enabled)
        WHERE id = ?`,
       [
         store_name, 
@@ -109,7 +125,11 @@ exports.updateStoreProfile = async (req, res) => {
         google_review_url || null, 
         google_place_id || null,
         fb_pixel_id || null, 
-        feedback_enabled !== undefined ? (feedback_enabled ? 1 : 0) : 1, 
+        feedback_enabled !== undefined ? (feedback_enabled ? 1 : 0) : 1,
+        resend_api_key !== undefined ? (resend_api_key.trim() === '' ? null : resend_api_key.trim()) : null,
+        resend_from_email !== undefined ? (resend_from_email.trim() || null) : null,
+        resend_from_name !== undefined ? (resend_from_name.trim() || null) : null,
+        email_billing_enabled !== undefined ? (email_billing_enabled ? 1 : 0) : null,
         tenantId
       ]
     );

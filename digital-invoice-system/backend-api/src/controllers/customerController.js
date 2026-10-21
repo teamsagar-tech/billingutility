@@ -1,12 +1,23 @@
 const db = require('../config/database');
+const redis = require('../config/redis');
+const { fetchWabaOptouts, deleteWabaOptout } = require('../services/wabaClient');
 
 /**
  * GET /api/v1/auth/customers
  * Returns all customers for the tenant with full demographics, dormancy, visits, and RFM intelligence
+ * High-Performance In-Memory Redis Caching
  */
 exports.getCustomers = async (req, res) => {
   try {
     const tenantId = req.user.tenantId;
+
+    const cacheKey = `store:customers:${tenantId}`;
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        return res.status(200).json({ ...JSON.parse(cached), cached: true });
+      }
+    } catch (e) {}
 
     // 1. Fetch all customer records from customers table
     const [customerRows] = await db.query(
@@ -281,11 +292,17 @@ exports.getCustomers = async (req, res) => {
       };
     }).sort((a, b) => b.lifetime_value - a.lifetime_value);
 
-    res.status(200).json({
+    const payload = {
       success: true,
       insights,
       data: customerList
-    });
+    };
+
+    try {
+      await redis.setex(cacheKey, 60, JSON.stringify(payload));
+    } catch (e) {}
+
+    res.status(200).json({ ...payload, cached: false });
   } catch (error) {
     console.error('CRM Get Customers Error:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch customer data' });
@@ -359,6 +376,10 @@ exports.saveCustomerProfile = async (req, res) => {
         status, consent_given !== false ? 1 : 0
       ]
     );
+
+    try {
+      await redis.del(`store:customers:${tenantId}`);
+    } catch (e) {}
 
     res.status(200).json({
       success: true,
@@ -515,12 +536,80 @@ exports.getCustomerJourney = async (req, res) => {
 };
 
 /**
+ * Synchronizes opt-out customers from WABA upstream engine (waba.mpocket.in) into local database
+ */
+async function syncWabaOptoutsInternal(tenantId) {
+  try {
+    const wabaList = await fetchWabaOptouts(tenantId);
+    if (!Array.isArray(wabaList) || wabaList.length === 0) {
+      return { syncedCount: 0, total: 0 };
+    }
+
+    let syncedCount = 0;
+    for (const item of wabaList) {
+      const rawWaId = String(item.wa_id || '').trim();
+      if (!rawWaId) continue;
+
+      const digits = rawWaId.replace(/\D/g, '');
+      const tenDigits = (digits.length === 12 && digits.startsWith('91')) ? digits.slice(2) : digits;
+      const fullDigits = tenDigits.length === 10 ? `91${tenDigits}` : digits;
+      const reason = item.reason || 'User opted out via WhatsApp keyword';
+      const wabaOptoutId = item.id;
+      const createdAt = item.created_at ? new Date(item.created_at) : new Date();
+
+      // Check if this number or waba_optout_id already exists in optout_customers
+      const [existing] = await db.query(
+        `SELECT id, waba_optout_id FROM optout_customers 
+         WHERE tenant_id = ? AND (phone = ? OR phone = ? OR waba_optout_id = ?)`,
+        [tenantId, tenDigits, fullDigits, wabaOptoutId]
+      );
+
+      if (existing.length === 0) {
+        await db.query(
+          `INSERT INTO optout_customers 
+            (tenant_id, phone, channel, reason, source, waba_optout_id, created_at)
+           VALUES (?, ?, 'whatsapp', ?, 'waba', ?, ?)`,
+          [tenantId, tenDigits, reason, wabaOptoutId, createdAt]
+        );
+        syncedCount++;
+      } else {
+        await db.query(
+          `UPDATE optout_customers 
+           SET waba_optout_id = ?, source = 'waba', reason = COALESCE(reason, ?) 
+           WHERE id = ?`,
+          [wabaOptoutId, reason, existing[0].id]
+        );
+      }
+
+      // Also mark opted_out_whatsapp = TRUE in customers table
+      await db.query(
+        `UPDATE customers SET opted_out_whatsapp = TRUE WHERE tenant_id = ? AND (phone = ? OR phone = ?)`,
+        [tenantId, tenDigits, fullDigits]
+      );
+    }
+
+    return { syncedCount, total: wabaList.length };
+  } catch (error) {
+    console.error('[CustomerController] WABA Optout Sync Error:', error.message);
+    throw error;
+  }
+}
+
+/**
  * GET /api/v1/auth/customers/optout
- * List all DND / opted-out customers
+ * List all DND / opted-out customers with automated background sync
  */
 exports.getOptoutCustomers = async (req, res) => {
   try {
     const tenantId = req.user.tenantId;
+
+    // Auto-sync from WABA if available (swallow error so page never fails)
+    try {
+      await syncWabaOptoutsInternal(tenantId);
+    } catch (e) {
+      console.warn('[OptOut] Auto-sync warning:', e.message);
+    }
+
     const [rows] = await db.query(
       `SELECT * FROM optout_customers WHERE tenant_id = ? ORDER BY created_at DESC`,
       [tenantId]
@@ -529,6 +618,33 @@ exports.getOptoutCustomers = async (req, res) => {
   } catch (error) {
     console.error('Optout List Error:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch optout list' });
+  }
+};
+
+/**
+ * POST /api/v1/auth/customers/optout/sync
+ * Manually triggered sync with WABA engine
+ */
+exports.syncOptoutWithWaba = async (req, res) => {
+  try {
+    const tenantId = req.user.tenantId;
+    const result = await syncWabaOptoutsInternal(tenantId);
+    
+    const [rows] = await db.query(
+      `SELECT * FROM optout_customers WHERE tenant_id = ? ORDER BY created_at DESC`,
+      [tenantId]
+    );
+    
+    res.status(200).json({
+      success: true,
+      message: `Successfully synchronized ${result.total} records from WABA (${result.syncedCount} newly recorded)`,
+      data: rows,
+      syncedCount: result.syncedCount,
+      total: result.total
+    });
+  } catch (error) {
+    console.error('Manual WABA Sync Error:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to sync with WABA' });
   }
 };
 
@@ -545,15 +661,19 @@ exports.addOptoutCustomer = async (req, res) => {
     }
 
     const cleanPhone = phone.trim();
+    const digits = cleanPhone.replace(/\D/g, '');
+    const tenDigits = (digits.length === 12 && digits.startsWith('91')) ? digits.slice(2) : digits;
+    const fullDigits = tenDigits.length === 10 ? `91${tenDigits}` : digits;
+
     await db.query(
-      `INSERT INTO optout_customers (tenant_id, phone, channel, reason) VALUES (?, ?, ?, ?)`,
-      [tenantId, cleanPhone, channel || 'whatsapp', reason || 'Customer requested DND']
+      `INSERT INTO optout_customers (tenant_id, phone, channel, reason, source) VALUES (?, ?, ?, ?, 'manual')`,
+      [tenantId, tenDigits, channel || 'whatsapp', reason || 'Customer requested DND']
     );
 
     // Also flag in customers table
     await db.query(
-      `UPDATE customers SET opted_out_whatsapp = TRUE WHERE tenant_id = ? AND phone = ?`,
-      [tenantId, cleanPhone]
+      `UPDATE customers SET opted_out_whatsapp = TRUE WHERE tenant_id = ? AND (phone = ? OR phone = ?)`,
+      [tenantId, tenDigits, fullDigits]
     );
 
     res.status(200).json({ success: true, message: 'Customer added to optout list' });
@@ -573,14 +693,31 @@ exports.removeOptoutCustomer = async (req, res) => {
     const { id } = req.params;
 
     const [rows] = await db.query(
-      `SELECT phone FROM optout_customers WHERE id = ? AND tenant_id = ?`,
+      `SELECT phone, waba_optout_id FROM optout_customers WHERE id = ? AND tenant_id = ?`,
       [id, tenantId]
     );
 
     if (rows.length > 0) {
-      const phone = rows[0].phone;
+      const { phone, waba_optout_id } = rows[0];
+
+      // If registered with WABA upstream, delete upstream as well
+      if (waba_optout_id) {
+        try {
+          await deleteWabaOptout(tenantId, waba_optout_id);
+        } catch (wErr) {
+          console.warn('[WABA-Delete] Warning deleting upstream optout:', wErr.message);
+        }
+      }
+
+      const digits = String(phone).replace(/\D/g, '');
+      const tenDigits = (digits.length === 12 && digits.startsWith('91')) ? digits.slice(2) : digits;
+      const fullDigits = tenDigits.length === 10 ? `91${tenDigits}` : digits;
+
       await db.query(`DELETE FROM optout_customers WHERE id = ? AND tenant_id = ?`, [id, tenantId]);
-      await db.query(`UPDATE customers SET opted_out_whatsapp = FALSE WHERE tenant_id = ? AND phone = ?`, [tenantId, phone]);
+      await db.query(
+        `UPDATE customers SET opted_out_whatsapp = FALSE WHERE tenant_id = ? AND (phone = ? OR phone = ?)`,
+        [tenantId, tenDigits, fullDigits]
+      );
     }
 
     res.status(200).json({ success: true, message: 'Removed from optout list' });
@@ -589,3 +726,4 @@ exports.removeOptoutCustomer = async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to remove optout customer' });
   }
 };
+

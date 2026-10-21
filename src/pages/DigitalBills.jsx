@@ -30,7 +30,7 @@ const DigitalBills = () => {
         <div className="glass-panel p-8" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '1rem', borderRadius: '1rem', width: 'fit-content', color: 'var(--accent-purple)' }}><MessageCircle size={32} /></div>
           <h3 className="text-2xl font-bold">Automated Delivery</h3>
-          <p className="text-muted">RetailBill instantly sends digital bills on WhatsApp to your customers so that they never lose their receipts again, ensuring a premium post-purchase experience.</p>
+          <p className="text-muted">RetailNode instantly sends digital bills on WhatsApp to your customers so that they never lose their receipts again, ensuring a premium post-purchase experience.</p>
         </div>
 
         <div className="glass-panel p-8" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>

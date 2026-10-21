@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, ReceiptText } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import RetailNodeLogo from './RetailNodeLogo';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -17,13 +18,8 @@ const Navbar = () => {
   return (
     <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'glass-panel shadow-sm py-3' : 'bg-transparent py-5'}`} style={{ position: 'fixed', top: 0, width: '100%', zIndex: 50, transition: 'all 0.3s', border: 'none' }}>
       <div className="container flex justify-between items-center">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2" style={{ cursor: 'pointer' }}>
-          <div style={{ background: 'var(--primary-blue)', padding: '0.5rem', borderRadius: '0.5rem', color: 'white' }}>
-            <ReceiptText size={24} />
-          </div>
-          <span className="font-extrabold text-2xl tracking-tight text-primary">RetailBill</span>
-        </Link>
+        {/* Standard RetailNode Logo */}
+        <RetailNodeLogo size="md" to="/" badge="BILLING" />
 
         {/* Desktop Nav */}
         <nav className="hidden md-flex gap-8 items-center" style={{ display: 'flex', gap: '2rem' }}>

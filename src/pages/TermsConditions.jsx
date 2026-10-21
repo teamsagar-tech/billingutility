@@ -74,7 +74,7 @@ export default function TermsConditions() {
               5. Intellectual Property
             </h2>
             <p>
-              All platform design, software code, APIs, and the RetailNode name and logo are the proprietary property of RetailNode Labs. Merchant names, logos, and product brand identifiers remain the exclusive trademarks of their respective owners.
+              All platform design, software code, APIs, and the RetailNode name and logo are the proprietary property of RetailNode. Merchant names, logos, and product brand identifiers remain the exclusive trademarks of their respective owners.
             </p>
           </section>
 

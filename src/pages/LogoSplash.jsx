@@ -14,12 +14,13 @@ export default function LogoSplash() {
     }}>
       <div style={{ padding: '2rem', userSelect: 'none' }}>
         <img
-          src="/retailnode-logo.png"
+          src="https://retailnode.in/logo.svg"
           alt="RetailNode"
           style={{
-            maxHeight: '80px',
-            width: 'auto',
-            display: 'block'
+            width: '96px',
+            height: '96px',
+            display: 'block',
+            objectFit: 'contain'
           }}
         />
       </div>

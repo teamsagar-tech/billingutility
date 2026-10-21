@@ -28,7 +28,7 @@ const RetailBrands = () => {
               <div style={{ background: 'rgba(20, 184, 166, 0.1)', padding: '1rem', borderRadius: '1rem', color: 'var(--accent-teal)', alignSelf: 'flex-start' }}><Database size={24} /></div>
               <div>
                 <h3 className="text-xl font-bold mb-2">Deep ERP Integrations</h3>
-                <p className="text-muted">RetailBill acts as a middleware that integrates directly into your custom ERP or complex POS setups, requiring zero operational changes.</p>
+                <p className="text-muted">RetailNode acts as a middleware that integrates directly into your custom ERP or complex POS setups, requiring zero operational changes.</p>
               </div>
             </div>
             <div style={{ display: 'flex', gap: '1rem' }}>

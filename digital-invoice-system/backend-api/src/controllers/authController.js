@@ -2,6 +2,13 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const db = require('../config/database');
+const {
+  sendEmail,
+  generateForgotPasswordEmailHtml,
+  generateWelcomeVerificationEmailHtml
+} = require('../services/emailClient');
+const { extractClientInfo } = require('../utils/requestHelper');
+const { logAuthEvent } = require('../services/auditService');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) throw new Error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
@@ -136,6 +143,47 @@ exports.register = async (req, res) => {
       { expiresIn: '30d' }
     );
 
+    // 6. Send Welcome & Account Verification Email
+    if (actualEmail && actualEmail.includes('@')) {
+      const verifyOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      const welcomeHtml = generateWelcomeVerificationEmailHtml({
+        storeName: actualStoreName,
+        ownerName: actualOwner,
+        userEmail: actualEmail,
+        verifyOtp,
+        loginUrl: 'https://bill.retailnode.in/login',
+        apiToken
+      });
+
+      sendEmail({
+        tenantId,
+        to: actualEmail,
+        subject: `Welcome to RetailNode - ${actualStoreName}`,
+        html: welcomeHtml
+      }).catch(err => console.warn('[Auth] Failed to send welcome email:', err.message));
+    }
+
+    // 7. Audit Log: User Sign-Up
+    const { ip, userAgent, deviceType } = extractClientInfo(req);
+    logAuthEvent({
+      tenantId,
+      userId,
+      eventCategory: 'auth',
+      eventName: 'user_signup',
+      status: 'success',
+      actorEmail: actualEmail,
+      actorPhone: rawPhone || null,
+      actorRole: 'merchant_admin',
+      ip,
+      userAgent,
+      deviceType,
+      metadata: {
+        storeName: actualStoreName,
+        planTier: 'trial',
+        city: city || null
+      }
+    });
+
     res.status(201).json({
       success: true,
       message: 'Store account created successfully!',
@@ -159,6 +207,7 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password, loginType } = req.body;
+    const { ip, userAgent, deviceType } = extractClientInfo(req);
 
     const [users] = await db.query(
       'SELECT id, tenant_id, email, phone, password_hash, role FROM users WHERE email = ? OR phone = ?',
@@ -166,6 +215,17 @@ exports.login = async (req, res) => {
     );
 
     if (users.length === 0) {
+      logAuthEvent({
+        eventCategory: 'auth',
+        eventName: 'login_failed',
+        status: 'failed',
+        actorEmail: email,
+        failureReason: 'user_not_found',
+        ip,
+        userAgent,
+        deviceType,
+        metadata: { loginType: loginType || 'merchant' }
+      });
       return res.status(401).json({ success: false, error: 'Invalid email/phone or password' });
     }
 
@@ -173,11 +233,39 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password_hash);
     
     if (!isMatch) {
+      logAuthEvent({
+        tenantId: user.tenant_id,
+        userId: user.id,
+        eventCategory: 'auth',
+        eventName: 'login_failed',
+        status: 'failed',
+        actorEmail: user.email,
+        actorPhone: user.phone,
+        actorRole: user.role,
+        failureReason: 'invalid_password',
+        ip,
+        userAgent,
+        deviceType,
+        metadata: { loginType: loginType || 'merchant' }
+      });
       return res.status(401).json({ success: false, error: 'Invalid email/phone or password' });
     }
 
     // Role safety check if specific loginType is requested
     if (loginType === 'superadmin' && user.role !== 'superadmin') {
+      logAuthEvent({
+        tenantId: user.tenant_id,
+        userId: user.id,
+        eventCategory: 'security',
+        eventName: 'login_failed',
+        status: 'failed',
+        actorEmail: user.email,
+        actorRole: user.role,
+        failureReason: 'superadmin_role_required',
+        ip,
+        userAgent,
+        deviceType
+      });
       return res.status(403).json({ success: false, error: 'Access denied: SuperAdmin privileges required' });
     }
 
@@ -196,6 +284,22 @@ exports.login = async (req, res) => {
         apiToken = tenants[0].api_token;
       }
     }
+
+    // Audit Log: Login Success
+    logAuthEvent({
+      tenantId: user.tenant_id,
+      userId: user.id,
+      eventCategory: 'auth',
+      eventName: 'login_success',
+      status: 'success',
+      actorEmail: user.email,
+      actorPhone: user.phone,
+      actorRole: user.role,
+      ip,
+      userAgent,
+      deviceType,
+      metadata: { storeName, loginType: loginType || user.role }
+    });
 
     res.status(200).json({
       success: true,
@@ -218,16 +322,20 @@ exports.login = async (req, res) => {
  */
 exports.forgotPassword = async (req, res) => {
   try {
-    const { emailOrPhone } = req.body;
-    if (!emailOrPhone) {
+    const rawInput = req.body.emailOrPhone || req.body.email || req.body.phone;
+    if (!rawInput) {
       return res.status(400).json({ success: false, error: 'Please enter your registered email or mobile number.' });
     }
 
-    const cleanInput = emailOrPhone.trim();
+    const cleanInput = String(rawInput).trim();
     const cleanDigits = cleanInput.replace(/\D/g, '').slice(-10);
 
     const [users] = await db.query(
-      'SELECT id, email, phone, first_name FROM users WHERE email = ? OR phone = ? OR phone = ? LIMIT 1',
+      `SELECT u.id, u.email, u.phone, u.first_name, u.tenant_id, t.store_name 
+       FROM users u 
+       LEFT JOIN tenants t ON t.id = u.tenant_id 
+       WHERE u.email = ? OR u.phone = ? OR u.phone = ? 
+       LIMIT 1`,
       [cleanInput, cleanDigits, `91${cleanDigits}`]
     );
 
@@ -251,10 +359,27 @@ exports.forgotPassword = async (req, res) => {
       [otp, user.id]
     );
 
+    // Send Forgot Password OTP Email via RetailNode Resend Gateway
+    if (user.email && user.email.includes('@')) {
+      const resetLink = `https://bill.retailnode.in/forgot-password?email=${encodeURIComponent(user.email)}&otp=${otp}`;
+      const emailHtml = generateForgotPasswordEmailHtml({
+        userName: user.first_name || 'Store Admin',
+        otp,
+        resetLink,
+        storeName: user.store_name || 'RetailNode Store'
+      });
+
+      sendEmail({
+        tenantId: null, // Platform System Auth Email (excluded from merchant billing logs)
+        to: user.email,
+        subject: `Reset Your RetailNode Account Password (OTP: ${otp})`,
+        html: emailHtml
+      }).catch(err => console.warn('[Auth] Failed to dispatch password reset email:', err.message));
+    }
+
     res.status(200).json({
       success: true,
-      message: `Password reset verification OTP generated successfully. Valid for 15 minutes.`,
-      devOtp: otp // Returned for direct UI autofill / testing convenience
+      message: `Password reset verification OTP sent to your registered email address.`
     });
   } catch (error) {
     console.error('Forgot password error:', error);
@@ -263,31 +388,25 @@ exports.forgotPassword = async (req, res) => {
 };
 
 /**
- * POST /api/v1/auth/reset-password
- * Step 2: Verify OTP and update password
+ * POST /api/v1/auth/verify-reset-otp
+ * Step 2: Verify OTP and issue temporary resetToken
  */
-exports.resetPassword = async (req, res) => {
+exports.verifyResetOtp = async (req, res) => {
   try {
-    const { emailOrPhone, otp, newPassword } = req.body;
-    if (!emailOrPhone || !otp || !newPassword) {
+    const rawInput = req.body.emailOrPhone || req.body.email || req.body.phone;
+    const otp = req.body.otp;
+    if (!rawInput || !otp) {
       return res.status(400).json({
         success: false,
-        error: 'Email/Phone, verification OTP, and new password are required.'
+        error: 'Email/Phone and verification OTP are required.'
       });
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({
-        success: false,
-        error: 'New password must be at least 6 characters long.'
-      });
-    }
-
-    const cleanInput = emailOrPhone.trim();
+    const cleanInput = String(rawInput).trim();
     const cleanDigits = cleanInput.replace(/\D/g, '').slice(-10);
 
     const [users] = await db.query(
-      `SELECT id, email, password_reset_otp, password_reset_expires 
+      `SELECT id, email, phone, password_reset_otp, password_reset_expires 
        FROM users 
        WHERE (email = ? OR phone = ? OR phone = ?) AND password_reset_otp = ? AND password_reset_expires > NOW()
        LIMIT 1`,
@@ -297,11 +416,84 @@ exports.resetPassword = async (req, res) => {
     if (users.length === 0) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid or expired OTP. Please request a new verification code.'
+        error: 'Invalid or expired 6-digit OTP code. Please request a new code.'
       });
     }
 
     const user = users[0];
+    // Issue secure 15-minute reset token
+    const resetToken = jwt.sign(
+      { userId: user.id, email: user.email, purpose: 'password_reset' },
+      JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP verified successfully! You may now set your new password.',
+      resetToken
+    });
+  } catch (error) {
+    console.error('Verify reset OTP error:', error);
+    res.status(500).json({ success: false, error: 'Server error verifying OTP' });
+  }
+};
+
+/**
+ * POST /api/v1/auth/reset-password
+ * Step 3: Update password using verified resetToken (or direct OTP verification)
+ */
+exports.resetPassword = async (req, res) => {
+  try {
+    const { resetToken, emailOrPhone, otp, newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'New password must be at least 6 characters long.'
+      });
+    }
+
+    let targetUserId = null;
+
+    // Method A: Via verified resetToken from Step 2
+    if (resetToken) {
+      try {
+        const decoded = jwt.verify(resetToken, JWT_SECRET);
+        if (decoded.purpose !== 'password_reset' || !decoded.userId) {
+          return res.status(400).json({ success: false, error: 'Invalid reset authorization token.' });
+        }
+        targetUserId = decoded.userId;
+      } catch (tokenErr) {
+        return res.status(400).json({ success: false, error: 'Reset session has expired. Please verify OTP again.' });
+      }
+    } 
+    // Method B: Fallback via direct OTP verification
+    else if (emailOrPhone && otp) {
+      const cleanInput = emailOrPhone.trim();
+      const cleanDigits = cleanInput.replace(/\D/g, '').slice(-10);
+
+      const [users] = await db.query(
+        `SELECT id FROM users 
+         WHERE (email = ? OR phone = ? OR phone = ?) AND password_reset_otp = ? AND password_reset_expires > NOW()
+         LIMIT 1`,
+        [cleanInput, cleanDigits, `91${cleanDigits}`, otp.trim()]
+      );
+
+      if (users.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid or expired OTP. Please request a new verification code.'
+        });
+      }
+      targetUserId = users[0].id;
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: 'Verified reset token or verification code is required.'
+      });
+    }
+
     const newHash = await bcrypt.hash(newPassword, 10);
 
     await db.query(
@@ -310,7 +502,7 @@ exports.resetPassword = async (req, res) => {
            password_reset_otp = NULL, 
            password_reset_expires = NULL 
        WHERE id = ?`,
-      [newHash, user.id]
+      [newHash, targetUserId]
     );
 
     res.status(200).json({
@@ -322,6 +514,7 @@ exports.resetPassword = async (req, res) => {
     res.status(500).json({ success: false, error: 'Server error resetting password' });
   }
 };
+
 
 /**
  * POST /api/v1/auth/customer/send-otp
@@ -348,6 +541,19 @@ exports.sendCustomerOtp = async (req, res) => {
       [cleanDigits, otp]
     );
 
+    // Audit Log: Customer OTP Request
+    const { ip, userAgent, deviceType } = extractClientInfo(req);
+    logAuthEvent({
+      eventCategory: 'customer',
+      eventName: 'customer_otp_requested',
+      status: 'success',
+      actorPhone: cleanDigits,
+      actorRole: 'customer',
+      ip,
+      userAgent,
+      deviceType
+    });
+
     res.status(200).json({
       success: true,
       message: `OTP sent to +91 ${cleanDigits}`,
@@ -367,6 +573,7 @@ exports.verifyCustomerOtp = async (req, res) => {
   try {
     const { phone, otp } = req.body;
     const cleanDigits = String(phone || '').replace(/\D/g, '').slice(-10);
+    const { ip, userAgent, deviceType } = extractClientInfo(req);
 
     if (!cleanDigits || !otp) {
       return res.status(400).json({
@@ -383,6 +590,17 @@ exports.verifyCustomerOtp = async (req, res) => {
     );
 
     if (rows.length === 0) {
+      logAuthEvent({
+        eventCategory: 'customer',
+        eventName: 'customer_login_failed',
+        status: 'failed',
+        actorPhone: cleanDigits,
+        actorRole: 'customer',
+        failureReason: 'invalid_or_expired_otp',
+        ip,
+        userAgent,
+        deviceType
+      });
       return res.status(400).json({
         success: false,
         error: 'Invalid or expired OTP. Please request a new code.'
@@ -398,6 +616,18 @@ exports.verifyCustomerOtp = async (req, res) => {
       JWT_SECRET,
       { expiresIn: '90d' }
     );
+
+    // Audit Log: Customer Login Success
+    logAuthEvent({
+      eventCategory: 'customer',
+      eventName: 'customer_login_success',
+      status: 'success',
+      actorPhone: cleanDigits,
+      actorRole: 'customer',
+      ip,
+      userAgent,
+      deviceType
+    });
 
     // Retrieve all bills across all stores for this customer
     const [bills] = await db.query(

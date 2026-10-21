@@ -17,8 +17,17 @@ import {
   X,
   Sparkles,
   Heart,
-  ThumbsUp
+  ThumbsUp,
+  User,
+  Calendar,
+  MapPin,
+  Mail,
+  FileText,
+  Save,
+  ArrowRight,
+  Gift
 } from 'lucide-react';
+import RetailNodeLogo from '../components/RetailNodeLogo';
 
 // Resolves direct Google Review Write Dialog URL from Place ID, review link, or Google share link
 function resolveGoogleReviewUrl(reviewUrl, placeId, storeName, storeAddress) {
@@ -80,10 +89,16 @@ export default function BillReceipt() {
   const [lockError, setLockError] = useState('');
   const [countdown, setCountdown] = useState(0);
   
-  // Rating & Feedback State
+  // Embedded Customer Survey & Rating State
   const [starRating, setStarRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [feedbackSent, setFeedbackSent] = useState(false);
+  const [surveyExpanded, setSurveyExpanded] = useState(false);
+  const [surveyNps, setSurveyNps] = useState(null);
+  const [surveyTags, setSurveyTags] = useState([]);
+  const [surveyComment, setSurveyComment] = useState('');
+  const [submittingSurvey, setSubmittingSurvey] = useState(false);
+  const [surveySubmitted, setSurveySubmitted] = useState(false);
+  const [surveyFeedbackResult, setSurveyFeedbackResult] = useState(null);
 
   // First-Visit Customer Engagement Modal & Action Tracking State
   const [showEngagementModal, setShowEngagementModal] = useState(false);
@@ -96,6 +111,156 @@ export default function BillReceipt() {
   // Slider states
   const [socialSlide, setSocialSlide] = useState(0);
   const [offerSlide, setOfferSlide] = useState(0);
+
+  // Tab State: Receipt vs Profile Self-Service
+  const [activeReceiptTab, setActiveReceiptTab] = useState('receipt'); // 'receipt' | 'profile'
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    email: '',
+    dob: '',
+    anniversary_date: '',
+    gender: 'm',
+    city: '',
+    pincode: ''
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileSuccessMsg, setProfileSuccessMsg] = useState('');
+  const [profileErrorMsg, setProfileErrorMsg] = useState('');
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setSavingProfile(true);
+    setProfileSuccessMsg('');
+    setProfileErrorMsg('');
+    try {
+      const res = await fetch(`/api/v1/invoices/${slug}/customer-profile`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileForm)
+      });
+      const result = await res.json();
+      if (result.success) {
+        setProfileSuccessMsg(result.message || 'Profile updated successfully! +50 Loyalty Points awarded.');
+        if (result.newPointsBalance !== undefined) {
+          setData(prev => ({
+            ...prev,
+            loyalty: {
+              ...prev?.loyalty,
+              balance: result.newPointsBalance
+            }
+          }));
+        }
+      } else {
+        setProfileErrorMsg(result.error || 'Failed to update profile.');
+      }
+    } catch (err) {
+      setProfileErrorMsg('Network error updating profile. Please try again.');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  // Customer Login Modal State for viewing protected history
+  const [showHistoryLoginModal, setShowHistoryLoginModal] = useState(false);
+  const [historyPhone, setHistoryPhone] = useState('');
+  const [historyOtp, setHistoryOtp] = useState('');
+  const [historyOtpSent, setHistoryOtpSent] = useState(false);
+  const [historySendingOtp, setHistorySendingOtp] = useState(false);
+  const [historyVerifyingOtp, setHistoryVerifyingOtp] = useState(false);
+  const [historyError, setHistoryError] = useState('');
+  const [historyCountdown, setHistoryCountdown] = useState(0);
+
+  // Initialize historyPhone when data loads
+  useEffect(() => {
+    if (data?.customerProfile?.phone) {
+      const clean = String(data.customerProfile.phone).replace(/\D/g, '').slice(-10);
+      setHistoryPhone(clean);
+    }
+  }, [data]);
+
+  // Countdown timer for history OTP resend
+  useEffect(() => {
+    let timer;
+    if (historyCountdown > 0) {
+      timer = setInterval(() => setHistoryCountdown(c => c - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [historyCountdown]);
+
+  const handleSendHistoryOtp = async (e) => {
+    if (e) e.preventDefault();
+    const cleanDigits = historyPhone.replace(/\D/g, '').slice(-10);
+    if (cleanDigits.length < 10) {
+      setHistoryError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    setHistorySendingOtp(true);
+    setHistoryError('');
+    try {
+      const res = await fetch(`/api/v1/invoices/${slug}/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanDigits })
+      });
+      const result = await res.json();
+      if (result.success) {
+        setHistoryOtpSent(true);
+        setHistoryCountdown(45);
+        if (result.devOtp) {
+          setHistoryOtp(result.devOtp);
+        }
+      } else {
+        setHistoryError(result.error || 'Failed to send WhatsApp OTP.');
+      }
+    } catch (err) {
+      setHistoryError('Network error while requesting WhatsApp OTP.');
+    } finally {
+      setHistorySendingOtp(false);
+    }
+  };
+
+  const handleVerifyHistoryOtp = async (e) => {
+    if (e) e.preventDefault();
+    const cleanDigits = historyPhone.replace(/\D/g, '').slice(-10);
+    const cleanOtp = historyOtp.trim();
+    if (!cleanOtp || cleanOtp.length < 4) {
+      setHistoryError('Please enter the 6-digit OTP received on WhatsApp.');
+      return;
+    }
+    setHistoryVerifyingOtp(true);
+    setHistoryError('');
+    try {
+      const res = await fetch(`/api/v1/invoices/${slug}/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanDigits, otp: cleanOtp })
+      });
+      const result = await res.json();
+      if (result.success) {
+        localStorage.setItem('customerPhone', cleanDigits);
+        localStorage.setItem('customer_auth_time', Date.now().toString());
+        if (result.customerSessionToken) {
+          localStorage.setItem('customer_session_token', result.customerSessionToken);
+        }
+        if (result.token) {
+          localStorage.setItem(`inv_auth_${slug}`, result.token);
+        }
+        setData(prev => ({
+          ...prev,
+          ...(result.data || {}),
+          isCustomerLoggedIn: true,
+          history: result.data?.history || prev?.history || []
+        }));
+        setShowHistoryLoginModal(false);
+      } else {
+        setHistoryError(result.error || 'Invalid OTP code.');
+      }
+    } catch (err) {
+      setHistoryError('Network error while verifying OTP.');
+    } finally {
+      setHistoryVerifyingOtp(false);
+    }
+  };
 
   // OTP Countdown timer
   useEffect(() => {
@@ -137,6 +302,17 @@ export default function BillReceipt() {
           } else {
             setData(result.data);
             setIsLocked(false);
+            if (result.data?.customerProfile) {
+              setProfileForm({
+                name: result.data.customerProfile.name || '',
+                email: result.data.customerProfile.email || '',
+                dob: result.data.customerProfile.dob ? result.data.customerProfile.dob.split('T')[0] : '',
+                anniversary_date: result.data.customerProfile.anniversary_date ? result.data.customerProfile.anniversary_date.split('T')[0] : '',
+                gender: result.data.customerProfile.gender || 'm',
+                city: result.data.customerProfile.city || '',
+                pincode: result.data.customerProfile.pincode || ''
+              });
+            }
           }
         } else {
           setError(result.error || 'Invoice not found');
@@ -412,37 +588,150 @@ export default function BillReceipt() {
     } catch (e) {}
   };
 
-  const handleRatingSubmit = async (rating) => {
+  // Customer Surveys: Star Selection, Tag Toggling & Submission Handlers
+  const handleSelectStar = (rating) => {
     setStarRating(rating);
-    setFeedbackSent(true);
+    setSurveyExpanded(true);
+    // Set intuitive default NPS based on star rating
+    if (surveyNps === null) {
+      setSurveyNps(rating === 5 ? 10 : (rating === 4 ? 9 : (rating === 3 ? 7 : (rating === 2 ? 4 : 2))));
+    }
+  };
+
+  const handleToggleSurveyTag = (tag) => {
+    setSurveyTags(prev => 
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const handleSubmitSurvey = async (e) => {
+    if (e) e.preventDefault();
+    if (!starRating) return;
+
+    setSubmittingSurvey(true);
     try {
-      await fetch('/api/v1/invoices/public/feedback', {
+      const res = await fetch('/api/v1/invoices/public/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shortId: slug,
+          rating: starRating,
+          npsScore: surveyNps,
+          surveyTags: surveyTags,
+          comment: surveyComment,
+          routedToGoogle: starRating >= 4
+        })
+      });
+
+      const resData = await res.json();
+      if (resData.success) {
+        setSurveySubmitted(true);
+        setSurveyExpanded(false);
+        setSurveyFeedbackResult(resData);
+
+        // Credit customer loyalty points immediately in state
+        if (resData.pointsAwarded > 0) {
+          setData(prev => ({
+            ...prev,
+            loyalty: {
+              ...prev?.loyalty,
+              balance: (prev?.loyalty?.balance || 0) + resData.pointsAwarded
+            }
+          }));
+        }
+
+        // Persist survey completion in localStorage
+        try {
+          localStorage.setItem(`rn_survey_completed_${slug}`, JSON.stringify({
+            rating: starRating,
+            nps: surveyNps,
+            tags: surveyTags,
+            pointsAwarded: resData.pointsAwarded || 25,
+            submittedAt: new Date().toISOString()
+          }));
+        } catch (e) {}
+
+        // If 4-5 Stars (Promoter) and merchant has Google Review configured, prompt Google Review
+        if (starRating >= 4) {
+          const firmName = data?.tenantProfile?.store_name || data?.receiptData?.StoreName || data?.receiptData?.storeName || '';
+          const firmAddress = data?.tenantProfile?.store_address || data?.receiptData?.StoreAddress || '';
+          const targetUrl = resolveGoogleReviewUrl(
+            data?.tenantProfile?.google_review_url,
+            data?.tenantProfile?.google_place_id,
+            firmName,
+            firmAddress
+          );
+          if (targetUrl && targetUrl !== '#') {
+            setTimeout(() => {
+              handleTrackAndOpen('google_review_click', targetUrl, 'star_rating_prompt');
+            }, 600);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Survey submission error:', err);
+    } finally {
+      setSubmittingSurvey(false);
+    }
+  };
+
+  const handleQuickStarSubmit = async (rating) => {
+    setStarRating(rating);
+    setSubmittingSurvey(true);
+    try {
+      const res = await fetch('/api/v1/invoices/public/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           shortId: slug,
           rating,
-          comment: ''
+          npsScore: rating === 5 ? 10 : (rating === 4 ? 9 : 6),
+          surveyTags: [],
+          comment: '',
+          routedToGoogle: rating >= 4
         })
       });
-    } catch (err) {
-      console.error('Feedback submission error:', err);
-    }
+      const resData = await res.json();
+      if (resData.success) {
+        setSurveySubmitted(true);
+        setSurveyFeedbackResult(resData);
+        if (resData.pointsAwarded > 0) {
+          setData(prev => ({
+            ...prev,
+            loyalty: {
+              ...prev?.loyalty,
+              balance: (prev?.loyalty?.balance || 0) + resData.pointsAwarded
+            }
+          }));
+        }
+        try {
+          localStorage.setItem(`rn_survey_completed_${slug}`, JSON.stringify({
+            rating,
+            pointsAwarded: resData.pointsAwarded || 25,
+            submittedAt: new Date().toISOString()
+          }));
+        } catch (e) {}
 
-    // Direct Google Review Write Dialog URL (Supports Place ID, Google share link, or review URL)
-    const firmName = data?.tenantProfile?.store_name || data?.receiptData?.StoreName || data?.receiptData?.storeName || '';
-    const firmAddress = data?.tenantProfile?.store_address || data?.receiptData?.StoreAddress || '';
-    const targetUrl = resolveGoogleReviewUrl(
-      data?.tenantProfile?.google_review_url,
-      data?.tenantProfile?.google_place_id,
-      firmName,
-      firmAddress
-    );
-    
-    if (targetUrl && targetUrl !== '#') {
-      setTimeout(() => {
-        handleTrackAndOpen('google_review_click', targetUrl, 'star_rating_prompt');
-      }, 350);
+        if (rating >= 4) {
+          const firmName = data?.tenantProfile?.store_name || data?.receiptData?.StoreName || data?.receiptData?.storeName || '';
+          const firmAddress = data?.tenantProfile?.store_address || data?.receiptData?.StoreAddress || '';
+          const targetUrl = resolveGoogleReviewUrl(
+            data?.tenantProfile?.google_review_url,
+            data?.tenantProfile?.google_place_id,
+            firmName,
+            firmAddress
+          );
+          if (targetUrl && targetUrl !== '#') {
+            setTimeout(() => {
+              handleTrackAndOpen('google_review_click', targetUrl, 'star_rating_prompt');
+            }, 400);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Quick rating submission error:', err);
+    } finally {
+      setSubmittingSurvey(false);
     }
   };
 
@@ -808,21 +1097,11 @@ export default function BillReceipt() {
 
           {/* Footer */}
           <footer style={{ textAlign: 'center', paddingBottom: '32px', paddingTop: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>
-              <span>Powered by</span>
-              <a 
-                href="https://retailnode.in" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: '700', color: '#0f172a', textDecoration: 'none' }}
-              >
-                <img 
-                  src="https://retailnode.in/logo.svg" 
-                  alt="RetailNode Logo" 
-                  style={{ width: '18px', height: '18px', display: 'inline-block' }} 
-                />
-                <span>RetailNode</span>
-              </a>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '8px' }}>
+              <RetailNodeLogo size="sm" to="/my-bills" />
+              <p style={{ fontSize: '11px', color: '#64748b', margin: '2px 0 0', fontWeight: '500' }}>
+                Instant Digital Invoicing &amp; Customer Loyalty Cloud
+              </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', fontSize: '11px', color: '#94a3b8' }}>
               <Link to="/privacy-policy" style={{ color: '#64748b', textDecoration: 'underline' }}>Privacy Policy</Link>
@@ -950,7 +1229,7 @@ export default function BillReceipt() {
                 style={{ height: '42px', width: '42px', borderRadius: '50%', objectFit: 'contain', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }} 
               />
             ) : (
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#0f766e', color: '#ffffff', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', boxShadow: '0 2px 6px rgba(15, 118, 110, 0.2)' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#2563eb', color: '#ffffff', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', boxShadow: '0 2px 6px rgba(37, 99, 235, 0.25)' }}>
                 {storeName.charAt(0)}
               </div>
             )}
@@ -963,17 +1242,514 @@ export default function BillReceipt() {
               </p>
             </div>
           </div>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#0f766e', backgroundColor: '#ccfbf1', border: '1px solid #99f6e4', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>
-            <ShieldCheck style={{ width: '13px', height: '13px' }} /> Verified
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#166534', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>
+            <ShieldCheck style={{ width: '13px', height: '13px' }} /> Verified Store
           </span>
         </header>
 
         {/* ========================================================= */}
-        {/* 2. GOOGLE REVIEW CARD: Golden Wave + 5 Stars + Google Logo */}
+        {/* NAVIGATION TABS: Digital Receipt vs Update My Profile     */}
         {/* ========================================================= */}
-        <div style={{ backgroundColor: '#ffffff', borderRadius: '18px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', overflow: 'hidden', marginBottom: '14px' }}>
+        <div style={{
+          display: 'flex',
+          backgroundColor: '#ffffff',
+          padding: '4px',
+          borderRadius: '14px',
+          marginBottom: '14px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+          gap: '4px'
+        }}>
+          <button
+            type="button"
+            onClick={() => setActiveReceiptTab('receipt')}
+            style={{
+              flex: 1,
+              padding: '9px 12px',
+              borderRadius: '10px',
+              border: 'none',
+              fontWeight: '800',
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+              backgroundColor: activeReceiptTab === 'receipt' ? '#2563eb' : 'transparent',
+              color: activeReceiptTab === 'receipt' ? '#ffffff' : '#64748b',
+              boxShadow: activeReceiptTab === 'receipt' ? '0 4px 12px rgba(37, 99, 235, 0.25)' : 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <FileText style={{ width: '15px', height: '15px' }} />
+            <span>Digital Receipt</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveReceiptTab('profile')}
+            style={{
+              flex: 1,
+              padding: '9px 12px',
+              borderRadius: '10px',
+              border: 'none',
+              fontWeight: '800',
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+              backgroundColor: activeReceiptTab === 'profile' ? '#2563eb' : 'transparent',
+              color: activeReceiptTab === 'profile' ? '#ffffff' : '#64748b',
+              boxShadow: activeReceiptTab === 'profile' ? '0 4px 12px rgba(37, 99, 235, 0.25)' : 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <User style={{ width: '15px', height: '15px' }} />
+            <span>Update Profile</span>
+            <span style={{
+              fontSize: '0.65rem',
+              backgroundColor: activeReceiptTab === 'profile' ? '#ffffff' : '#eff6ff',
+              color: '#2563eb',
+              border: '1px solid',
+              borderColor: activeReceiptTab === 'profile' ? 'transparent' : '#bfdbfe',
+              borderRadius: '6px',
+              padding: '1px 5px',
+              fontWeight: '900'
+            }}>
+              +50 Pts
+            </span>
+          </button>
+        </div>
+
+        {/* CUSTOMER PROFILE TAB VIEW */}
+        {activeReceiptTab === 'profile' && (
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '18px',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
+            border: '1px solid #e2e8f0',
+            padding: '22px 18px',
+            marginBottom: '16px'
+          }}>
+            {/* Reward Bonus Header Banner */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px 14px',
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+              border: '1px solid #bfdbfe',
+              marginBottom: '18px'
+            }}>
+              <div style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '10px',
+                backgroundColor: '#2563eb',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxShadow: '0 4px 8px rgba(37, 99, 235, 0.25)'
+              }}>
+                <Sparkles style={{ width: '18px', height: '18px' }} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '0.88rem', fontWeight: '800', color: '#1e3a8a' }}>
+                  Complete Profile &amp; Earn +50 Points
+                </h3>
+                <p style={{ margin: '2px 0 0', fontSize: '0.74rem', color: '#1d4ed8' }}>
+                  Get birthday vouchers, anniversary gifts, and instant loyalty reward credits!
+                </p>
+              </div>
+            </div>
+
+            {profileSuccessMsg && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 14px',
+                backgroundColor: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                borderRadius: '10px',
+                color: '#1e40af',
+                fontSize: '0.82rem',
+                fontWeight: '700',
+                marginBottom: '14px'
+              }}>
+                <CheckCircle2 style={{ width: '16px', height: '16px', color: '#2563eb', flexShrink: 0 }} />
+                <span>{profileSuccessMsg}</span>
+              </div>
+            )}
+
+            {profileErrorMsg && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 14px',
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fee2e2',
+                borderRadius: '10px',
+                color: '#dc2626',
+                fontSize: '0.82rem',
+                marginBottom: '14px'
+              }}>
+                <AlertCircle style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                <span>{profileErrorMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateProfile}>
+              {/* Full Name */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  Full Name
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <User style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#94a3b8' }} />
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Rahul Sharma"
+                    value={profileForm.name}
+                    onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px 10px 36px',
+                      borderRadius: '10px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#0f172a',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Registered Mobile Phone (Verified Badge) */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  Registered Mobile Number
+                </label>
+                <div style={{
+                  padding: '10px 14px',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxSizing: 'border-box'
+                }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#0f172a' }}>
+                    🇮🇳 +91 {receipt.CustomerPhone || data.customerPhone || 'Verified'}
+                  </span>
+                  <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <ShieldCheck style={{ width: '14px', height: '14px' }} />
+                    Verified
+                  </span>
+                </div>
+              </div>
+
+              {/* Email Address */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  Email Address (For Invoices &amp; Offers)
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <Mail style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#94a3b8' }} />
+                  <input
+                    type="email"
+                    placeholder="e.g. yourname@gmail.com"
+                    value={profileForm.email}
+                    onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px 10px 36px',
+                      borderRadius: '10px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#0f172a',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* DOB & Anniversary Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                    Birthday (DOB) 🎂
+                  </label>
+                  <input
+                    type="date"
+                    value={profileForm.dob}
+                    onChange={(e) => setProfileForm({ ...profileForm, dob: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 10px',
+                      borderRadius: '10px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.85rem',
+                      fontWeight: '600',
+                      color: '#0f172a',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                    Anniversary 💍
+                  </label>
+                  <input
+                    type="date"
+                    value={profileForm.anniversary_date}
+                    onChange={(e) => setProfileForm({ ...profileForm, anniversary_date: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 10px',
+                      borderRadius: '10px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.85rem',
+                      fontWeight: '600',
+                      color: '#0f172a',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Gender */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  Gender
+                </label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  {['m', 'f', 'o'].map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setProfileForm({ ...profileForm, gender: g })}
+                      style={{
+                        flex: 1,
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid',
+                        borderColor: profileForm.gender === g ? '#2563eb' : '#cbd5e1',
+                        backgroundColor: profileForm.gender === g ? '#eff6ff' : '#ffffff',
+                        color: profileForm.gender === g ? '#1d4ed8' : '#475569',
+                        fontWeight: '700',
+                        fontSize: '0.82rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {g === 'm' && 'Male'}
+                      {g === 'f' && 'Female'}
+                      {g === 'o' && 'Other'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* City & Pincode Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Pune"
+                    value={profileForm.city}
+                    onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.85rem',
+                      fontWeight: '600',
+                      color: '#0f172a',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                    Pincode
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    placeholder="e.g. 411001"
+                    value={profileForm.pincode}
+                    onChange={(e) => setProfileForm({ ...profileForm, pincode: e.target.value.replace(/\D/g, '') })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.85rem',
+                      fontWeight: '600',
+                      color: '#0f172a',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Submit Button in RetailNode Blue */}
+              <button
+                type="submit"
+                disabled={savingProfile}
+                style={{
+                  width: '100%',
+                  padding: '14px 20px',
+                  borderRadius: '12px',
+                  backgroundColor: '#2563eb',
+                  color: '#ffffff',
+                  fontWeight: '800',
+                  fontSize: '0.95rem',
+                  border: 'none',
+                  cursor: savingProfile ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
+                  transition: 'background-color 0.15s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+              >
+                {savingProfile ? (
+                  <span>Saving Profile...</span>
+                ) : (
+                  <>
+                    <Save style={{ width: '18px', height: '18px' }} />
+                    <span>Save Profile &amp; Claim +50 Points ✨</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Quick Actions inside Profile */}
+            <div style={{ marginTop: '18px', paddingTop: '16px', borderTop: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <a
+                href={`/api/v1/invoices/${slug}/pdf`}
+                download
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '10px 16px',
+                  borderRadius: '10px',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  color: '#0f172a',
+                  fontWeight: '700',
+                  fontSize: '0.82rem',
+                  textDecoration: 'none'
+                }}
+              >
+                <Download style={{ width: '15px', height: '15px', color: '#2563eb' }} />
+                <span>Download Official Tax Invoice (PDF)</span>
+              </a>
+
+              <Link
+                to={`/my-bills?phone=${receipt.CustomerPhone || data.customerPhone || ''}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '10px 16px',
+                  borderRadius: '10px',
+                  backgroundColor: '#eff6ff',
+                  border: '1px solid #bfdbfe',
+                  color: '#1d4ed8',
+                  fontWeight: '700',
+                  fontSize: '0.82rem',
+                  textDecoration: 'none'
+                }}
+              >
+                <FileText style={{ width: '15px', height: '15px' }} />
+                <span>View All My Digital Bills</span>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* RECEIPT TAB VIEW: Digital Invoice, Reviews & Points       */}
+        {/* ========================================================= */}
+        {activeReceiptTab === 'receipt' && (
+          <>
+            {/* Quick Profile Completion Callout */}
+            <div 
+              onClick={() => setActiveReceiptTab('profile')}
+              style={{
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 14px',
+                borderRadius: '14px',
+                background: 'linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%)',
+                border: '1px solid #c7d2fe',
+                marginBottom: '14px',
+                boxShadow: '0 2px 6px rgba(79, 70, 229, 0.08)',
+                transition: 'transform 0.15s ease'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1.25rem' }}>🎁</span>
+                <div>
+                  <div style={{ fontSize: '0.8rem', fontWeight: '800', color: '#1e1b4b' }}>
+                    Unlock +50 Bonus Loyalty Points!
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#4338ca', fontWeight: '500' }}>
+                    Update your profile for birthday &amp; anniversary rewards
+                  </div>
+                </div>
+              </div>
+              <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#2563eb', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                Update <ArrowRight style={{ width: '13px', height: '13px' }} />
+              </span>
+            </div>
+
+        {/* ========================================================= */}
+        {/* 2. CUSTOMER SURVEY & FEEDBACK CARD: Embedded Post-Purchase */}
+        {/* ========================================================= */}
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '20px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+          border: '1px solid #fef08a',
+          overflow: 'hidden',
+          marginBottom: '16px',
+          background: 'linear-gradient(180deg, #fffdfa 0%, #ffffff 100%)'
+        }}>
           {/* Top Yellow Ribbon Waves */}
-          <div style={{ position: 'relative', width: '100%', height: '40px', overflow: 'hidden', backgroundColor: '#fffbeb' }}>
+          <div style={{ position: 'relative', width: '100%', height: '36px', overflow: 'hidden', backgroundColor: '#fffbeb' }}>
             <svg viewBox="0 0 500 80" preserveAspectRatio="none" style={{ width: '100%', height: '100%', display: 'block' }}>
               <path d="M0,45 C150,75 300,15 500,45 L500,0 L0,0 Z" fill="#fef08a" opacity="0.8" />
               <path d="M0,30 C130,60 290,5 500,32 L500,0 L0,0 Z" fill="#fde047" opacity="0.7" />
@@ -981,64 +1757,331 @@ export default function BillReceipt() {
             </svg>
           </div>
 
-          <div style={{ padding: '8px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-            <div style={{ flex: 1 }}>
-              <button 
-                type="button"
-                onClick={() => handleTrackAndOpen('google_review_click', googleReviewUrl, 'receipt_card_header')}
-                style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', display: 'block' }}
-              >
-                <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#d97706', margin: '0 0 10px', letterSpacing: '-0.01em' }}>
-                  Rate Your Experience with us
+          <div style={{ padding: '4px 18px 18px' }}>
+            {/* Header Badge & Title */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '10px' }}>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '3px 8px', borderRadius: '6px', backgroundColor: '#fef3c7', color: '#92400e', fontSize: '0.68rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>
+                  <Sparkles style={{ width: '12px', height: '12px', color: '#d97706' }} />
+                  <span>Customer Experience Survey</span>
+                </div>
+                <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#1e293b', margin: 0, letterSpacing: '-0.01em' }}>
+                  How was your shopping experience?
                 </h3>
-              </button>
-              
-              {(feedbackSent || engagementActionDone.googleReview) ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontWeight: '700', fontSize: '13px' }}>
-                  <CheckCircle2 style={{ width: '16px', height: '16px' }} />
-                  <span>Thank you for your review!</span>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => handleRatingSubmit(star)}
-                      onMouseEnter={() => setHoverRating(star)}
-                      onMouseLeave={() => setHoverRating(0)}
-                      style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', transition: 'transform 0.1s' }}
-                      aria-label={`Rate ${star} stars`}
-                    >
-                      <Star
-                        style={{
-                          width: '28px',
-                          height: '28px',
-                          color: (hoverRating || starRating) >= star ? '#f59e0b' : '#cbd5e1',
-                          fill: (hoverRating || starRating) >= star ? '#f59e0b' : '#e2e8f0',
-                          transition: 'color 0.2s, fill 0.2s'
-                        }}
-                      />
-                    </button>
-                  ))}
-                </div>
+                <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+                  Rate your visit to <strong>{storeName}</strong> &amp; earn <strong>+25 Loyalty Points</strong>
+                </p>
+              </div>
+
+              {/* Official Google Icon Header Shortcut */}
+              {googleReviewUrl && (
+                <button
+                  type="button"
+                  onClick={() => handleTrackAndOpen('google_review_click', googleReviewUrl, 'survey_header_icon')}
+                  title="Direct Google Review"
+                  style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', flexShrink: 0 }}
+                >
+                  <svg viewBox="0 0 48 48" style={{ width: '36px', height: '36px', display: 'block' }}>
+                    <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
+                    <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
+                    <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.91l7.35-5.73z"/>
+                    <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
+                  </svg>
+                </button>
               )}
             </div>
 
-            {/* Official Google 4-Color "G" Icon */}
-            <button
-              type="button"
-              onClick={() => handleTrackAndOpen('google_review_click', googleReviewUrl, 'receipt_card_icon')}
-              title="Leave a Google Review"
-              style={{ background: 'none', border: 'none', flexShrink: 0, padding: '4px', display: 'block', cursor: 'pointer', transition: 'transform 0.2s' }}
-            >
-              <svg viewBox="0 0 48 48" style={{ width: '46px', height: '46px', display: 'block' }}>
-                <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
-                <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
-                <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.91l7.35-5.73z"/>
-                <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
-              </svg>
-            </button>
+            {/* STATE 1: SURVEY ALREADY COMPLETED */}
+            {surveySubmitted ? (
+              <div style={{ marginTop: '8px' }}>
+                {starRating >= 4 ? (
+                  // Promoter Celebration Card
+                  <div style={{ backgroundColor: '#f0fdf4', borderRadius: '14px', border: '1px solid #bbf7d0', padding: '14px 16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#166534', fontWeight: '800', fontSize: '0.9rem', marginBottom: '4px' }}>
+                      <CheckCircle2 style={{ width: '20px', height: '20px', color: '#16a34a' }} />
+                      <span>Thank you for your {starRating}★ Review! 🎉</span>
+                    </div>
+                    <p style={{ margin: '0 0 10px', fontSize: '0.78rem', color: '#15803d', lineHeight: 1.4 }}>
+                      Your positive feedback helps our team grow. <strong>+25 Loyalty Points</strong> have been added to your reward balance!
+                    </p>
+
+                    {googleReviewUrl && (
+                      <div style={{ paddingTop: '10px', borderTop: '1px dashed #86efac' }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#166534', marginBottom: '8px' }}>
+                          Help local shoppers find {storeName} on Google:
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleTrackAndOpen('google_review_click', googleReviewUrl, 'survey_completed_nudge')}
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            padding: '10px 14px',
+                            borderRadius: '10px',
+                            backgroundColor: '#ffffff',
+                            color: '#1e293b',
+                            fontWeight: '700',
+                            fontSize: '0.82rem',
+                            border: '1px solid #cbd5e1',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <svg viewBox="0 0 48 48" style={{ width: '18px', height: '18px' }}>
+                            <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
+                            <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
+                            <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.91l7.35-5.73z"/>
+                            <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
+                          </svg>
+                          <span>Share on Google Reviews</span>
+                          <ExternalLink style={{ width: '13px', height: '13px', color: '#64748b' }} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  // Private Complaint / Service Recovery Card
+                  <div style={{ backgroundColor: '#fffbeb', borderRadius: '14px', border: '1px solid #fde68a', padding: '14px 16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#92400e', fontWeight: '800', fontSize: '0.88rem', marginBottom: '4px' }}>
+                      <Heart style={{ width: '18px', height: '18px', color: '#d97706', fill: '#d97706' }} />
+                      <span>Thank you for your valuable feedback 🙏</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.78rem', color: '#78350f', lineHeight: 1.45 }}>
+                      We sincerely apologize that your visit was not 100% satisfactory. Your comments have been privately escalated to the store manager. We are committed to making your next visit seamless.
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* STATE 2: ACTIVE SURVEY FORM */
+              <div>
+                {/* 5-Star Tactile Selector */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', margin: '10px 0 6px', padding: '8px 12px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {[1, 2, 3, 4, 5].map((star) => {
+                      const active = (hoverRating || starRating) >= star;
+                      return (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => handleSelectStar(star)}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: '2px',
+                            cursor: 'pointer',
+                            transform: active ? 'scale(1.15)' : 'scale(1)',
+                            transition: 'transform 0.15s ease'
+                          }}
+                          aria-label={`Rate ${star} stars`}
+                        >
+                          <Star
+                            style={{
+                              width: '30px',
+                              height: '30px',
+                              color: active ? '#f59e0b' : '#cbd5e1',
+                              fill: active ? '#f59e0b' : '#f1f5f9',
+                              transition: 'color 0.15s, fill 0.15s'
+                            }}
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Emotion Indicator Pill */}
+                  <div style={{
+                    fontSize: '0.78rem',
+                    fontWeight: '800',
+                    color: (starRating || hoverRating) ? (
+                      (starRating || hoverRating) >= 4 ? '#059669' : ((starRating || hoverRating) === 3 ? '#d97706' : '#dc2626')
+                    ) : '#94a3b8'
+                  }}>
+                    {hoverRating === 5 || starRating === 5 ? '🤩 Excellent!' :
+                     hoverRating === 4 || starRating === 4 ? '😊 Very Good' :
+                     hoverRating === 3 || starRating === 3 ? '🙂 Average' :
+                     hoverRating === 2 || starRating === 2 ? '😐 Fair' :
+                     hoverRating === 1 || starRating === 1 ? '😞 Poor' : 'Select Stars'}
+                  </div>
+                </div>
+
+                {/* EXPANDED EMBEDDED SURVEY FORM */}
+                {surveyExpanded && (
+                  <form onSubmit={handleSubmitSurvey} style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    
+                    {/* Aspect Chips (Promoter vs Detractor) */}
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.74rem', fontWeight: '800', color: '#334155', textTransform: 'uppercase', marginBottom: '6px' }}>
+                        {starRating >= 4 ? 'What did you love most?' : 'What can we improve?'}
+                      </span>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {(starRating >= 4 ? [
+                          '⚡ Fast Billing & Checkout',
+                          '👔 Courteous & Helpful Staff',
+                          '✨ Wide Product Variety',
+                          '🏷️ Great Value & Offers',
+                          '🧹 Clean & Organized Store',
+                          '🎁 Beautiful Gift Packaging'
+                        ] : [
+                          '⏳ Slow Billing / Long Wait',
+                          '😐 Staff Demeanor',
+                          '📦 Desired Item Out of Stock',
+                          '💰 Pricing or Discount Issue',
+                          '🏬 Store Crowded / Hard to Find',
+                          '💳 Payment / Machine Lag'
+                        ]).map((tag) => {
+                          const isSelected = surveyTags.includes(tag);
+                          return (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => handleToggleSurveyTag(tag)}
+                              style={{
+                                padding: '5px 10px',
+                                borderRadius: '20px',
+                                fontSize: '0.72rem',
+                                fontWeight: isSelected ? '700' : '500',
+                                border: isSelected ? '1px solid #2563eb' : '1px solid #e2e8f0',
+                                backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
+                                color: isSelected ? '#1d4ed8' : '#475569',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              {tag}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Net Promoter Score (NPS 0 - 10) */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                        <span style={{ fontSize: '0.74rem', fontWeight: '800', color: '#334155', textTransform: 'uppercase' }}>
+                          Recommend to Friends &amp; Family?
+                        </span>
+                        <span style={{ fontSize: '0.72rem', fontWeight: '700', color: surveyNps >= 9 ? '#059669' : (surveyNps >= 7 ? '#d97706' : '#dc2626') }}>
+                          {surveyNps !== null ? (
+                            surveyNps >= 9 ? `Score: ${surveyNps}/10 (Promoter)` : (surveyNps >= 7 ? `Score: ${surveyNps}/10 (Neutral)` : `Score: ${surveyNps}/10`)
+                          ) : 'Rate 0 to 10'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '3px', justifyContent: 'space-between' }}>
+                        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
+                          const isSelected = surveyNps === num;
+                          let activeBg = '#2563eb';
+                          if (num >= 9) activeBg = '#10b981';
+                          else if (num >= 7) activeBg = '#f59e0b';
+                          else activeBg = '#ef4444';
+
+                          return (
+                            <button
+                              key={num}
+                              type="button"
+                              onClick={() => setSurveyNps(num)}
+                              style={{
+                                flex: 1,
+                                padding: '6px 0',
+                                borderRadius: '6px',
+                                border: isSelected ? `2px solid ${activeBg}` : '1px solid #e2e8f0',
+                                backgroundColor: isSelected ? activeBg : '#ffffff',
+                                color: isSelected ? '#ffffff' : '#334155',
+                                fontWeight: '700',
+                                fontSize: '0.72rem',
+                                cursor: 'pointer',
+                                transition: 'all 0.1s ease'
+                              }}
+                            >
+                              {num}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Comments Textarea */}
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.74rem', fontWeight: '800', color: '#334155', textTransform: 'uppercase', marginBottom: '5px' }}>
+                        Customer Remarks (Optional)
+                      </span>
+                      <textarea
+                        rows={2}
+                        value={surveyComment}
+                        onChange={(e) => setSurveyComment(e.target.value)}
+                        placeholder={starRating >= 4 ? "Tell us what made your visit special..." : "Please let us know how we can make it right..."}
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          border: '1px solid #cbd5e1',
+                          fontSize: '0.8rem',
+                          fontFamily: 'inherit',
+                          boxSizing: 'border-box',
+                          resize: 'vertical'
+                        }}
+                      />
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <button
+                        type="submit"
+                        disabled={submittingSurvey}
+                        style={{
+                          flex: 1,
+                          padding: '11px 16px',
+                          borderRadius: '10px',
+                          backgroundColor: '#2563eb',
+                          color: '#ffffff',
+                          fontWeight: '800',
+                          fontSize: '0.84rem',
+                          border: 'none',
+                          cursor: submittingSurvey ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          boxShadow: '0 2px 6px rgba(37,99,235,0.25)'
+                        }}
+                      >
+                        {submittingSurvey ? (
+                          <span>Submitting Survey...</span>
+                        ) : (
+                          <>
+                            <Gift style={{ width: '15px', height: '15px' }} />
+                            <span>Submit Survey &amp; Claim +25 Points</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleQuickStarSubmit(starRating)}
+                        style={{
+                          padding: '11px 12px',
+                          borderRadius: '10px',
+                          backgroundColor: '#f1f5f9',
+                          color: '#475569',
+                          fontWeight: '600',
+                          fontSize: '0.78rem',
+                          border: 'none',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        Skip
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -1460,15 +2503,15 @@ export default function BillReceipt() {
         {/* ========================================================= */}
         {/* 7. PURCHASE & BILL HISTORY                                */}
         {/* ========================================================= */}
-        {data.history && data.history.length > 0 && (
+        {data.isCustomerLoggedIn && data.history && data.history.length > 0 ? (
           <div style={{ backgroundColor: '#ffffff', borderRadius: '18px', padding: '18px 20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', marginBottom: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '800', color: '#0f172a' }}>
                 <Clock style={{ width: '15px', height: '15px', color: '#0f766e' }} />
                 <span>Purchase History</span>
               </div>
-              <span style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', backgroundColor: '#f1f5f9', padding: '3px 8px', borderRadius: '12px' }}>
-                {data.history.length} Previous Bills
+              <span style={{ fontSize: '10px', fontWeight: '700', color: '#0f766e', backgroundColor: '#ccfbf1', padding: '3px 8px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <CheckCircle2 style={{ width: '10px', height: '10px' }} /> {data.history.length} Previous Bills
               </span>
             </div>
 
@@ -1510,27 +2553,61 @@ export default function BillReceipt() {
               ))}
             </div>
           </div>
+        ) : !data.isCustomerLoggedIn ? (
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '18px', padding: '18px 20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '800', color: '#0f172a' }}>
+                <Clock style={{ width: '15px', height: '15px', color: '#0f766e' }} />
+                <span>Purchase History</span>
+              </div>
+              <span style={{ fontSize: '10px', fontWeight: '800', color: '#b45309', backgroundColor: '#fef3c7', padding: '3px 8px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Lock style={{ width: '10px', height: '10px' }} /> Login to View
+              </span>
+            </div>
+            <p style={{ margin: '0 0 14px', fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
+              Previous bills and lifetime purchase receipts are protected for recipient privacy. Verify your mobile number with a quick OTP to access all your previous bills.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setShowHistoryLoginModal(true);
+                setHistoryError('');
+              }}
+              style={{
+                width: '100%',
+                padding: '11px 16px',
+                borderRadius: '10px',
+                backgroundColor: '#0f766e',
+                color: '#ffffff',
+                fontWeight: '700',
+                fontSize: '13px',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 2px 6px rgba(15, 118, 110, 0.25)',
+                transition: 'transform 0.1s'
+              }}
+            >
+              <Lock style={{ width: '14px', height: '14px' }} />
+              <span>Verify Mobile to View Previous Bills</span>
+            </button>
+          </div>
+        ) : null}
+        </>
         )}
 
         {/* ========================================================= */}
-        {/* FOOTER                                                    */}
+        {/* FOOTER: Official RetailNode Branding                      */}
         {/* ========================================================= */}
-        <footer style={{ textAlign: 'center', paddingBottom: '32px', paddingTop: '6px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>
-            <span>Powered by</span>
-            <a 
-              href="https://retailnode.in" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: '700', color: '#0f172a', textDecoration: 'none' }}
-            >
-              <img 
-                src="https://retailnode.in/logo.svg" 
-                alt="RetailNode Logo" 
-                style={{ width: '18px', height: '18px', display: 'inline-block' }} 
-              />
-              <span>RetailNode</span>
-            </a>
+        <footer style={{ textAlign: 'center', paddingBottom: '32px', paddingTop: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '8px' }}>
+            <RetailNodeLogo size="sm" to="/my-bills" />
+            <p style={{ fontSize: '11px', color: '#64748b', margin: '2px 0 0', fontWeight: '500' }}>
+              Instant Digital Invoicing &amp; Customer Loyalty Cloud
+            </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', fontSize: '11px', color: '#94a3b8' }}>
             <Link to="/privacy-policy" style={{ color: '#64748b', textDecoration: 'underline' }}>Privacy Policy</Link>
@@ -1871,6 +2948,288 @@ export default function BillReceipt() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* VERIFY MOBILE / CUSTOMER LOGIN MODAL                      */}
+      {/* ========================================================= */}
+      {showHistoryLoginModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+            zIndex: 9999
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowHistoryLoginModal(false);
+            }
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '24px',
+              padding: '24px',
+              maxWidth: '420px',
+              width: '100%',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              position: 'relative',
+              animation: 'fadeInUp 0.2s ease-out'
+            }}
+          >
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setShowHistoryLoginModal(false)}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                backgroundColor: '#f1f5f9',
+                border: 'none',
+                color: '#64748b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'background-color 0.15s'
+              }}
+              title="Close"
+            >
+              <X style={{ width: '18px', height: '18px' }} />
+            </button>
+
+            {/* Header Icon & Title */}
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <div
+                style={{
+                  width: '52px',
+                  height: '52px',
+                  borderRadius: '16px',
+                  backgroundColor: '#ccfbf1',
+                  color: '#0f766e',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 12px',
+                  boxShadow: '0 4px 12px rgba(15, 118, 110, 0.15)'
+                }}
+              >
+                <ShieldCheck style={{ width: '28px', height: '28px' }} />
+              </div>
+              <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>
+                Verify Recipient Mobile
+              </h3>
+              <p style={{ margin: 0, fontSize: '13px', color: '#64748b', lineHeight: 1.5 }}>
+                For your privacy &amp; security, enter the 6-digit WhatsApp OTP to unlock your full bill history &amp; lifetime purchases.
+              </p>
+            </div>
+
+            {/* Error Message */}
+            {historyError && (
+              <div
+                style={{
+                  backgroundColor: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '12px',
+                  padding: '10px 14px',
+                  marginBottom: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  color: '#991b1b',
+                  fontSize: '12px',
+                  fontWeight: '600'
+                }}
+              >
+                <AlertCircle style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+                <span>{historyError}</span>
+              </div>
+            )}
+
+            {/* Form */}
+            <form
+              onSubmit={historyOtpSent ? handleVerifyHistoryOtp : handleSendHistoryOtp}
+              style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+            >
+              {/* Phone Input */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                  Registered Mobile Number
+                </label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: '12px',
+                      fontSize: '14px',
+                      fontWeight: '700',
+                      color: '#64748b'
+                    }}
+                  >
+                    +91
+                  </span>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
+                    placeholder="9876543210"
+                    value={historyPhone}
+                    onChange={(e) => setHistoryPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    disabled={historyOtpSent || historySendingOtp}
+                    style={{
+                      width: '100%',
+                      padding: '11px 12px 11px 48px',
+                      fontSize: '15px',
+                      fontWeight: '700',
+                      letterSpacing: '1px',
+                      color: '#0f172a',
+                      backgroundColor: historyOtpSent ? '#f8fafc' : '#ffffff',
+                      border: '1.5px solid #cbd5e1',
+                      borderRadius: '12px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  {historyOtpSent && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHistoryOtpSent(false);
+                        setHistoryOtp('');
+                        setHistoryError('');
+                      }}
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        background: 'none',
+                        border: 'none',
+                        color: '#0f766e',
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        padding: '4px 6px'
+                      }}
+                    >
+                      Change
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* OTP Input (Shown once sent) */}
+              {historyOtpSent && (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>
+                      6-Digit WhatsApp OTP
+                    </label>
+                    {historyCountdown > 0 ? (
+                      <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>
+                        Resend in {historyCountdown}s
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleSendHistoryOtp}
+                        disabled={historySendingOtp}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#0f766e',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                          padding: 0
+                        }}
+                      >
+                        Resend OTP
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder="• • • • • •"
+                    value={historyOtp}
+                    onChange={(e) => setHistoryOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    autoFocus
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      fontSize: '20px',
+                      fontWeight: '800',
+                      letterSpacing: '10px',
+                      textAlign: 'center',
+                      color: '#0f172a',
+                      backgroundColor: '#ffffff',
+                      border: '2px solid #0f766e',
+                      borderRadius: '12px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  <p style={{ margin: '6px 0 0', fontSize: '11px', color: '#64748b', textAlign: 'center' }}>
+                    Sent via WhatsApp message from RetailNode
+                  </p>
+                </div>
+              )}
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={historySendingOtp || historyVerifyingOtp}
+                style={{
+                  width: '100%',
+                  marginTop: '6px',
+                  padding: '13px',
+                  borderRadius: '12px',
+                  backgroundColor: '#0f766e',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  border: 'none',
+                  cursor: (historySendingOtp || historyVerifyingOtp) ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(15, 118, 110, 0.25)',
+                  opacity: (historySendingOtp || historyVerifyingOtp) ? 0.8 : 1,
+                  transition: 'background-color 0.15s'
+                }}
+              >
+                {historySendingOtp ? (
+                  <span>Sending WhatsApp OTP...</span>
+                ) : historyVerifyingOtp ? (
+                  <span>Verifying Code...</span>
+                ) : historyOtpSent ? (
+                  <>
+                    <span>Verify &amp; Unlock Bills</span>
+                    <ArrowRight style={{ width: '16px', height: '16px' }} />
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle style={{ width: '16px', height: '16px' }} />
+                    <span>Send WhatsApp OTP</span>
+                  </>
+                )}
+              </button>
+            </form>
           </div>
         </div>
       )}

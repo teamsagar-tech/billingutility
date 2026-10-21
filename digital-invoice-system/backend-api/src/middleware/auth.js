@@ -20,6 +20,7 @@ exports.requireAuth = (req, res, next) => {
     return res.status(401).json({ success: false, error: 'Invalid or expired token' });
   }
 };
+exports.verifyToken = exports.requireAuth;
 
 // Middleware for SaaS SuperAdmin Platform Controls
 exports.requireSuperAdmin = (req, res, next) => {
@@ -49,4 +50,37 @@ exports.requireApiToken = async (req, res, next) => {
     console.error('API Token Auth Error:', error);
     res.status(500).json({ success: false, error: 'Server error during authentication' });
   }
+};
+
+// Flexible Dual Middleware for POS Interceptors, ERPs and Web Dashboard
+exports.requireAuthOrApiToken = async (req, res, next) => {
+  const apiToken = req.header('X-API-Token') || req.header('x-api-token');
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+
+  if (apiToken) {
+    try {
+      const [rows] = await db.query('SELECT id, store_name FROM tenants WHERE api_token = ?', [apiToken]);
+      if (rows.length > 0) {
+        req.tenantId = rows[0].id;
+        req.user = { userId: null, tenantId: rows[0].id, role: 'merchant_admin' };
+        return next();
+      }
+    } catch (err) {
+      console.error('API Token Auth Error:', err);
+      return res.status(500).json({ success: false, error: 'Server error during API Token authentication' });
+    }
+  }
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      req.user = decoded;
+      req.tenantId = decoded.tenantId;
+      return next();
+    } catch (err) {
+      return res.status(401).json({ success: false, error: 'Invalid or expired token' });
+    }
+  }
+
+  return res.status(401).json({ success: false, error: 'Authentication required (provide Authorization Bearer token or X-API-Token header)' });
 };

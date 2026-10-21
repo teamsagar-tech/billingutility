@@ -7,7 +7,8 @@ export default function CustomerSubnav({ totalCustomers, totalProfiles, totalOpt
     { to: '/dashboard/profiles', label: '🧑 Demographic Profiles', count: totalProfiles },
     { to: '/dashboard/customer-journey', label: '🛣️ Customer Journey' },
     { to: '/dashboard/optout-customers', label: '🚫 Opt-out (DND)', count: totalOptouts },
-    { to: '/dashboard/segmentation', label: '📊 Smart Segmentation' }
+    { to: '/dashboard/segmentation', label: '📊 Smart Segmentation' },
+    { to: '/dashboard/segmentation/sku', label: '📦 SKU Products' }
   ];
 
   return (

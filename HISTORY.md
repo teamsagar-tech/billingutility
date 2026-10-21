@@ -6,9 +6,303 @@
 - **CTO Role**: Lead Enterprise SaaS Architect
 - **Repository**: `/Users/ratan/Developer/billintegration`
 
+## [2026-10-14] Architectural Blueprint: Omnichannel Customer Complaint & Grievance Desk Add-on ("RetailNode Care")
+- **Add-on Package Strategy**: Preserved complete technical blueprint and commercial architecture for the upcoming premium add-on module (*RetailNode Care*).
+- **Omnichannel Ingestion**: Detailed specifications for receipt-embedded complaint drawer (`/t/{shortId}#complaint`), WhatsApp 2-way conversational keyword bot (with photo/voice note webhook ingestion), and transactional email.
+- **Ticketing & SLA State Machine**: Ticket state model (`New` ➔ `Under Review` ➔ `Action Taken` ➔ `Escalated` ➔ `Resolved` ➔ `Closed`) with automated SLA countdowns and owner escalations.
+- **Automated Goodwill Retention Loop**: 1-click apology loyalty points, single-use dynamic apology vouchers, and post-resolution CSAT verification.
+- **Local Documentation**: Permanently saved to `.agents/plans/customer_complaint_engine_blueprint.md` for execution.
+
 ---
 
-## [2026-10-14] Strict Direct WABA Integration (waba.mpocket.in), Zero Graph API & Dynamic Shared Gateway Fallback
+## [2026-10-14] Embedded Customer Surveys & Experience Analytics, NPS Scoring, Category Aspect Tags & Smart Rating Routing
+
+### 1. Embedded Customer Surveys on Digital Receipts (`/t/{shortId}`)
+- **Embedded Post-Purchase Experience**: Delivered a full-fledged, embedded customer survey directly within the digital receipt (`BillReceipt.jsx`), replacing static rating prompts with an interactive 3-step feedback flow.
+- **Tactile 5-Star Emotion Indicator**: 5 interactive star selectors with instant emotional feedback pills (`🤩 Excellent!`, `😊 Very Good`, `🙂 Average`, `😐 Fair`, `😞 Poor`).
+- **Dynamic Aspect Tags**:
+  - **Promoters (4-5★)**: Aspect chips (`⚡ Fast Billing & Checkout`, `👔 Courteous & Helpful Staff`, `✨ Wide Product Variety`, `🏷️ Great Value & Offers`, `🧹 Clean & Organized Store`, `🎁 Beautiful Gift Packaging`).
+  - **Detractors (1-3★)**: Aspect chips (`⏳ Slow Billing / Long Wait`, `😐 Staff Demeanor`, `📦 Desired Item Out of Stock`, `💰 Pricing or Discount Mismatch`, `🏬 Store Crowded / Hard to Find`, `💳 Payment / Machine Lag`).
+- **Net Promoter Score (NPS 0-10 Scale)**: Integrated 0-10 recommendation buttons with dynamic color-coded feedback (`0-6 Detractor`, `7-8 Neutral`, `9-10 Promoter`).
+- **Customer Remarks Textarea**: Dynamic contextual placeholder encouraging detailed feedback.
+- **Shopper Reward Incentive**: Awards +25 bonus loyalty points (configurable per store) immediately credited to the customer's balance.
+- **Smart Routing & Review Protection**:
+  - **4-5★ Promoters**: Celebrates with a thank-you banner, loyalty point confirmation, and prominent 1-click Google Review nudge.
+  - **1-3★ Service Complaints**: Apologizes sincerely, confirms private escalation directly to store manager, and **strictly avoids Google Review redirection**.
+
+### 2. Merchant Customer Feedback & Survey Analytics Hub (`/dashboard/feedback`)
+- **Survey Metrics & KPIs**:
+  - Overall Star Rating (out of 5.0) with star visual.
+  - Net Promoter Score (NPS: `% Promoters - % Detractors`) with promoter/detractor counts.
+  - Total Surveys Collected and Promoter percentage.
+  - Private Service Recovery Queue count.
+- **Tabbed Experience**:
+  - `All Surveys & Feedback`
+  - `⚠️ Action Required (1-3★ Complaints)`
+  - `⭐ Happy Promoters (4-5★)`
+  - `⚙️ Survey Settings & Rewards`
+- **Resolution Workflow**: Dedicated modal for store managers to log resolution notes and dispatch 1-click WhatsApp apologies or direct phone calls to customers.
+- **Survey Settings Tab**: In-app toggling of embedded surveys, configurable survey reward points, and direct Google Review URL / Place ID configuration.
+
+### 3. Database Schema & Backend API Support
+- **`customer_feedback` Schema Migration**: Added `short_id`, `invoice_number`, `customer_name`, `nps_score`, `survey_tags`, `experience_aspects`, `routed_to_google`, `resolution_status`, `resolution_notes`, and `resolved_at`.
+- **`tenants` Schema Migration**: Added `survey_reward_points` (default 25) and `google_place_id`.
+- **Upgraded Controller (`feedbackController.js`)**:
+  - `POST /api/v1/invoices/public/feedback`: Ingests ratings, NPS scores, survey tags, comments, automatically credits loyalty points to `customers`, and invalidates Redis cache.
+  - `GET /api/v1/auth/feedback/responses`: Returns structured survey data with parsed JSON tags and aspect ratings.
+  - `PUT /api/v1/auth/feedback/responses/:id/resolution`: Updates resolution status and manager notes.
+  - `GET & PUT /api/v1/auth/feedback/settings`: Reads and updates survey controls.
+
+---
+
+## [2026-10-14] WhatsApp Full Template Catalog, Custom Template Creation Page & Campaign Hub Live Synchronization
+
+### 1. Exhaustive Template Catalog in WhatsApp Settings (`WhatsAppSettings.jsx`)
+- **Full Catalog Retrieval**: Updated `getTemplateStatuses` in `wabaController.js` to return all 53+ approved templates from `https://waba.mpocket.in/api/tenant/templates/retailnode-status` rather than a filtered slice.
+- **Enhanced Settings UI**: Added a dedicated **"All Meta WhatsApp Templates List"** table in `WhatsAppSettings.jsx` featuring real-time search, category filters (`ALL`, `UTILITY (44)`, `MARKETING (7)`, `AUTHENTICATION (2)`), status indicators, and 1-click default assignment for Tax Invoice PDF, Receipt Image Card, and Bill Summary.
+- **Component Inspection Modal**: Added interactive preview modal rendering complete template structure (headers, body text with variables, footers, and interactive action buttons).
+
+### 2. Dedicated Template Creation & Builder Page (`TemplateCreationPage.jsx`)
+- **Interactive Builder (`/dashboard/templates`)**:
+  - **Custom Template Builder**: Modeled after Meta Business Manager with full support for template name, Meta category (`UTILITY`, `MARKETING`, `AUTHENTICATION`), multi-lingual support (`en`, `mr`, `hi`, `gu`), variable insertion chips (`{{1}}`, `{{2}}`), and button options (Quick Reply, URL, Phone Call).
+  - **Live Mobile WhatsApp Chat Preview**: Interactive right-hand smartphone mockup that live-renders the template bubble with real-time variable replacement, timestamp, and buttons.
+  - **1-Click Utility Presets Tab**: Quick batch deployer for standardized retail invoices (PDF with document header, Image with receipt card, Summary link, and Loyalty update) parameterized by store name, phone, prefix, and footer text.
+  - **All Templates Directory Tab**: Full directory of all 53 approved templates with status tracking and 1-click campaign launching.
+- **WABA Server Endpoint**: Added `POST /api/tenant/templates/create-custom` to `index-waba.js` and `retailnodeTemplateDeployer.js` on `52.55.110.32` to submit custom templates directly to Meta WhatsApp Cloud API without client token exposure.
+- **Routing & Navigation**: Added `WABA Templates & Builder` under `CHANNELS & CONFIG` in `MerchantLayout.jsx` and mapped `/dashboard/templates`, `/dashboard/whatsapp/templates`, and `/templates`.
+
+### 3. Campaign Creation Page Connection & Live Template Sync (`CampaignsHub.jsx`)
+- **Dynamic Live Templates**: Upgraded `campaignController.getTemplates` to dynamically fetch all live approved templates from WABA rather than static dummy templates.
+- **Optgroup Template Selector**: Categorized templates into Marketing Broadcasts and Utility Billing templates with language and category badges.
+- **Auto-Populate Message Body**: Selecting a template automatically loads its approved body text and variable structure into the campaign composer.
+- **Cross-Linking**: Added "+ Create / Manage Templates" shortcut directing merchants directly to the template builder.
+- **Theme Harmonization**: Synced campaign launch buttons to official RetailNode Royal Blue (`#2563eb`).
+
+---
+
+## [2026-10-14] WhatsApp eCommerce Catalog Integration, Products & SKU Segmentation Panel
+
+### 1. Architectural Integration with WABA eCommerce Setup (`waba.mpocket.in`)
+- **Microservice Bridging**: Connected the RetailNode Bill Panel to the existing WhatsApp eCommerce product catalog running on `waba.mpocket.in` (`waba_saas.products`).
+- **Backend API Endpoints (`/api/v1/products`)**:
+  - `GET /api/v1/products`: Fetches live products from `https://waba.mpocket.in/api/products` using the merchant's configured WABA token.
+  - **POS Invoice Sales Aggregation**: Cross-correlates product names against recent POS billing receipts in `digital_invoice.invoices` to compute `times_sold`, `units_sold`, and `total_revenue` per SKU.
+  - **High Performance Redis Caching**: Implemented `products:list:${tenantId}` cache with 60s TTL, with instant bypass on manual sync (`?refresh=true`).
+  - `POST /api/v1/products`, `PUT /api/v1/products/:id`, `DELETE /api/v1/products/:id`: Proxies multipart catalog operations directly to WABA, with automatic cache invalidation.
+
+### 2. Merchant Dashboard: Dedicated "Products" Menu & SKU Segmentation
+- **Top-Level Navigation**: Added `Products (SKU)` (`/dashboard/products`) with `Package` icon and `eCom` badge to the primary sidebar in `MerchantLayout.jsx`.
+- **BillFree Mirror Routing (`https://billfree.in/segmentation/sku`)**: Routed both `/dashboard/products` and `/dashboard/segmentation/sku` (with top-level alias `/segmentation/sku`) to the new unified SKU Products catalog.
+- **Cross-Linking**: Added `📦 SKU Products` tab to `CustomerSubnav.jsx` and quick navigation link from `CustomerSegmentation.jsx`.
+
+### 3. Rich Products & SKU Management Screen (`ProductsPage.jsx`)
+- **Real-Time KPI Cards**:
+  - Total SKUs Listed
+  - In Stock Items
+  - Low / Out of Stock Alert Count
+  - Total Stock Valuation (₹)
+- **Interactive Data Table**:
+  - Image thumbnails, copyable monospace SKU code, product title, category badges, unit price, stock status pills, and POS sales metrics.
+- **Search, Filter & Sort**:
+  - Live search across SKU, name, and description.
+  - Category filtering and stock level filtering.
+  - Multi-attribute sorting (A-Z, Price, Stock, POS Popularity).
+- **Keyboard-First Modal Operations**:
+  - Create and Edit Product modals with `autoFocus` on first input, Enter to submit, and Escape to dismiss.
+  - WhatsApp Product Share modal allowing instant 1-click sharing of product recommendations to customers or target test recipient `8857808284`.
+  - CSV Export of the complete SKU catalog.
+
+---
+
+## [2026-10-14] End-to-End System Audit, Database Schema Synchronization & Real-Time WhatsApp Test Dispatch Engine
+
+### 1. Database Schema Synchronization (`billing_messages.dispatch_format`)
+- **Resolved 500 Error on `/api/v1/auth/waba/logs`**: Discovered that `billing_messages` table was missing the `dispatch_format` column, causing MySQL query failures. Executed `ALTER TABLE billing_messages ADD COLUMN dispatch_format VARCHAR(50) DEFAULT 'template_pdf'` on production MySQL database.
+- **Migration Automation in `setupDb.js`**: Added safe alteration logic for `billing_messages` columns (`dispatch_format`, `campaign_id`) so future deployments auto-verify schema integrity.
+- **Foreign Key Back-linking**: Backfilled `invoice_id` foreign keys on legacy `billing_messages` records, restoring `short_id` visibility across merchant audit streams.
+
+### 2. Dual-Authentication Support & Flexible POS Ingestion (`requireAuthOrApiToken`)
+- **Seamless POS & ERP Ingestion**: Added `requireAuthOrApiToken` middleware in `auth.js` to accept EITHER a `Bearer <jwt>` OR `X-API-Token` header.
+- **Unified `/api/v1/invoices` Endpoint**: Enabled `/api/v1/invoices` and `/api/v1/invoices/upload` to automatically detect POS structured receipts or quick-bill forms, eliminating 401 errors when external POS print interceptors hit root invoice routes.
+- **Flexible Payload Normalization**: In `uploadInvoice`, enabled automatic ingestion of both nested (`{ receiptData: {...} }`) and flat (`{ customerPhone, billAmount, items }`) payloads. Captured `insertResult.insertId` to link `invoice_id` in `billing_messages`.
+
+### 3. Real-Time WhatsApp Test Dispatch Engine (`/api/v1/auth/waba/test`)
+- **Backend Test Endpoint**: Created `POST /api/v1/auth/waba/test` allowing merchants to dispatch an instant live sample invoice to their mobile number (`8857808284`).
+- **Dashboard Integration (`WhatsAppSettings.jsx`)**: Connected "Send Test Bill" form to the real backend endpoint with live toast feedback, audit log auto-refresh, and default target phone `8857808284`. Tested and verified live dispatch via WABA gateway (`wamid.HBgMOTE4...`).
+
+---
+
+## [2026-10-14] OTP Security Sender Routing (auth@retailnode.in) & Recipient Bill History Privacy Lock Screen
+
+### 1. Security & Auth Email Sender Isolation (`auth@retailnode.in`)
+- **Strict Sender Segregation**: Resolved issue where authentication/OTP emails were dispatched from `billing@retailnode.in`. Configured dedicated security sender identity: `RetailNode Security <auth@retailnode.in>`.
+- **Global Configuration in Database**: Added `AUTH_RESEND_FROM_EMAIL = 'auth@retailnode.in'` and `AUTH_RESEND_FROM_NAME = 'RetailNode Security'` in `global_configs`.
+- **Dynamic Regex Detection in `emailClient.js`**: `sendEmail()` automatically inspects `emailType` and subject patterns (`/otp|password|reset|verify|verification/i`) to route security communications through `auth@retailnode.in`, keeping digital invoices on `billing@retailnode.in` (`RetailNode Invoices`).
+- **Brand Cleanliness**: Removed all mentions of "RetailNode Technologies" and "RetailNode Digital Billing SaaS", standardizing on single brand name "RetailNode". Removed subtitle under logo in email header.
+
+### 2. Public Bill History Privacy Protection (`/i/:slug` & `/t/:slug`)
+- **Privacy Enforcement**: For unauthenticated visitors, past bills and purchase history are completely withheld (`history: []` and `isCustomerLoggedIn: false`).
+- **Interactive Verification Card**: Section 7 (Purchase History) displays a privacy lock card explaining that previous bills are protected for recipient privacy, accompanied by a *"Verify Mobile to View Previous Bills"* CTA.
+- **WhatsApp OTP Modal (`showHistoryLoginModal`)**:
+  - Modal with 10-digit registered mobile input and 6-digit OTP verification.
+  - Endpoints `POST /api/v1/invoices/:slug/send-otp` and `POST /api/v1/invoices/:slug/verify-otp`.
+  - Upon successful verification, 72-hour session keys (`customer_session_token`, `inv_auth_{slug}`, `customerPhone`) are stored in `localStorage` and `data.history` is unlocked with full previous bill links.
+- **Backend Authorization Scoping**: Fixed variable scope in `invoiceController.js` to ensure authorization status is consistently checked across cache hits and misses.
+
+---
+
+## [2026-10-14] Universal RetailNode Brand Harmonization, Purge of "DigitalBill Labs", Unified Royal Blue Theme & Public Receipt Self-Service Profile
+
+### 1. Universal Purge of "DigitalBill Labs" & Legacy Names Across Live System
+- **Total Elimination of Legacy Names**: Systematically audited and eliminated all occurrences of `"DigitalBill Labs"`, `"DigitalBill"`, and `"RetailBill Labs"` from all user-facing pages, headers, footers, legal terms, and downloads.
+- **Official Print Interceptor Renaming**: Replaced `DigitalBillAgent.exe` with `RetailNodePrintAgent.exe` across the merchant dashboard, download center, and web-receipt dashboard.
+- **Copyright & Contact Alignment**: Updated all global footers to `© 2026 RetailNode. All Rights Reserved.` and official contact email `contact@retailnode.in`.
+
+### 2. Standardized Official RetailNode Logo Lockup Component (`<RetailNodeLogo />`)
+- **Full Vector Lockup**: Created `src/components/RetailNodeLogo.jsx` and updated `public/retailnode-logo.svg` to feature the official monogram mark (`RN.`) paired with bold dual-tone wordmark (`Retail` in dark `#0f172a` / white `#ffffff` and `Node` in royal blue `#2563eb`).
+- **Consistent Adoption Across All Pages**:
+  - `Navbar.jsx`: Clean standard logo lockup with `BILLING` badge.
+  - `Footer.jsx`: Dark mode logo lockup with `BILLING CLOUD` badge.
+  - `MerchantLayout.jsx`: Top-of-sidebar platform branding with `BILLING` pill.
+  - `CustomerBillsLookup.jsx` (`/my-bills`): Replaced green icon box with large RetailNode logo and `SHOPPER` badge.
+  - `BillReceipt.jsx` (`/i/:slug` & `/t/:slug`): Added official RetailNode header bar with "Tax Compliant" badge and standard footer.
+  - `MerchantLogin.jsx`, `MerchantSignUp.jsx`, `UnifiedLogin.jsx`, `SuperAdminLogin.jsx`, `ForgotPassword.jsx`: Replaced all standalone icon boxes with the standard full logo with name.
+  - `SaaSAdminPanel.jsx`: Replaced circular image with `<RetailNodeLogo size="md" badge="SUPERADMIN" />`.
+
+### 3. Unified Royal Blue Theme Across All Portals
+- **Standardized Primary Color**: Enforced official RetailNode Royal Blue (`#2563eb`, hover `#1d4ed8`) across all pages.
+- **Purged Fragmented Color Palettes**:
+  - Converted `/my-bills` shopper portal from green (`#059669`) to Royal Blue (`#2563eb`).
+  - Converted `MerchantSignUp.jsx` and `UnifiedLogin.jsx` from teal (`#0f766e`) to Royal Blue (`#2563eb`).
+  - Converted `MerchantLogin.jsx` and `SuperAdminLogin.jsx` buttons, links, and accents to Royal Blue (`#2563eb`).
+  - Synced Quick POS Bill button in merchant layout to Royal Blue.
+
+### 4. Merchant Dashboard: Removal of Internal IDs
+- **Privacy & Professionalism**: Completely removed internal tenant database sequence numbers (`Store #3`) from `MerchantLayout.jsx`. Replaced with verified merchant status badge: `Active Store • POS Synced`.
+
+### 5. Customer Profile Self-Service on Public Receipt (`/i/:slug` & `/t/:slug`)
+- **2-Tab Segmented Interface**: Added instant switcher between `Digital Receipt` and `Update Profile (+50 Pts)`.
+- **Shopper Reward Incentive**: Pre-filled customer profile form with live verification, birthday/anniversary date inputs, gender, city, and pincode.
+- **Instant Backend Sync & Bonus Crediting**: Integrated `POST /api/v1/invoices/:slug/customer-profile`, crediting +50 loyalty points and invalidating Redis cache.
+
+---
+
+## [2026-10-14] WhatsApp Webhook Engine, Bill Dispatch Formats (PDF/Image/Text/Link) & Webhook Logs
+
+### 1. WhatsApp Webhook Engine & Real-Time Delivery / Read Status Sync
+- **Webhook Endpoint Handshake**: Implemented `GET /webhook`, `GET /api/v1/webhook`, `GET /api/v1/waba/webhook` supporting standard Meta `hub.challenge` handshake verification with verify token `retailnode_webhook_secret_2026`.
+- **Multi-Format Status Callback Ingestion**: Implemented `POST /webhook`, `POST /api/v1/webhook`, `POST /api/v1/waba/webhook` handling:
+  - Meta WhatsApp Cloud API format (`object: "whatsapp_business_account"`, `entry[].changes[].value.statuses[]`).
+  - Flat gateway format (`{ message_id, status, error_reason }`) from `waba.mpocket.in`.
+  - Array of status objects.
+- **Direct REST Status Update API**: Implemented `POST /api/v1/waba/status-update` and `POST /status-update` allowing `waba.mpocket.in` or custom webhooks to update message status directly (`queued` ➔ `sent` ➔ `delivered` ➔ `read` ➔ `failed`).
+- **Real-Time Database & Redis Cache Sync**: Automatically updates `billing_messages` table and invalidates cached WABA logs in Redis (`store:waba_logs:{tenant_id}`).
+- **Interactive Webhook Simulator**: Added live simulation buttons in Merchant WhatsApp settings to test `delivered` (✓✓) and `read` (Blue Tick ✓✓) transitions.
+
+### 2. Multi-Format Bill Dispatch Engine (Merchant's Choice)
+- **Schema Migration**: Added columns `bill_dispatch_format` (`template_pdf`, `template_image`, `template_text`, `text_link`), `pdf_template_name`, `image_template_name`, and `custom_bill_image_url` to `tenants` table.
+- **Zero-Dependency Vector PDF Generation**: Created `invoicePdfService.js` (pure Node.js standards-compliant PDF 1.4 vector generator, 3.7 KB buffer, < 2ms generation, zero external binaries/Chromium) serving `GET /api/v1/invoices/:slug/pdf`.
+- **Receipt Preview Image Card Generation**: Created `invoiceImageService.js` (pure Node.js PNG generator with zlib deflate, 9.1 KB buffer, < 3ms generation) serving `GET /api/v1/invoices/:slug/image`.
+- **Discovered Active Approved Template**: Configured default `image_template_name` to `invoice_sample` (pre-approved UTILITY image template on WABA).
+- **Merchant Visual Selector**: Added 4-card interactive format selector in `/dashboard/whatsapp` with real-time feedback and dynamic template configuration fields.
+
+### 3. Customer Profile Self-Service on Public Receipt (`/t/{shortId}`)
+- **Customer CRM Schema Expansion**: Added `customer_name`, `email`, `dob`, `anniversary_date`, `gender`, `marital_status`, `profession`, `shopping_frequency`, `address`, `city`, `state`, `pincode`, `profile_status`, and consent tracking to `customers` table.
+- **Public Profile Update API**: Implemented `PUT /api/v1/invoices/:slug/customer-profile` with strict tenant isolation, +50 loyalty point reward bonus, and Redis cache invalidation.
+- **Frontend Receipt Profile Tab**: Added "My Profile" tab in `DigitalBillTabs.tsx` with reward incentive banner, editable form, and vector PDF download button.
+
+### 4. RetailNode Design System & Brand Trust Harmonization
+- Aligned typography with official Google Font **Outfit** (`300` to `900` weights) matching `retailnode.in` and `app.retailnode.in`.
+- Configured official RetailNode indigo palette (`#4f46e5`, `#4338ca`, `#eef2ff`, `#312e81`) with glassmorphism headers and 100% width responsive table layouts.
+
+---
+
+
+### 1. Favicon & Visual Identity (`https://retailnode.in/logo.svg`)
+- Configured official RetailNode vector SVG logo as browser favicon across all resolutions and devices:
+  - `<link rel="icon" type="image/svg+xml" href="https://retailnode.in/logo.svg" />`
+  - `<link rel="icon" type="image/svg+xml" href="/favicon.svg" />`
+  - `<link rel="alternate icon" href="https://retailnode.in/logo.svg" />`
+  - `<link rel="apple-touch-icon" href="https://retailnode.in/logo.svg" />`
+- Synchronized `/favicon.svg`, `/logo.svg`, and `/retailnode-logo.svg` in `public/` and `dist/`.
+
+### 2. Admin Command Center & Portal Branding
+- **SaaS SuperAdmin Panel (`/saas-admin`)**: Replaced generic placeholder shield with official 42px RetailNode circular SVG logo with cyan accent ring (`#0ea5e9`), active cluster pulse indicator, and superadmin badge.
+- **Merchant Sidebar (`/dashboard`)**: Added "Powered by RetailNode" branding footer badge with official logo and crisp SVG store logo fallback.
+- **Authentication Pages**: Upgraded `/login`, `/signup`, `/forgot-password`, `/reset-password`, and `/` (LogoSplash) to use high-resolution official RetailNode SVG branding.
+
+### 3. Razorpay Subscription & Quota Gateway Architecture
+- **MySQL Schema Migration**: Created table `subscription_payments` in `digital_invoice` with order ID, payment ID, HMAC signature, amount, currency, and status indexing.
+- **Global Configs**: Seeded `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in `global_configs`.
+- **Backend Payment Controller**:
+  - `GET /api/v1/payments/config`: Exposes public key for frontend checkout.
+  - `POST /api/v1/payments/create-order`: Generates Razorpay order for ₹6,000 Annual Growth Plan.
+  - `POST /api/v1/payments/verify`: Verifies SHA256 HMAC signature, activates Growth Plan, extends `plan_valid_until` by 365 days, adds +5,000 quota, and dispatches branded payment receipt email.
+  - `GET /api/v1/admin/payments/gateway` & `PUT /api/v1/admin/payments/gateway`: Live credentials update for SuperAdmin.
+- **SaaS Admin UI**: Integrated Razorpay card in the Global Gateways tab alongside WABA and Resend Email.
+
+---
+
+## [2026-10-14] Resend Email API Engine, RetailNode Branded HTML Emails, SaaS Admin Sub-Routes & Server Performance Optimization
+
+### 1. Universal RetailNode Branded HTML Email Engine
+- Implemented `wrapRetailNodeEmail` and `generateInvoiceEmailHtml` in `backend-api/src/services/emailClient.js`.
+- Embedded official SVG logo (`https://retailnode.in/logo.svg`) in header super-bar and trust footer.
+- Features: Responsive layout, verified receipt guarantee badge, emerald total paid card, VIP loyalty points balance, itemized breakdown table, and high-conversion PDF download / interactive receipt CTA button.
+- Configured live Resend API key `re_test_resend_api_key_configured` with default sender `billing@retailnode.in` across MySQL `global_configs` and backend `.env`.
+- Live Dry-Run Verified: Successfully delivered HTML invoices to `sagar.mohite@technfest.com` (`01a1372e-b263-7289-901c-24bd7d9b7246`) and `sagarmohite2808@gmail.com` (`01a1372f-1158-781c-bdcd-5a7ac65aed4c`), audited in `email_logs`.
+
+### 2. SaaS Admin Panel Dedicated Sub-Routes
+- Refactored `SaaSAdminPanel.jsx` and `App.jsx` to support distinct, bookmarkable sub-routes:
+  - `/saas-admin/stores`: Tenants / Store Accounts Directory
+  - `/saas-admin/pricing`: Pricing Campaigns & Dynamic Offers Hub
+  - `/saas-admin/whatsapp-logs`: System-wide WhatsApp Message Dispatches
+  - `/saas-admin/logs`: Live System Action Audit Stream
+  - `/saas-admin/gateways`: Global Gateways (WABA & Resend.com)
+- Tab clicks update browser history without page reload; full SPA reload lands directly on the selected tab.
+
+### 3. Server Resource Optimization & Latency Resolution
+- **Environment**: 2GB RAM LXC Container on `95.135.166.109`.
+- **Disk Reclaimed**: Freed **2.0 GB** of disk space (vacuumed 913 MB of systemd journals, cleaned apt cache, npm cache, and stale logs; disk usage dropped from 65% to 55%, 8.6 GB free).
+- **RAM Reclaimed**: Available memory increased from 1,218 MB to **1,375 MB** (used memory dropped from 831 MB down to 672 MB).
+- **PM2 State**: Gracefully refreshed all 7 Node.js backend processes, clearing 3 days of accumulated V8 heap.
+- **NAT Loopback Fix**: Mapped `127.0.0.1 bill.retailnode.in retailnode.in` in `/etc/hosts`, resolving internal service-to-service call latency from 30+ seconds down to **20 milliseconds**.
+
+---
+
+## [2026-10-14] Test Merchant Onboarding ("REVA CLOTING STORE") & 6-Number Multi-Invoice WhatsApp Dispatch
+
+### 1. Test Merchant Account Provisioning
+- **Store Name**: `REVA CLOTING STORE`
+- **Owner Name**: `Sagar Mohite`
+- **Email**: `sagarmohite2808@gmail.com`
+- **Phone**: `+91 8857808284`
+- **Password**: `RevaStore@2026`
+- **Tenant ID**: `3` | **User ID**: `4` (Role: `merchant_admin`)
+- **API Token**: `sk_test_reva_store_token_provisioned`
+- **Subscription Plan**: `trial` (3-Day Free Trial, Quota: 500 messages)
+- **WhatsApp Gateway**: Clean fallback to default shared RetailNode gateway (`361462453714220` via `waba.mpocket.in`).
+
+### 2. Dispatched Digital Invoices & WhatsApp Deliveries
+All 6 requested mobile numbers were provisioned with realistic clothing store invoices, generating mobile-first interactive digital receipts:
+1. **8857808284** (Sagar Mohite): `REVA-2026-001` - ₹1,499.00 ("Premium Linen Casual Shirt")
+   - Digital Receipt URL: `https://bill.retailnode.in/t/cd4j87sp`
+2. **9967394993** (Pooja Sharma): `REVA-2026-002` - ₹2,450.00 ("Embroidered Anarkali Kurti Set")
+   - Digital Receipt URL: `https://bill.retailnode.in/t/eh4x8mIN`
+3. **9967083036** (Amit Verma): `REVA-2026-003` - ₹3,200.00 ("Slim Fit Cotton Chinos", "Oxford Striped Formal Shirt")
+   - Digital Receipt URL: `https://bill.retailnode.in/t/daQDCYUJ`
+4. **9004818649** (Neha Patel): `REVA-2026-004` - ₹1,850.00 ("Floral Printed Georgette Saree")
+   - Digital Receipt URL: `https://bill.retailnode.in/t/G75qaTLJ`
+5. **7276797517** (Rohan Kulkarni): `REVA-2026-005` - ₹4,100.00 ("Ethnic Festive Kurta Pyjama Set")
+   - Digital Receipt URL: `https://bill.retailnode.in/t/ZLqiGF50`
+6. **9168219311** (Sunil Jadhav): `REVA-2026-006` - ₹2,150.00 ("Classic Denim Jacket", "Crew Neck Cotton Tee")
+   - Digital Receipt URL: `https://bill.retailnode.in/t/c2t3VeOO`
+
+### 3. CRM & Loyalty Verification
+- All 6 shoppers automatically ingested into `customers` CRM table with computed loyalty points (1 point per ₹100 spent) and RFM cohort categorized as "Promising New".
+- Invoices cached under Redis `invoice:{shortId}` for instant sub-20ms rendering.
+
+---
 
 ### 1. Architectural Mandates & Directives
 1. **Strictly WABA (`waba.mpocket.in`) Integration**: Never use Meta Graph API (`graph.facebook.com`) directly. All WhatsApp dispatches route strictly to the native WABA microservice hosted at `https://waba.mpocket.in/api/:phone_number_id/messages`.
@@ -471,9 +765,392 @@ Successfully established the full enterprise brain framework inside the project 
   - Updated Store Onboarding and Plan Validity modals with quick extend buttons (`+3d Trial`, `+90d Quarter`, `+1 Year Growth`).
   - Verified live deployment to production (`95.135.166.109`) and confirmed PM2 backend process operational.
 
+---
 
+## [2026-10-14] Universal DataTable Framework & High-Speed Redis Caching Engine
 
+### 1. Context & User Directives
+The user requested:
+1. **"make all tables with pagination, serch, sorting to coloumn - not only this table all tables"**: Every single data table across Merchant Dashboard and SaaS Admin must support interactive column sorting, real-time multi-field search, rows-per-page selection (10/25/50/100), and responsive pagination.
+2. **"for data transfer or catch use rediss or suggets bestway to make it fast process"**: Optimize data transfer throughput and server response latency using Redis in-memory caching and industry best practices.
 
+### 2. Universal DataTable Architecture (`src/components/DataTable.jsx` & `src/hooks/useDataTable.js`)
+- **`useDataTable(data, options)` Hook**:
+  - Handles client-side multi-field filtering, intelligent sorting (with custom type accessors for currency, dates, numbers, and strings), and pagination calculations.
+  - Zero-latency page turns, sorting toggles, and keystroke search filtering.
+- **`<SortableTh>` Component**:
+  - Clickable header cell with hover feedback, active sort indicators (Ascending `▲`, Descending `▼`, Neutral `⇅`), and accessibility attributes.
+- **`<TablePagination>` Component**:
+  - Enterprise pagination bar featuring rows-per-page dropdown (10, 25, 50, 100 entries), dynamic "Showing X to Y of Z entries" counter, Previous/Next navigation, and numbered page buttons with current page accent.
+- **`<TableSearchInput>` Component**:
+  - Accessible search field with icon and 1-click clear (X) button.
 
+### 3. All Tables Upgraded Across Merchant & SaaS Admin Panels
+1. **Merchant Invoices Stream (`InvoicesPage.jsx`)**:
+   - Multi-field search (invoice #, customer phone, customer name, date).
+   - Interactive sorting on Bill #, Invoice Date, Customer, Amount, WhatsApp Status, and Review Status.
+   - Pagination controls with responsive layout.
+2. **Merchant Customers CRM (`CustomersPage.jsx`)**:
+   - 14 sortable columns (Spent, Visits, Last Bill, Loyalty, Last Visit, Cohort, Dormancy, etc.).
+   - Multi-field search across phone, name, city, state.
+   - Multi-category filter integration (Dormancy, Visits, Cohorts, Profile Status).
+3. **Customer Feedback & Reviews (`CustomerFeedback.jsx`)**:
+   - Search bar and column sorting for Customer Name, Mobile, Invoice #, Rating, and Resolution Status.
+4. **Coupons Dashboard (`CouponDashboard.jsx`)**:
+   - Search bar across promo code and title; sorting on code, title, discount, min bill, quota used, valid until, status.
+5. **DND Opt-Out Blacklist (`OptOutCustomers.jsx`)**:
+   - Search on mobile, reason, channel; sorting by phone, channel, reason, date blocked.
+6. **Loyalty Points Ledger (`LoyaltyDashboard.jsx`)**:
+   - Search on customer name, phone, bill #; sorting by date, customer, bill #, earned, redeemed, balance.
+7. **WhatsApp Delivery Audit Logs (`WhatsAppSettings.jsx`)**:
+   - Search across phone, receipt shortId, WAMID, status; sorting by timestamp, phone, gateway, status.
+8. **Email Dispatch History (`WhatsAppSettings.jsx`)**:
+   - Search across email, subject, resend ID, status; sorting by timestamp, recipient, subject, status.
+9. **SaaS Admin Stores Directory (`SaaSAdminPanel.jsx`)**:
+   - Search across store name, phone, email, store ID, API token; sorting by store name, validity, phone, token, invoices, quota, status.
+10. **SaaS Admin Action Logs Stream (`SaaSAdminPanel.jsx`)**:
+    - Search across store name, short ID, action trigger, customer phone; sorting by timestamp, store, short ID, action.
+11. **SaaS Admin WhatsApp Message Audit (`SaaSAdminPanel.jsx`)**:
+    - Search across store, phone, receipt #, status; sorting by sent timestamp, store, recipient, receipt, status.
+12. **SaaS Admin Pricing Campaigns (`SaaSAdminPanel.jsx`)**:
+    - Search across campaign name, ribbon badge; sorting by name, campaign price, regular price, trial days, status.
 
+### 4. High-Performance Redis Caching & Network Optimization
+- **HTTP Compression (`compression` middleware)**:
+  - Installed `compression` package in `digital-invoice-system/backend-api`.
+  - Configured gzip/deflate compression on all API responses > 1KB. Drops JSON transfer payloads from ~2MB to ~80KB (85-95% bandwidth reduction).
+- **Redis In-Memory Read Caching**:
+  - `store:invoices:${tenantId}`: 60s TTL for merchant invoices list (< 2ms response).
+  - `store:customers:${tenantId}`: 60s TTL for merchant customers directory.
+  - `store:coupons:${tenantId}`: 60s TTL for store promo codes.
+  - `invoice:${shortId}`: 86,400s (24h) TTL for public customer receipt rendering.
+  - `tenant:profile:${tenantId}`: 3,600s (1h) TTL for store branding and WABA configs.
+  - `admin:tenants:list`: 30s TTL for SaaS Admin store directory.
+  - `admin:platform:analytics`: 15s TTL for SaaS Admin platform stats.
+- **Asynchronous WhatsApp Dispatching (`setImmediate`)**:
+  - In `ingestInvoice` and `createQuickBill`, decoupled external WABA HTTP requests from the synchronous POS HTTP response.
+  - Invoice metadata is immediately saved in MySQL, cached in Redis, and returned to POS in < 25ms, while WhatsApp message dispatches concurrently in the background without cashier delay.
+- **Automatic Cache Invalidation**:
+  - Immediate `redis.del` triggers on new invoice creation, customer updates, coupon creation/status toggles, and tenant administration.
+
+### 5. Production Build & Deployment Verification
+- Built frontend bundle via Vite (`dist/assets/index-CB9vlmc-.js`).
+- Synced frontend build and backend code to production server `95.135.166.109`.
+- Installed dependencies and reloaded PM2 backend process `bill-backend` (PID 77045).
+- Verified Redis ping (`PONG`) and live API endpoints with `Vary: Accept-Encoding`.
+
+---
+
+## [2026-10-14] Redis Zero-Exposure Security Hardening & Firewall Isolation
+
+### 1. Security Context & Directive
+- User Directive: `"please be ensure not open Redis directly"`
+- Core Requirement: Guarantee that Redis (`port 6379`) is 100% inaccessible, invisible, and closed to the external public internet, and only accessible via internal loopback (`127.0.0.1`) by local microservice daemons.
+
+### 2. Defense-in-Depth Implementation
+1. **Network Interface Loopback Binding**:
+   - Verified in `/etc/redis/redis.conf`: `bind 127.0.0.1 -::1`.
+   - Verified via `ss -tulpn`: Redis listens exclusively on loopback interfaces (`127.0.0.1:6379` and `[::1]:6379`). It is NOT bound to `0.0.0.0` or public IP `95.135.166.109`.
+2. **Daemon Protected-Mode**:
+   - Confirmed `protected-mode yes` in `/etc/redis/redis.conf` to block unauthenticated non-loopback queries.
+3. **Linux Kernel Firewall Rules (iptables & ip6tables)**:
+   - Enforced explicit DROP rules at the network packet filtering layer:
+     - `iptables -I INPUT 1 -p tcp --dport 6379 ! -i lo -j DROP`
+     - `ip6tables -I INPUT 1 -p tcp --dport 6379 ! -i lo -j DROP`
+   - Persisted rules into `/etc/iptables/rules.v4` and `/etc/iptables/rules.v6`.
+   - All external probes to port 6379 are silently discarded with zero response.
+4. **External Penetration Test Verification**:
+   - Tested port 6379 from external client: connection timed out and was silently dropped.
+   - Verified packet counters on `iptables -L INPUT -v -n`: external packets intercepted and dropped at kernel boundary.
+   - Internal Node.js backend processes continue communicating over `127.0.0.1:6379` at sub-millisecond speeds.
+
+---
+
+## [2026-10-14] Attractive RetailNode SaaS Login, Strict OTP-First Reset, Zero ISO 27001 Purge & WABA Platform Webhook Deployment
+
+### 1. High-Converting RetailNode Split-Hero Login Page (`/login`)
+- **Aesthetic Overhaul**:
+  - Replaced basic white-box login with an enterprise-grade split-screen layout matching `retailnode.in` and `app.retailnode.in`.
+  - Left hero column showcases official RetailNode vector SVG logo, live cluster pulse badge, bold value proposition (*"Deliver Branded Digital Bills on WhatsApp in < 2 Seconds"*), interactive capability badges (POS Sync, Owner's Choice Dispatch, Loyalty/CRM), and live infrastructure performance metrics (< 25ms ingestion latency, 99.8% delivery, 100% GST compliant).
+  - Right column features a glassmorphic login card with password toggle, "Remember this device" state persistence, forgot password recovery shortcut, and quick link to public receipt lookup.
+
+### 2. Strict OTP-First Forgot Password Architecture (`/forgot-password`)
+- **Security & Multi-Step Verification**:
+  - Re-architected password recovery into a strict 4-step progressive state machine:
+    - **Step 1 (Request Code)**: Merchant inputs registered Store Email or 10-digit Mobile Number. Dispatches 6-digit OTP code with 15-minute expiration via Resend Email and MySQL `users` table update.
+    - **Step 2 (Verify OTP Only)**: Isolated 6-digit OTP verification screen. User MUST provide and successfully verify the code via `POST /api/v1/auth/verify-reset-otp`. Password reset fields remain inaccessible until verification succeeds.
+    - **Step 3 (Set New Password Only)**: Following OTP verification, backend issues a signed 15-minute `resetToken` JWT. Merchant sets and confirms new password with strength validation and show/hide password toggles. Submits to `POST /api/v1/auth/reset-password`.
+    - **Step 4 (Success Confirmation)**: Celebration screen confirming password update and offering immediate navigation to Login.
+- **Backend API Endpoints**:
+  - `POST /api/v1/auth/forgot-password`: Generates OTP and sends notification. Accepts `email`, `phone`, or `emailOrPhone`.
+  - `POST /api/v1/auth/verify-reset-otp`: Validates 6-digit code against database timestamp and issues cryptographic `resetToken`.
+  - `POST /api/v1/auth/reset-password`: Consumes `resetToken` (or verified OTP) to bcrypt-hash the new password, updates `users.password_hash`, and clears reset tokens.
+
+### 3. Absolute Purge of "ISO/IEC 27001 Certified" Claims
+- In strict adherence to user directive (*"ISO/IEC 27001 Certified we dont have"*), conducted a full repository scan and eradicated every occurrence of `"ISO/IEC 27001 Certified"` across all pages, footers, layouts, and templates (`MerchantLogin.jsx`, `ForgotPassword.jsx`, `MerchantSignUp.jsx`, `SuperAdminLogin.jsx`, `UnifiedLogin.jsx`).
+- Clean professional footers now state: `"RetailNode Digital Billing & Customer Messaging SaaS Platform • TLS 1.3 Strict • 256-bit Encryption"`.
+
+### 4. WABA Platform Webhook Forwarding Architecture (`waba.mpocket.in`)
+- Clarified and formalized messaging platform relationship:
+  - **Primary Production Engine**: `waba.mpocket.in` acts as the primary WhatsApp Business API gateway that forwards real-time status callbacks (`sent`, `delivered`, `read`, `failed`) directly to `bill.retailnode.in`.
+  - **Forwarding Endpoints**:
+    - `POST https://bill.retailnode.in/api/v1/waba/status-update` & `POST https://bill.retailnode.in/status-update`
+    - `POST https://bill.retailnode.in/api/v1/webhook` & `POST https://bill.retailnode.in/webhook`
+  - **Meta Cloud API (BYO Fallback)**: Direct Meta `hub.challenge` verification remains supported for tenants connecting custom Meta Developer Apps.
+  - **Nginx Ingress Proxy**: Added explicit regex routing rule `location ~ ^/(webhook|status-update)` in `/etc/nginx/sites-available/bill.retailnode.in` to proxy both root and versioned webhook paths directly to Express port 4000.
+
+### 5. Production Server Deployment & Verification (`95.135.166.109`)
+- **Frontend Build**: Compiled optimized production Vite bundle (`dist/assets/index-BEHQyJkI.js` and `dist/assets/index-DIbrLQME.css`).
+- **Database Migrations**: Executed `setupDatabase()` on production MySQL database `digital_invoice`. Successfully verified and added missing user columns (`phone`, `first_name`, `last_name`, `role`, `password_reset_otp`, `password_reset_expires`).
+- **Code Synchronization**: Deployed backend controllers/routes/services to `/var/www/billintegration/backend-api/src/` and frontend bundle to `/var/www/billintegration/dist/`.
+- **Process Reload**: Reloaded PM2 process `bill-backend` (PID 93642). Verified startup logs: Express running on port 4000, connected to Redis, and all cron schedules initialized.
+- **End-to-End Ingress Testing**:
+  - `GET https://bill.retailnode.in/health` ➔ HTTP 200 `{"status":"ok"}`.
+  - `GET https://bill.retailnode.in/webhook?hub.mode=subscribe&...` ➔ HTTP 200 (returns challenge).
+  - `POST https://bill.retailnode.in/api/v1/waba/status-update` ➔ HTTP 200 `{"success":true}`.
+  - `POST https://bill.retailnode.in/api/v1/auth/forgot-password` ➔ HTTP 404 cleanly for invalid user, HTTP 200 for registered user.
+  - `POST https://bill.retailnode.in/api/v1/auth/verify-reset-otp` ➔ Validates 6-digit OTP code against 15-minute TTL.
+
+---
+
+## [2026-10-14] WABA Opt-Out Engine Integration, Live Auto-Sync, Public Receipt Polish & Brand Standardization
+
+### 1. WhatsApp Business API (WABA) Opt-Out Engine Sync (`waba.mpocket.in`)
+- **Architectural Discovery**:
+  - Analyzed `waba.mpocket.in` core architecture (`index-waba.js` & `opt_out_numbers.php`).
+  - WABA upstream engine automatically intercepts incoming messages with keywords (`stop`, `unsubscribe`, `opt out`) and records them in `opt_out_list` with `(waba_id, phone_number_id, wa_id, reason, created_at)`.
+  - Identified upstream REST endpoints:
+    - `GET https://waba.mpocket.in/api/opt_out_list/:waba_id` (requires Bearer token)
+    - `DELETE https://waba.mpocket.in/api/opt_out_list/:id` (removes number from upstream blacklist to resume messaging)
+    - `GET https://waba.mpocket.in/api/users?accessToken=...` (resolves WABA account ID `waba_id` dynamically)
+- **Backend Implementation (`wabaClient.js` & `customerController.js`)**:
+  - Implemented `resolveWabaAccountId(tenantId, accessToken)`: Checks `tenants.waba_account_id` and falls back to dynamic resolution via WABA users API, caching the result in MySQL.
+  - Implemented `fetchWabaOptouts(tenantId)`: Retrieves all upstream opt-outs for the store's WABA account.
+  - Implemented `deleteWabaOptout(tenantId, wabaOptoutId)`: Removes opt-outs upstream when unblocked by merchant.
+  - Implemented `syncWabaOptoutsInternal(tenantId)`: Synchronizes upstream opt-outs into `digital_invoice.optout_customers` with phone number normalization (supporting both 10-digit and 12-digit Indian formats), flags `customers.opted_out_whatsapp = TRUE`, and tags origin as `source = 'waba'`.
+  - Added `POST /api/v1/auth/customers/optout/sync` for on-demand merchant synchronization.
+  - Updated `GET /api/v1/auth/customers/optout` to auto-sync silently in background.
+  - Updated `DELETE /api/v1/auth/customers/optout/:id` to simultaneously unblock in local MySQL and remove upstream on `waba.mpocket.in`.
+- **Database Schema Upgrades**:
+  - Added `waba_account_id VARCHAR(100) NULL` to `tenants`.
+  - Added `waba_optout_id INT NULL` and `source VARCHAR(32) DEFAULT 'manual'` to `optout_customers`.
+- **Live Verification**:
+  - Authenticated as Tenant 1 (`store@deepaksarees.com`), triggered sync, and successfully pulled **19 real customer opt-out records** directly from `waba.mpocket.in`.
+
+### 2. Merchant DND Interface Enhancements (`/dashboard/optout-customers`)
+- **WABA Connected Badge**: Live status indicator displaying `"WABA Connected: waba.mpocket.in"`.
+- **1-Click Sync Button**: Added `"Sync with WABA"` action button with animated spinner and toast confirmation.
+- **Active Registry Telemetry**: Quick stat cards showing Total Blacklisted, WABA Auto-Captured, and Manual Merchant DND counts.
+- **Source Engine Column**: Differentiates between `"WABA Auto-DND"` (with smartphone icon) and `"Manual DND"`.
+
+### 3. Public Receipt UX & Profile Bug Fixes (`/i/{shortId}`)
+- **Header Pill Removal**: Removed top RetailNode banner box above the store logo on `BillReceipt.jsx` as requested.
+- **Fixed `handleUpdateProfile` ReferenceError**: Implemented missing handler for customer profile submission (`POST /api/v1/invoices/:slug/customer-profile`) with birthday, anniversary, and loyalty points credit.
+
+### 4. OTP Security & Email Delivery Cleanliness
+- **Eliminated Demo OTP**: Removed all dev OTP strings (`(Demo OTP: ...)`) from `ForgotPassword.jsx` and backend `authController.js` responses. OTP is strictly delivered via Resend email service.
+
+### 5. Brand Standardization to "RetailNode" Only
+- **Purged "DigitalBill Labs"**: Eradicated all occurrences across code, titles, and templates.
+- **Purged "RetailNode Technologies" & "RetailNode Digital Billing SaaS"**:
+  - Standardized email footers, headers, and subjects across `emailClient.js` and `authController.js` to state strictly **"RetailNode"** only.
+
+---
+
+## [2026-10-14] WABA 24-Hour Conversation Window API & Intelligent Dispatch Fallback Engine
+
+### 1. Root Cause Analysis: Meta 24-Hour Messaging Policy
+- **Issue**:
+  - Billing messages failed or were not received on WhatsApp when dispatched in `text_link` format.
+  - Investigated `waba_saas.messages` database on WABA gateway (`52.55.110.32`) and discovered error in `extra_info2`:
+    `{"code": 131047, "title": "Re-engagement message", "error_data": {"details": "Message failed to send because more than 24 hours have passed since the customer last replied to this number."}}`
+  - Under Meta WhatsApp Business Platform rules:
+    - Non-template freeform text messages (`type: 'text'`) can **strictly and only** be delivered if the customer has sent a message to the business WhatsApp number within the preceding 24 hours (86,400 seconds).
+    - If 24 hours have passed without an inbound customer message, Meta rejects all freeform session messages.
+    - Only pre-approved **Utility/Authentication/Marketing Templates** can be delivered outside the 24-hour window.
+
+### 2. Upstream WABA API Implementation (`waba.mpocket.in` / `52.55.110.32`)
+- **Implemented `/api/conversation-window` in `index-waba.js`**:
+  - Supports:
+    - `GET  /api/conversation-window?phone_number_id=...&phone=...`
+    - `GET  /api/conversation-window/:phone_number_id/:phone`
+    - `POST /api/conversation-window` (JSON body)
+  - Added `/api/conversation-window` to `GET_AUTH_EXEMPT_PREFIXES` so it can be called seamlessly by microservices.
+  - Normalizes phone numbers (stripping non-digits, handling 10-digit and 12-digit `91...` formats).
+  - Evaluates `(UNIX_TIMESTAMP() - CAST(timestamp AS UNSIGNED)) < 86400` against inbound customer messages (`sender IS NOT NULL AND sender != ''`).
+  - Returns structured telemetry:
+    ```json
+    {
+      "success": true,
+      "phone": "8857808284",
+      "normalized_phone": "918857808284",
+      "phone_number_id": "361462453714220",
+      "is_window_active": true,
+      "seconds_remaining": 85530,
+      "seconds_elapsed": 870,
+      "expires_at": "2026-10-15T14:42:50.000Z",
+      "last_message_at": "2026-10-14T14:42:50.000Z",
+      "last_message_ts": 1791988970,
+      "last_message_snippet": "hi"
+    }
+    ```
+  - Validated syntax with `node --check` and reloaded PM2 `waba-app` (Process ID 0).
+
+### 3. Microservice Billing Engine Integration (`digital-invoice-system/backend-api`)
+- **`wabaClient.js` Enhancements**:
+  - Added `checkConversationWindow({ tenantId, phoneNumberId, phone })` with 5-second resilient timeout.
+  - Integrated 24-hour window awareness into `dispatchInvoiceBill`:
+    - Before dispatching, automatically checks if recipient has an active 24-hour conversation window.
+    - If tenant has selected `text_link` but customer is **outside** the 24-hour window, automatically upgrades dispatch to an approved WhatsApp Utility Template (`retailnode_consultation_v2` / `billing_pdf_receipt` / `invoice_sample`).
+    - Ensures retail customers **never miss their invoice** due to closed conversation windows.
+    - If the customer is **inside** the 24-hour window, dispatches the interactive session text link as requested.
+- **`wabaController.js` & `authRoutes.js`**:
+  - Mounted `GET /api/v1/auth/waba/conversation-window` for authenticated merchants.
+  - Hot-reloaded PM2 `bill-backend` on production (`95.135.166.109`).
+
+### 4. Merchant Dashboard UI Enhancements (`WhatsAppSettings.jsx`)
+- **Live 24h Window Checker**:
+  - Added "Check 24h Window" button with animated refresh icon in Section 4.
+  - Live status indicator pill: Green for "24h Window Active", Amber for "24h Window Closed".
+  - Informative glassmorphic explanation card detailing remaining time and customer snippet.
+- **Production Build & Deployment**:
+  - Compiled Vite production bundle (`dist/assets/index-C6-cN6Wb.js`).
+  - Deployed to `/var/www/billintegration/dist` on `95.135.166.109`.
+
+### 5. Live Verification
+- Target Number: Strictly **`8857808284`**.
+- Window check API confirmed customer is active (`seconds_remaining: 85,374s`).
+- Dispatched test bill message `wamid.HBgMOTE4ODU3ODA4Mjg0FQIAERgSODJGNjY0Nzg2RjlGNEE0MDg4AA==`.
+- Queried upstream WABA database: confirmed status **`delivered = 1`**, **`sent = 1`**, **`status = 'delivered'`**.
+
+---
+
+## [2026-10-14] Pre-Defined Utility Template Auto-Generator, Zero Meta Token Exposure & In-Body Invoice Links
+
+### 1. Context & Business Directives
+1. **Zero Meta Token Exposure**: Meta Graph API developer tokens (`EAANM...`) must NEVER be exposed in client panels, endpoints, or merchant configuration forms. Merchants configure and expose strictly their `waba.mpocket.in` API token and Phone Number ID.
+2. **Dual-Mode Gateway in Merchant Bill Panel**:
+   - Option A: Platform Shared WABA Gateway (verified default gateway `361462453714220` with pre-approved templates).
+   - Option B: "I Have My Own WABA API Key" (accepts `waba.mpocket.in` API token and Phone Number ID).
+3. **Pre-Defined Utility Template Auto-Generator**:
+   - Store owners can generate and deploy 4 standardized Meta-approved utility billing templates in 1 click (`invoice_pdf`, `invoice_image`, `invoice_summary`, `loyalty_update`) with store parameters (`store_name`, `store_phone`, `custom_prefix`, `footer_text`).
+4. **Invoice Link In-Body Visibility**:
+   - In WhatsApp messages, customers without saved business contacts or using WhatsApp Desktop may encounter blocked action buttons or look for an explicit text link. Templates now provide the direct short-link URL (`https://bill.retailnode.in/t/{{slug}}`) both within the message body and on the interactive action button.
+
+### 2. Meta Approval Status of All 4 Core Templates
+All 4 core utility templates are officially verified and approved by Meta WhatsApp Cloud API under category **UTILITY** on default WABA account (`378243102032704` / Phone ID `361462453714220`):
+1. **`retailnode_invoice_pdf`**: **`APPROVED`** (ID: `1134509005816345`, Document Vector PDF Header + View Invoice URL Button).
+2. **`retailnode_invoice_image`**: **`APPROVED`** (ID: `1843863836784717`, Image Receipt Card Header + See Invoice URL Button).
+3. **`retailnode_invoice_summary`**: **`APPROVED`** (ID: `1636645934613092`, Text Utility + View Digital Bill URL Button).
+4. **`retailnode_loyalty_update`**: **`APPROVED`** (ID: `3442108005967594`, Loyalty Utility + Check Rewards URL Button).
+
+### 3. Implementation Details
+- **WABA Microservice Deployer (`52.55.110.32`)**:
+  - `POST /api/tenant/templates/deploy-retailnode-utility`: Ingests tenant store branding, generates in-memory sample vector PDF & PNG with resumable upload to Meta, submits templates under category `UTILITY`, and syncs `waba_saas.message_templates`.
+  - `GET /api/tenant/templates/retailnode-status`: Queries Meta Graph API live for template review status and syncs local DB.
+  - Template definitions updated so that all newly deployed templates include explicit in-body short-links: `https://bill.retailnode.in/t/{{shortId}}`.
+- **Backend API (`digital-invoice-system/backend-api`)**:
+  - Added `deployUtilityTemplates` and `getTemplateStatuses` in `wabaController.js`.
+  - Secured endpoints: `POST /api/v1/auth/waba/templates/deploy` and `GET /api/v1/auth/waba/templates/status`.
+  - `wabaClient.js`: Fixed body parameter count for `retailnode_invoice_image` (2 params: `storeName`, `storePhone`) and added dynamic support for 3-param custom image templates.
+  - Upgraded `template_text` dispatch to use approved `retailnode_invoice_summary` with dynamic button parameter `shortId`.
+- **Merchant Bill Panel (`src/pages/merchant/WhatsAppSettings.jsx`)**:
+  - Added Option A (Platform Shared Gateway) vs Option B (Custom WABA API Key).
+  - Integrated "Pre-defined Utility Template Auto-Generator & Meta Deployer" card with store configuration fields, live template status badges, and 1-click deploy.
+  - Cleaned up all developer webhook cards to exclusively reference `waba.mpocket.in` without exposing Meta developer apps.
+
+### 4. Verification & Testing
+- Target Number: Strictly **`8857808284`**.
+- Dispatched `retailnode_invoice_pdf` with real invoice shortId `JiKSx0qM` — Status: `accepted`.
+- Dispatched `retailnode_invoice_image` with real invoice shortId `JiKSx0qM` — Status: `accepted`.
+- Dispatched `retailnode_invoice_summary` with real invoice shortId `JiKSx0qM` — Status: `accepted`.
+
+---
+
+## [2026-10-14] Strict System Mail Isolation from Merchant Billing Accounts
+
+### 1. Root Cause & Directive
+- **Directive**: System mail logs (e.g. password resets, security OTPs, trial expiry warnings, verification tests) MUST NEVER be shown in merchant accounts. Merchant accounts must strictly only display customer digital invoice emails.
+- **Root Cause**: Previously, `emailClient.js` fell back to `tenantId || 1` for system emails where `tenantId` was `null`. Consequently, internal password reset OTPs and platform trial notifications were stored under Store #1 (`tenant_id = 1`) and returned in `GET /api/v1/auth/email/logs`.
+
+### 2. Implementation & Safeguards
+- **Backend Ingestion (`emailClient.js`)**:
+  - Replaced `tenantId || 1` with `tenantId || null` for both success and failure audit inserts into `email_logs`.
+  - System emails (password resets, OTPs, trial notifications) are logged with `tenant_id = NULL` and `invoice_id = NULL`.
+- **Auth & Cron Schedulers (`authController.js` & `cronScheduler.js`)**:
+  - Updated password reset dispatches to explicitly pass `tenantId: null`.
+  - Updated trial pre-expiry, post-expiry, and renewal reminder dispatches in `cronScheduler.js` to pass `tenantId: null`.
+- **Merchant Query Isolation (`emailController.js`)**:
+  - `getMerchantEmailLogs`: Enforced `WHERE tenant_id = ? AND invoice_id IS NOT NULL` and excluded system keywords (`Password`, `Reset`, `Trial`, `Verification Test`, `Security Alert`, `OTP`).
+- **Merchant Dashboard UI (`WhatsAppSettings.jsx`)**:
+  - Updated `fetchEmailLogs` with client-side filter to strip any system or auth emails.
+  - Renamed tab to "Invoice Email Logs" and section header to "Customer Invoice Email Dispatch History".
+  - System email logs remain strictly accessible to SuperAdmin in the Platform Panel (`/saas-admin`).
+
+---
+
+## [2026-10-15] Universal Activity, Security & Telemetry Logging Architecture
+
+### 1. Architectural Directive & Requirements
+- **Directive**: Track and audit every user and customer action across the platform:
+  1. **User Signups**: Merchant store registration timestamp, client IP, user agent, store name, user ID, tenant ID.
+  2. **User Logins**: Every login attempt (merchant admin, superadmin, cashier, customer OTP), client IP, timestamp, success/fail status, failure reason.
+  3. **Panel Navigation**: Screen transitions across `/dashboard/*` (merchant panel) and `/saas-admin/*` (SaaS panel), dwell duration, session ID.
+  4. **Future-Proof Extensibility**: Automatic logging for all future pages without requiring manual tracking code per component.
+  5. **Customer Invoice Views**: Cumulative and unique view count tracking when shoppers open `/t/{shortId}`, capturing WhatsApp in-app browser vs desktop, IP, device, and timestamp.
+  6. **Non-Blocking Ingestion**: Strict performance preservation (< 150ms POS ingestion, < 5ms cached receipt response).
+
+### 2. Database Schema Migrations (`setupDb.js`)
+- **`audit_logs`**: Tracks authentication and security events (`user_signup`, `login_success`, `login_failed`, `customer_otp_requested`, `customer_login_success`), status, client IP, actor email/phone, device type, failure reason, and JSON metadata.
+- **`panel_page_views`**: Tracks panel screen transitions, route paths, page titles, panel type, dwell time in seconds, session UUID, client IP, and device type.
+- **`invoice_views`**: Tracks every customer open of digital receipts (`/t/{shortId}`), customer mobile number, view number, unique IP deduplication, WhatsApp in-app browser flag, device type, and referrer.
+- **`invoices.view_count`**: Added column `view_count INT DEFAULT 0` with safe migration.
+- **`tenants`**: Added safe migrations for branding columns (`store_email`, `store_phone`, `store_address`, `website_url`, `youtube_url`, `gstin`, `fb_pixel_id`).
+
+### 3. Backend Ingestion & Telemetry Services
+- **Client IP & Device Helper (`src/utils/requestHelper.js`)**:
+  - Configured `app.set('trust proxy', true)` in `server.js` for Nginx/Cloudflare reverse proxy support (`95.135.166.109`).
+  - Helper `extractClientInfo(req)` extracts clean client IP via `X-Forwarded-For` / `X-Real-IP`, parses User-Agent into `mobile`/`tablet`/`desktop`, and flags WhatsApp in-app WebView (`isWhatsApp`).
+- **Audit Service (`src/services/auditService.js`)**:
+  - `logAuthEvent()`: Asynchronous MySQL insert with Redis counter increment (`tenant:audit:${tenantId}:${eventName}`, `platform:audit:${eventName}`).
+  - `logPageView()`: Asynchronous MySQL insert with Redis counter increment (`tenant:views:${tenantId}:${path}`, `platform:views:${path}`).
+  - `logInvoiceView()`: Asynchronous MySQL insert, Redis 30-day IP deduplication (`inv_view_ip:${shortId}:${ip}`), and view count increment (`UPDATE invoices SET view_count = view_count + 1`).
+- **Telemetry Controller & Routes (`src/controllers/telemetryController.js`, `src/routes/telemetryRoutes.js`)**:
+  - `POST /api/v1/telemetry/page-view`: Non-blocking telemetry ingestion beacon.
+  - `GET /api/v1/telemetry/audit-logs`: Multi-tenant isolated security audit query (global for superadmin).
+  - `GET /api/v1/telemetry/page-views`: Panel navigation query with dwell durations.
+  - `GET /api/v1/telemetry/invoice-views`: Digital receipt view audit query.
+- **Authentication Hooks (`src/controllers/authController.js`)**:
+  - Audited `register`: Records `user_signup` with client IP, store name, generated tenant ID.
+  - Audited `login`: Records `login_success` and `login_failed` (capturing `user_not_found`, `invalid_password`, `superadmin_role_required`).
+  - Audited customer OTP: Records `customer_otp_requested`, `customer_login_success`, and `customer_login_failed`.
+- **Digital Receipt Hook (`src/controllers/invoiceController.js`)**:
+  - In `getInvoice`: Asynchronously logs customer receipt open and increments `view_count`.
+  - In `getInvoices`: Returns `viewCount` for each invoice row in merchant panel.
+
+### 4. Universal Frontend Route Tracker (`src/components/RouteTracker.jsx` & `src/App.jsx`)
+- Created `<RouteTracker />` mounted directly under `<BrowserRouter>` in `App.jsx`.
+- Uses `useLocation()` to detect any route change across the entire application.
+- Generates and persists a browser session UUID in `sessionStorage` (`rn_session_id`).
+- Calculates dwell duration (seconds spent on screen before navigating) and dispatches beacon to `/api/v1/telemetry/page-view`.
+- Tracks window `beforeunload` to record time spent on the final exit screen.
+- **Future-Proof**: Any new route added to `App.jsx` in the future is automatically tracked with zero component code needed.
+
+### 5. UI Dashboards
+- **SaaS SuperAdmin Platform Panel (`src/pages/SaaSAdminPanel.jsx`)**:
+  - Upgraded the "Logs" tab into a 4-tab **Universal Activity & Security Audit Command Center**:
+    1. 🛡️ *Security & Auth* (Signups, logins, failed attempts, IPs, roles)
+    2. 🧭 *Panel Navigation* (Screen transitions, staff dwell times, paths)
+    3. 👁️ *Invoice Views* (Customer bill opens, view numbers, WhatsApp WebView detection)
+    4. ⚡ *Clicks & Engagement* (Google reviews, social link clicks)
+  - Added live search, pagination, and sortable headers across all 4 sub-views.
+- **Merchant Invoices Stream (`src/pages/merchant/InvoicesPage.jsx`)**:
+  - Added **Customer Views** column with live view badges (e.g. `👁️ 3 views`, `Unopened`).
+
+### 6. Verification & End-to-End Testing
+- Tested `POST /api/v1/telemetry/page-view` on public and authenticated routes: Verified in MySQL `panel_page_views`.
+- Tested `POST /api/v1/auth/login` failure: Verified `login_failed` with IP `49.37.18.99`, device `mobile`, reason `user_not_found`.
+- Tested `POST /api/v1/auth/register` and login: Verified `user_signup` from IP `114.143.180.22` and `login_success` from IP `49.36.120.10`.
+- Tested digital receipt view `GET /api/v1/invoices/tClfKso9` with WhatsApp User-Agent and Chrome Android: Verified `invoice_views` records with `is_whatsapp_webview = 1` vs `0`, view numbers (1st, 2nd, 3rd, 4th), and `invoices.view_count` increment.
+- Verified frontend build with `npm run build`: Succeeded in 391ms with 0 errors.
 

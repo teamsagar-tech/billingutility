@@ -2,7 +2,11 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const db = require('../config/database');
 const redis = require('../config/redis');
-const { sendWhatsAppMessage, getWabaCredentials } = require('../services/wabaClient');
+const { sendWhatsAppMessage, getWabaCredentials, dispatchInvoiceBill } = require('../services/wabaClient');
+const { generateInvoicePdf } = require('../services/invoicePdfService');
+const { generateInvoiceImage } = require('../services/invoiceImageService');
+const { extractClientInfo } = require('../utils/requestHelper');
+const { logInvoiceView } = require('../services/auditService');
 
 // Normalize phone numbers to 10 digits for accurate matching
 const normalizePhone = (p) => {
@@ -32,18 +36,32 @@ const generateShortId = () => {
 
 exports.uploadInvoice = async (req, res) => {
   try {
-    const { receiptData } = req.body; 
-    const tenantId = req.tenantId; // Injected by requireApiToken middleware
+    const rawData = req.body.receiptData || req.body; 
+    const tenantId = req.tenantId || req.user?.tenantId; // Injected by auth middleware
 
-    if (!receiptData || !receiptData.customerPhone) {
+    if (!tenantId) {
+      return res.status(401).json({ success: false, error: 'Merchant tenant identification missing' });
+    }
+
+    const rawPhone = rawData.customerPhone || rawData.customer_phone || rawData.phone || req.body.customerPhone || req.body.phone;
+    if (!rawData || !rawPhone) {
       return res.status(400).json({ success: false, error: 'Missing receipt data or customer phone' });
     }
 
     const shortId = generateShortId();
-    const customerPhone = receiptData.customerPhone;
-    const referralCode = req.body.referralCode || receiptData.referralCode; // The phone number of the referrer
-    const billAmountRaw = receiptData.billAmount || receiptData.BillTotal || 0;
+    const customerPhone = normalizePhone(rawPhone);
+    const referralCode = req.body.referralCode || rawData.referralCode; // The phone number of the referrer
+    const billAmountRaw = rawData.billAmount || rawData.bill_amount || rawData.BillTotal || rawData.amount || 0;
     const billAmount = parseFloat(billAmountRaw);
+
+    // Ensure structured receiptData object
+    const receiptData = {
+      ...rawData,
+      customerPhone,
+      InvoiceNumber: rawData.InvoiceNumber || rawData.invoiceNumber || rawData.invoice_number || `INV-${shortId}`,
+      BillTotal: billAmount.toFixed(2),
+      Date: rawData.Date || rawData.date || new Date().toISOString()
+    };
     
     // Check if customer is new
     const [existingCust] = await db.query('SELECT id FROM customers WHERE tenant_id = ? AND phone = ?', [tenantId, customerPhone]);
@@ -78,10 +96,11 @@ exports.uploadInvoice = async (req, res) => {
     }
 
     // 1. Save metadata to MySQL linked to Tenant
-    await db.query(
+    const [insertResult] = await db.query(
       'INSERT INTO invoices (tenant_id, short_id, customer_phone, receipt_json) VALUES (?, ?, ?, ?)',
       [tenantId, shortId, customerPhone, JSON.stringify(receiptData)]
     );
+    const invoiceId = insertResult.insertId;
 
     // 2. Upsert Customer Profile (CRM)
     await db.query(
@@ -110,22 +129,35 @@ exports.uploadInvoice = async (req, res) => {
 
     // Cache the data in Redis for fast retrieval
     await redis.setex(`invoice:${shortId}`, 86400, JSON.stringify(invoicePayload));
+    try {
+      await redis.del(`store:invoices:${tenantId}`);
+      await redis.del(`store:customers:${tenantId}`);
+    } catch (e) {}
 
     // 2. Fetch Tenant WABA Credentials
-    const [tenants] = await db.query('SELECT waba_access_token, phone_number_id, waba_provider FROM tenants WHERE id = ?', [tenantId]);
+    const [tenants] = await db.query('SELECT waba_access_token, phone_number_id, waba_provider, store_name FROM tenants WHERE id = ?', [tenantId]);
     const baseUrl = process.env.APP_URL || 'https://bill.retailnode.in';
     const receiptUrl = `${baseUrl}/t/${shortId}`;
+    const storeName = tenants[0]?.store_name || receiptData.StoreName || receiptData.storeName || 'RetailNode Store';
 
-    // Send WhatsApp digital bill strictly via WABA (waba.mpocket.in)
-    try {
-      await sendWhatsAppMessage({
-        tenantId,
-        to: customerPhone,
-        text: `Thank you for shopping at *${receiptData.StoreName || 'RetailNode'}*!\n\nYour digital bill for *₹${billAmount.toFixed(2)}* is ready.\n\nView and download your receipt here:\n${receiptUrl}`
-      });
-    } catch (waErr) {
-      console.error('Failed to send WhatsApp via WABA:', waErr.message);
-    }
+    // Dispatch WhatsApp digital bill asynchronously using owner's chosen format (PDF, Image, Template, or Text)
+    setImmediate(async () => {
+      try {
+        await dispatchInvoiceBill({
+          tenantId,
+          invoiceId,
+          shortId,
+          customerPhone,
+          customerName: receiptData.CustomerName || receiptData.customerName || 'Valued Customer',
+          billAmount,
+          invoiceNumber: receiptData.InvoiceNumber || receiptData.invoiceNumber || shortId,
+          storeName,
+          receiptData
+        });
+      } catch (waErr) {
+        console.error('Failed to dispatch invoice WhatsApp bill:', waErr.message);
+      }
+    });
 
     res.status(201).json({
       success: true,
@@ -224,70 +256,76 @@ exports.getInvoice = async (req, res) => {
       ageHours = Number(primaryInvoice.age_hours || 0);
     }
 
+    // 2. Asynchronously Log End-Customer Digital Receipt View
+    const clientInfo = extractClientInfo(req);
+    const referrer = req.headers['referer'] || req.headers['referrer'] || null;
+    logInvoiceView({
+      tenantId,
+      invoiceId: primaryInvoice?.id || cachedPayload?.invoiceId || null,
+      shortId: slug,
+      customerPhone,
+      ip: clientInfo.ip,
+      userAgent: clientInfo.userAgent,
+      isWhatsApp: clientInfo.isWhatsApp,
+      deviceType: clientInfo.deviceType,
+      referrer
+    });
+
     const isOver72Hours = ageHours >= 72;
     const tenantProfile = await getCachedTenantProfile(tenantId);
     const platformPixelId = process.env.PLATFORM_FB_PIXEL_ID || '101582739485721';
 
-    // 3. 72-Hour Security Gate & Customer Mobile Session Verification
-    if (isOver72Hours) {
-      let authorized = false;
+    // 3. Customer Authorization Check (Mobile session / OTP token)
+    let authorized = false;
 
-      // Check Active 72-Hour Mobile Customer Session
-      if (sessionHeader) {
-        try {
-          const sToken = sessionHeader.replace(/^Bearer\s+/i, '');
-          const decoded = jwt.verify(sToken, process.env.JWT_SECRET || 'supersecret_production_key_123!');
-          if (decoded && normalizePhone(decoded.phone) === normalizePhone(customerPhone)) {
-            authorized = true;
-          }
-        } catch (sErr) {}
-      }
-
-      // Check Active Auth Time within 72 Hours on Client
-      if (!authorized && authPhone && sessionAuthTime) {
-        const timeDiff = Date.now() - Number(sessionAuthTime);
-        if (timeDiff >= 0 && timeDiff < 72 * 60 * 60 * 1000) {
-          if (normalizePhone(authPhone) === normalizePhone(customerPhone)) {
-            authorized = true;
-          }
+    // Check Active 72-Hour Mobile Customer Session
+    if (sessionHeader) {
+      try {
+        const sToken = sessionHeader.replace(/^Bearer\s+/i, '');
+        const decoded = jwt.verify(sToken, process.env.JWT_SECRET || 'supersecret_production_key_123!');
+        if (decoded && normalizePhone(decoded.phone) === normalizePhone(customerPhone)) {
+          authorized = true;
         }
-      }
+      } catch (sErr) {}
+    }
 
-      // Check Specific Invoice JWT Token
-      if (!authorized && authHeader) {
-        try {
-          const token = authHeader.replace(/^Bearer\s+/i, '');
-          const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecret_production_key_123!');
-          if (decoded && decoded.slug === slug && normalizePhone(decoded.phone) === normalizePhone(customerPhone)) {
-            authorized = true;
-          }
-        } catch (tokenErr) {}
-      }
-
-      // Direct Phone Match
-      if (!authorized && authPhone) {
+    // Check Active Auth Time within 72 Hours on Client
+    if (!authorized && authPhone && sessionAuthTime) {
+      const timeDiff = Date.now() - Number(sessionAuthTime);
+      if (timeDiff >= 0 && timeDiff < 72 * 60 * 60 * 1000) {
         if (normalizePhone(authPhone) === normalizePhone(customerPhone)) {
           authorized = true;
         }
       }
+    }
 
-      // If not authorized after 72 hours, withhold sensitive data and present OTP verification screen
-      if (!authorized) {
-        const rawDigits = String(customerPhone).replace(/\D/g, '');
-        const last4 = rawDigits.slice(-4);
-        const masked = last4 ? `••••••${last4}` : '••••••••••';
+    // Check Specific Invoice JWT Token
+    if (!authorized && authHeader) {
+      try {
+        const token = authHeader.replace(/^Bearer\s+/i, '');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecret_production_key_123!');
+        if (decoded && decoded.slug === slug && normalizePhone(decoded.phone) === normalizePhone(customerPhone)) {
+          authorized = true;
+        }
+      } catch (tokenErr) {}
+    }
 
-        return res.status(200).json({
-          success: true,
-          requiresAuth: true,
-          isLocked: true,
-          ageHours,
-          storeName: tenantProfile.store_name || 'Store Receipt',
-          logoUrl: tenantProfile.logo_url || null,
-          maskedPhone: masked,
-          message: 'This invoice is older than 72 hours. For recipient privacy, please verify using WhatsApp OTP.'
-        });
-      }
+    // 72-Hour Security Gate: If invoice is older than 72 hours and visitor is not authenticated, lock whole receipt
+    if (isOver72Hours && !authorized) {
+      const rawDigits = String(customerPhone).replace(/\D/g, '');
+      const last4 = rawDigits.slice(-4);
+      const masked = last4 ? `••••••${last4}` : '••••••••••';
+
+      return res.status(200).json({
+        success: true,
+        requiresAuth: true,
+        isLocked: true,
+        ageHours,
+        storeName: tenantProfile.store_name || 'Store Receipt',
+        logoUrl: tenantProfile.logo_url || null,
+        maskedPhone: masked,
+        message: 'This invoice is older than 72 hours. For recipient privacy, please verify using WhatsApp OTP.'
+      });
     }
 
     // Check Redis for customer engagement actions (Google review, Instagram, YouTube)
@@ -317,6 +355,8 @@ exports.getInvoice = async (req, res) => {
         success: true,
         data: {
           ...cachedPayload.data,
+          history: authorized ? (cachedPayload.data.history || []) : [],
+          isCustomerLoggedIn: Boolean(authorized),
           tenantProfile,
           platformPixelId,
           userActions
@@ -332,12 +372,26 @@ exports.getInvoice = async (req, res) => {
         : primaryInvoice.receipt_json;
     } catch (e) {}
 
-    // Fetch customer loyalty balance
+    // Fetch customer profile & loyalty points
     const [custRows] = await db.query(
-      'SELECT loyalty_points FROM customers WHERE tenant_id = ? AND phone = ?',
+      `SELECT customer_name, email, dob, anniversary_date, gender, address, city, pincode, profile_status, loyalty_points 
+       FROM customers WHERE tenant_id = ? AND phone = ?`,
       [tenantId, customerPhone]
     );
-    const totalPoints = custRows[0]?.loyalty_points || 0;
+    const cust = custRows[0] || {};
+    const totalPoints = cust.loyalty_points || 0;
+    const customerProfile = {
+      name: cust.customer_name || receiptData.CustomerName || receiptData.customerName || '',
+      phone: customerPhone,
+      email: cust.email || '',
+      dob: cust.dob ? new Date(cust.dob).toISOString().split('T')[0] : '',
+      anniversary_date: cust.anniversary_date ? new Date(cust.anniversary_date).toISOString().split('T')[0] : '',
+      gender: cust.gender || 'm',
+      address: cust.address || '',
+      city: cust.city || '',
+      pincode: cust.pincode || '',
+      profile_status: cust.profile_status || (cust.dob && cust.email ? 'complete' : 'incomplete')
+    };
 
     // Fast indexed query for purchase history (last 5 bills)
     const [historyRows] = await db.query(
@@ -354,6 +408,7 @@ exports.getInvoice = async (req, res) => {
       shortId: slug,
       receiptData,
       loyalty: { balance: totalPoints },
+      customerProfile,
       createdAt: primaryInvoice.created_at,
       ageHours,
       history,
@@ -374,7 +429,11 @@ exports.getInvoice = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: responseData
+      data: {
+        ...responseData,
+        history: authorized ? history : [],
+        isCustomerLoggedIn: Boolean(authorized)
+      }
     });
   } catch (error) {
     console.error('Retrieval Error:', error);
@@ -773,7 +832,7 @@ exports.getActionStatus = async (req, res) => {
   }
 };
 
-// Fetch store invoices for merchant dashboard
+// Fetch store invoices for merchant dashboard (High-Performance Redis In-Memory Cache)
 exports.getStoreInvoices = async (req, res) => {
   try {
     const tenantId = req.user.tenantId;
@@ -781,19 +840,28 @@ exports.getStoreInvoices = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Merchant tenant ID missing' });
     }
 
+    const cacheKey = `store:invoices:${tenantId}`;
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        return res.status(200).json({ success: true, data: JSON.parse(cached), cached: true });
+      }
+    } catch (e) {}
+
     const [rows] = await db.query(
       `SELECT 
         i.id, 
         i.short_id, 
         i.customer_phone, 
         i.receipt_json, 
+        i.view_count,
         i.created_at,
         (SELECT status FROM billing_messages WHERE invoice_id = i.id ORDER BY id DESC LIMIT 1) as whatsapp_status,
         (SELECT COUNT(*) FROM action_logs WHERE short_id = i.short_id AND action_type = 'google_review_click') as review_clicks
        FROM invoices i 
        WHERE i.tenant_id = ? 
        ORDER BY i.created_at DESC 
-       LIMIT 100`,
+       LIMIT 500`,
       [tenantId]
     );
 
@@ -812,11 +880,16 @@ exports.getStoreInvoices = async (req, res) => {
         customerName: receipt.CustomerName || receipt.customerName || '',
         createdAt: r.created_at,
         whatsappStatus: r.whatsapp_status || 'sent',
-        hasReviewed: r.review_clicks > 0
+        hasReviewed: r.review_clicks > 0,
+        viewCount: Number(r.view_count || 0)
       };
     });
 
-    res.status(200).json({ success: true, data: invoices });
+    try {
+      await redis.setex(cacheKey, 60, JSON.stringify(invoices));
+    } catch (e) {}
+
+    res.status(200).json({ success: true, data: invoices, cached: false });
   } catch (error) {
     console.error('Error fetching store invoices:', error);
     res.status(500).json({ success: false, error: 'Server error fetching invoices' });
@@ -906,21 +979,33 @@ exports.createQuickBill = async (req, res) => {
       createdAt: new Date().toISOString()
     };
     await redis.setex(`invoice:${shortId}`, 86400, JSON.stringify(invoicePayload));
+    try {
+      await redis.del(`store:invoices:${tenantId}`);
+      await redis.del(`store:customers:${tenantId}`);
+    } catch (e) {}
 
     // 5. WhatsApp dispatch if enabled
     const baseUrl = process.env.APP_URL || 'https://bill.retailnode.in';
     const receiptUrl = `${baseUrl}/t/${shortId}`;
 
     if (sendWhatsApp !== false) {
-      try {
-        await sendWhatsAppMessage({
-          tenantId,
-          to: normalizedPhone,
-          text: `Thank you for shopping at *${storeName}*!\n\nYour digital bill for *₹${amount.toFixed(2)}* is ready.\n\nView and download your receipt here:\n${receiptUrl}`
-        });
-      } catch (e) {
-        console.error('Quick bill WhatsApp error:', e.message);
-      }
+      setImmediate(async () => {
+        try {
+          await dispatchInvoiceBill({
+            tenantId,
+            invoiceId: newInvoiceId,
+            shortId,
+            customerPhone: normalizedPhone,
+            customerName: receiptData.CustomerName || 'Valued Customer',
+            billAmount: amount,
+            invoiceNumber: receiptData.InvoiceNumber || shortId,
+            storeName,
+            receiptData
+          });
+        } catch (e) {
+          console.error('Quick bill WhatsApp error:', e.message);
+        }
+      });
     }
 
     res.status(201).json({
@@ -1008,6 +1093,202 @@ exports.lookupCustomerBills = async (req, res) => {
   } catch (error) {
     console.error('Customer Bills Lookup Error:', error);
     res.status(500).json({ success: false, error: 'Failed to lookup bills' });
+  }
+};
+
+/**
+ * GET /api/v1/invoices/:slug/pdf
+ * Public PDF receipt download for WhatsApp document messages and customer archiving
+ */
+exports.getInvoicePdf = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const [invRows] = await db.query(
+      'SELECT tenant_id, customer_phone, receipt_json, created_at FROM invoices WHERE short_id = ?',
+      [slug]
+    );
+
+    if (invRows.length === 0) {
+      return res.status(404).send('Invoice not found');
+    }
+
+    const invoice = invRows[0];
+    let receipt = {};
+    try {
+      receipt = typeof invoice.receipt_json === 'string' ? JSON.parse(invoice.receipt_json) : (invoice.receipt_json || {});
+    } catch (e) {}
+
+    const tenantProfile = await getCachedTenantProfile(invoice.tenant_id);
+
+    const pdfBuffer = generateInvoicePdf({
+      short_id: slug,
+      receipt_json: receipt,
+      customer_phone: invoice.customer_phone,
+      created_at: invoice.created_at
+    }, tenantProfile);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="Bill_${receipt.InvoiceNumber || slug}.pdf"`);
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.status(200).send(pdfBuffer);
+  } catch (err) {
+    console.error('[getInvoicePdf Error]:', err);
+    res.status(500).send('Error generating PDF invoice');
+  }
+};
+
+/**
+ * GET /api/v1/invoices/:slug/image
+ * Public PNG receipt preview image for WhatsApp image header templates
+ */
+exports.getInvoiceImage = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const [invRows] = await db.query(
+      'SELECT tenant_id, customer_phone, receipt_json, created_at FROM invoices WHERE short_id = ?',
+      [slug]
+    );
+
+    if (invRows.length === 0) {
+      return res.status(404).send('Invoice not found');
+    }
+
+    const invoice = invRows[0];
+    let receipt = {};
+    try {
+      receipt = typeof invoice.receipt_json === 'string' ? JSON.parse(invoice.receipt_json) : (invoice.receipt_json || {});
+    } catch (e) {}
+
+    const tenantProfile = await getCachedTenantProfile(invoice.tenant_id);
+
+    if (tenantProfile.custom_bill_image_url) {
+      return res.redirect(tenantProfile.custom_bill_image_url);
+    }
+
+    const imgBuffer = generateInvoiceImage({
+      short_id: slug,
+      receipt_json: receipt,
+      customer_phone: invoice.customer_phone,
+      created_at: invoice.created_at
+    }, tenantProfile);
+
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.status(200).send(imgBuffer);
+  } catch (err) {
+    console.error('[getInvoiceImage Error]:', err);
+    res.status(500).send('Error generating invoice image');
+  }
+};
+
+/**
+ * PUT /api/v1/invoices/:slug/customer-profile
+ * Public customer profile self-service update directly from their digital receipt
+ */
+exports.updateCustomerProfile = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const {
+      customer_name,
+      customerName,
+      email,
+      dob,
+      anniversary_date,
+      anniversaryDate,
+      gender,
+      address,
+      city,
+      pincode
+    } = req.body;
+
+    const [invRows] = await db.query(
+      'SELECT tenant_id, customer_phone FROM invoices WHERE short_id = ?',
+      [slug]
+    );
+
+    if (invRows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Invoice not found' });
+    }
+
+    const { tenant_id: tenantId, customer_phone: customerPhone } = invRows[0];
+    const name = customer_name || customerName || null;
+    const birthDate = dob || null;
+    const annivDate = anniversary_date || anniversaryDate || null;
+    const isComplete = Boolean(name && (birthDate || email));
+
+    await db.query(
+      `INSERT INTO customers (
+         tenant_id, phone, customer_name, email, dob, anniversary_date, gender, address, city, pincode, profile_status
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         customer_name = COALESCE(VALUES(customer_name), customer_name),
+         email = COALESCE(VALUES(email), email),
+         dob = COALESCE(VALUES(dob), dob),
+         anniversary_date = COALESCE(VALUES(anniversary_date), anniversary_date),
+         gender = COALESCE(VALUES(gender), gender),
+         address = COALESCE(VALUES(address), address),
+         city = COALESCE(VALUES(city), city),
+         pincode = COALESCE(VALUES(pincode), pincode),
+         profile_status = IF(VALUES(customer_name) IS NOT NULL AND (VALUES(dob) IS NOT NULL OR VALUES(email) IS NOT NULL), 'complete', profile_status)`,
+      [
+        tenantId,
+        customerPhone,
+        name,
+        email || null,
+        birthDate,
+        annivDate,
+        gender || 'm',
+        address || null,
+        city || null,
+        pincode || null,
+        isComplete ? 'complete' : 'incomplete'
+      ]
+    );
+
+    let bonusAwarded = 0;
+    try {
+      if (isComplete) {
+        await db.query(
+          'UPDATE customers SET loyalty_points = loyalty_points + 50 WHERE tenant_id = ? AND phone = ?',
+          [tenantId, customerPhone]
+        );
+        bonusAwarded = 50;
+      }
+    } catch (e) {}
+
+    const [updatedCust] = await db.query(
+      'SELECT customer_name, email, dob, anniversary_date, gender, address, city, pincode, profile_status, loyalty_points FROM customers WHERE tenant_id = ? AND phone = ?',
+      [tenantId, customerPhone]
+    );
+    const cust = updatedCust[0] || {};
+
+    try {
+      await Promise.all([
+        redis.del(`invoice:pub:${slug}`),
+        redis.del(`store:customers:${tenantId}`)
+      ]);
+    } catch (e) {}
+
+    res.status(200).json({
+      success: true,
+      message: bonusAwarded > 0 ? `Profile saved! You received ${bonusAwarded} bonus loyalty points.` : 'Profile saved successfully.',
+      bonusAwarded,
+      customerProfile: {
+        name: cust.customer_name,
+        email: cust.email,
+        dob: cust.dob ? new Date(cust.dob).toISOString().split('T')[0] : '',
+        anniversary_date: cust.anniversary_date ? new Date(cust.anniversary_date).toISOString().split('T')[0] : '',
+        gender: cust.gender,
+        address: cust.address,
+        city: cust.city,
+        pincode: cust.pincode,
+        profile_status: cust.profile_status,
+        loyaltyBalance: cust.loyalty_points
+      }
+    });
+  } catch (err) {
+    console.error('[updateCustomerProfile Error]:', err);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 };
 
