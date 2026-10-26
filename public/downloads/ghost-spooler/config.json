@@ -1,0 +1,8 @@
+{
+  "apiUrl": "https://bill.retailnode.in/api/v1",
+  "apiToken": "rn_live_store_token_here",
+  "storeName": "Retail Store",
+  "duplicateWindowSeconds": 300,
+  "pollIntervalMs": 1500,
+  "minBillAmount": 10
+}

@@ -6,6 +6,19 @@
 - **CTO Role**: Lead Enterprise SaaS Architect
 - **Repository**: `/Users/ratan/Developer/billintegration`
 
+## [2026-10-26] RetailNode Ghost Spooler Service (Zero-UI Background Daemon)
+- **Problem Statement**: Retail customers and cashiers denied foreground middleware applications due to fear of cashier lag, dialog popups, and printer driver alterations.
+- **Architectural Solution**: Built the **RetailNode Ghost Spooler Service** (`RetailNodeGhost.exe`):
+  - **Zero UI & Zero Cashier Friction**: Runs purely as a headless Windows background service under `LocalSystem`. No windows, no popups, no new printer selection.
+  - **Native Spool Hooking**: Listens directly on Windows Print Spooler directory (`C:\Windows\System32\spool\PRINTERS\*.SPL`).
+  - **ESC/POS Normalizer**: Strips binary ESC/POS control bytes and extracts Customer Phone, Invoice Number, and Bill Total via regex.
+  - **Idempotent Dispatch**: Uses MD5 hash cache `(InvoiceNumber_CustomerPhone_BillTotal)` within a 5-minute sliding window to prevent duplicate WhatsApp sends on merchant/customer copy prints.
+  - **Offline Resilience**: Offline queue manager (`offline-queue.json`) caches bills during store internet drops and automatically retries upon reconnection.
+  - **1-Click Admin Install**: Provided `install-ghost-service.bat` and `uninstall-ghost-service.bat` with automated PowerShell `Set-Printer -KeepPrintedJobs $true` enablement.
+- **Artifacts**: Bundled in `public/downloads/RetailNodeGhostSpooler.zip` and `public/downloads/RetailNodeGhost.exe`.
+
+---
+
 ## [2026-10-14] Architectural Blueprint: Omnichannel Customer Complaint & Grievance Desk Add-on ("RetailNode Care")
 - **Add-on Package Strategy**: Preserved complete technical blueprint and commercial architecture for the upcoming premium add-on module (*RetailNode Care*).
 - **Omnichannel Ingestion**: Detailed specifications for receipt-embedded complaint drawer (`/t/{shortId}#complaint`), WhatsApp 2-way conversational keyword bot (with photo/voice note webhook ingestion), and transactional email.

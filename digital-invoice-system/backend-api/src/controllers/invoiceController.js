@@ -43,7 +43,7 @@ exports.uploadInvoice = async (req, res) => {
       return res.status(401).json({ success: false, error: 'Merchant tenant identification missing' });
     }
 
-    const rawPhone = rawData.customerPhone || rawData.customer_phone || rawData.phone || req.body.customerPhone || req.body.phone;
+    const rawPhone = rawData.customerPhone || rawData.CustomerPhone || rawData.customer_phone || rawData.phone || rawData.mobile || req.body.customerPhone || req.body.CustomerPhone || req.body.phone || req.body.mobile;
     if (!rawData || !rawPhone) {
       return res.status(400).json({ success: false, error: 'Missing receipt data or customer phone' });
     }
