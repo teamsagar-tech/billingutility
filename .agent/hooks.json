@@ -1,0 +1,10 @@
+{
+  "save-transcript": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python3 ./.agents/scripts/save_transcript.py"
+      }
+    ]
+  }
+}

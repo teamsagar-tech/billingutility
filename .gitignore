@@ -28,3 +28,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Temporary and scratch files
+temp/
+*/temp/
+scratch/
+*/scratch/
+*.tmp
+*.scratch.*
