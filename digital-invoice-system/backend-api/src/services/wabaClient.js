@@ -370,7 +370,7 @@ async function dispatchInvoiceBill({
       const templateName = creds.imageTemplateName || 'retailnode_invoice_image';
       let components = [];
 
-      if (templateName === 'retailnode_invoice_image') {
+      if (templateName === 'retailnode_invoice_image' || templateName === 'sainath_invoice_image' || templateName === 'sainath_digital_bill' || templateName === 'retailnode_store_bill') {
         components = [
           {
             type: 'header',
