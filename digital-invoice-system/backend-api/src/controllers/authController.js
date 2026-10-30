@@ -159,7 +159,8 @@ exports.register = async (req, res) => {
         tenantId,
         to: actualEmail,
         subject: `Welcome to RetailNode - ${actualStoreName}`,
-        html: welcomeHtml
+        html: welcomeHtml,
+        emailType: 'welcome'
       }).catch(err => console.warn('[Auth] Failed to send welcome email:', err.message));
     }
 

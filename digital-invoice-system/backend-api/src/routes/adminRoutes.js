@@ -16,7 +16,18 @@ const {
   updateEmailGateway,
   testAdminEmailGateway,
   getAdminEmailLogs,
-  getAdminWhatsAppLogs
+  getAdminWhatsAppLogs,
+  getAllGmbLocations,
+  createGmbLocation,
+  updateGmbLocation,
+  deleteGmbLocation,
+  getGmbReviews,
+  replyGmbReview,
+  getGmbFeedbacks,
+  getAllUsers,
+  createUser,
+  updateUser,
+  deleteUser
 } = require('../controllers/adminController');
 const { requireAuth, requireSuperAdmin } = require('../middleware/auth');
 
@@ -24,6 +35,21 @@ const router = express.Router();
 
 // Strict SuperAdmin security guard on all routes
 router.use(requireAuth, requireSuperAdmin);
+
+// GMB Locations & Review SaaS Hub
+router.get('/gmb/locations', getAllGmbLocations);
+router.post('/gmb/locations', createGmbLocation);
+router.put('/gmb/locations/:id', updateGmbLocation);
+router.delete('/gmb/locations/:id', deleteGmbLocation);
+router.get('/gmb/reviews', getGmbReviews);
+router.post('/gmb/reviews/:id/reply', replyGmbReview);
+router.get('/gmb/feedbacks', getGmbFeedbacks);
+
+// Users & Store Access Management
+router.get('/users', getAllUsers);
+router.post('/users', createUser);
+router.put('/users/:id', updateUser);
+router.delete('/users/:id', deleteUser);
 
 // Platform Analytics
 router.get('/analytics', getPlatformAnalytics);

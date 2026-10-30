@@ -9,6 +9,7 @@ router.get('/config', paymentController.getPublicConfig);
 // Authenticated Merchant Payment Endpoints
 router.post('/create-order', requireAuth, paymentController.createOrder);
 router.post('/verify', requireAuth, paymentController.verifyPayment);
+router.post('/test-receipt', requireAuth, paymentController.testReceiptDispatch);
 router.get('/history', requireAuth, paymentController.getPaymentHistory);
 
 module.exports = router;

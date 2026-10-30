@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const db = require('../config/database');
 const redis = require('../config/redis');
+const { sendEmail, generateWelcomeVerificationEmailHtml } = require('../services/emailClient');
 
 // 1. Platform-Wide Analytics (Redis In-Memory Caching)
 exports.getPlatformAnalytics = async (req, res) => {
@@ -193,6 +194,28 @@ exports.createTenant = async (req, res) => {
         'INSERT INTO users (tenant_id, email, password_hash, role) VALUES (?, ?, ?, "merchant_admin")',
         [tenantId, admin_email, passwordHash]
       );
+
+      // Dispatch Welcome Email to store admin
+      if (admin_email.includes('@')) {
+        const welcomeHtml = generateWelcomeVerificationEmailHtml({
+          storeName: store_name,
+          ownerName: 'Store Administrator',
+          userEmail: admin_email.trim().toLowerCase(),
+          loginUrl: 'https://bill.retailnode.in/login',
+          apiToken,
+          planName: `${(plan_tier || 'trial').toUpperCase()} Plan`,
+          role: 'Store Admin',
+          temporaryPassword: admin_password
+        });
+
+        sendEmail({
+          tenantId,
+          to: admin_email.trim().toLowerCase(),
+          subject: `Welcome to RetailNode - ${store_name}`,
+          html: welcomeHtml,
+          emailType: 'welcome'
+        }).catch(err => console.warn('[Admin] Failed to send tenant welcome email:', err.message));
+      }
     }
 
     // Default loyalty settings for this new store
@@ -257,7 +280,7 @@ exports.updateTenant = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Tenant store not found' });
     }
 
-    let targetExpiry = plan_valid_until !== undefined ? plan_valid_until : existing[0].plan_valid_until;
+    let targetExpiry = plan_valid_until !== undefined ? (plan_valid_until || null) : existing[0].plan_valid_until;
     if (extend_days && parseInt(extend_days, 10) > 0) {
       const days = parseInt(extend_days, 10);
       const [extendRes] = await db.query(
@@ -269,29 +292,30 @@ exports.updateTenant = async (req, res) => {
       }
     }
 
-    await db.query(
-      `UPDATE tenants SET 
-        store_name = COALESCE(?, store_name),
-        store_phone = COALESCE(?, store_phone),
-        store_email = COALESCE(?, store_email),
-        store_address = COALESCE(?, store_address),
-        gstin = COALESCE(?, gstin),
-        plan_tier = COALESCE(?, plan_tier),
-        plan_valid_until = ?,
-        message_quota = COALESCE(?, message_quota),
-        is_active = COALESCE(?, is_active),
-        google_place_id = COALESCE(?, google_place_id),
-        google_review_url = COALESCE(?, google_review_url),
-        instagram_url = COALESCE(?, instagram_url),
-        youtube_url = COALESCE(?, youtube_url)
-       WHERE id = ?`,
-      [
-        store_name, store_phone, store_email, store_address, gstin, 
-        plan_tier, targetExpiry, message_quota, is_active, 
-        google_place_id, google_review_url, instagram_url, youtube_url,
-        id
-      ]
-    );
+    const updates = [];
+    const values = [];
+
+    if (store_name !== undefined) { updates.push('store_name = ?'); values.push(store_name); }
+    if (store_phone !== undefined) { updates.push('store_phone = ?'); values.push(store_phone); }
+    if (store_email !== undefined) { updates.push('store_email = ?'); values.push(store_email); }
+    if (store_address !== undefined) { updates.push('store_address = ?'); values.push(store_address); }
+    if (gstin !== undefined) { updates.push('gstin = ?'); values.push(gstin); }
+    if (plan_tier !== undefined) { updates.push('plan_tier = ?'); values.push(plan_tier); }
+    if (plan_valid_until !== undefined || extend_days !== undefined) { 
+      updates.push('plan_valid_until = ?'); 
+      values.push(targetExpiry ? targetExpiry : null); 
+    }
+    if (message_quota !== undefined) { updates.push('message_quota = ?'); values.push(message_quota); }
+    if (is_active !== undefined) { updates.push('is_active = ?'); values.push(is_active ? 1 : 0); }
+    if (google_place_id !== undefined) { updates.push('google_place_id = ?'); values.push(google_place_id); }
+    if (google_review_url !== undefined) { updates.push('google_review_url = ?'); values.push(google_review_url); }
+    if (instagram_url !== undefined) { updates.push('instagram_url = ?'); values.push(instagram_url); }
+    if (youtube_url !== undefined) { updates.push('youtube_url = ?'); values.push(youtube_url); }
+
+    if (updates.length > 0) {
+      values.push(id);
+      await db.query(`UPDATE tenants SET ${updates.join(', ')} WHERE id = ?`, values);
+    }
 
     // Invalidate Redis profile cache
     try {
@@ -423,11 +447,13 @@ exports.updateGlobalGateways = async (req, res) => {
 // 8. Public Active Pricing Campaign Endpoint
 exports.getActivePricingCampaign = async (req, res) => {
   try {
-    const [rows] = await db.query(`
+    const { category } = req.query;
+    let query = `
       SELECT 
         id, 
         campaign_name, 
         plan_tier, 
+        category,
         regular_price, 
         campaign_price, 
         trial_days, 
@@ -439,13 +465,20 @@ exports.getActivePricingCampaign = async (req, res) => {
         end_date, 
         updated_at
       FROM pricing_campaigns 
-      WHERE is_active = 1 
-      ORDER BY id DESC 
-      LIMIT 1
-    `);
+      WHERE is_active = 1
+    `;
+    const params = [];
+    if (category) {
+      query += ' AND category = ?';
+      params.push(category);
+    }
+    query += ' ORDER BY id DESC LIMIT 1';
+
+    const [rows] = await db.query(query, params);
+    const [allActive] = await db.query('SELECT * FROM pricing_campaigns WHERE is_active = 1 ORDER BY id DESC');
 
     if (rows.length > 0) {
-      return res.status(200).json({ success: true, data: rows[0] });
+      return res.status(200).json({ success: true, data: rows[0], all_active: allActive });
     }
 
     // Default fallback
@@ -486,6 +519,8 @@ exports.createPricingCampaign = async (req, res) => {
   try {
     const {
       campaign_name,
+      plan_tier,
+      category,
       regular_price,
       campaign_price,
       trial_days,
@@ -497,14 +532,15 @@ exports.createPricingCampaign = async (req, res) => {
       end_date
     } = req.body;
 
-    if (!campaign_name || !campaign_price) {
+    if (!campaign_name || campaign_price === undefined) {
       return res.status(400).json({ success: false, error: 'Campaign name and price are required' });
     }
 
     const activeFlag = is_active ? 1 : 0;
     if (activeFlag === 1) {
-      // Deactivate others
-      await db.query('UPDATE pricing_campaigns SET is_active = 0');
+      // Deactivate other campaigns in the same product category so each category maintains its active offer
+      const targetCategory = category || 'billing';
+      await db.query('UPDATE pricing_campaigns SET is_active = 0 WHERE category = ?', [targetCategory]);
     }
 
     const regPrice = regular_price ? parseFloat(regular_price) : 9000.00;
@@ -515,11 +551,13 @@ exports.createPricingCampaign = async (req, res) => {
 
     const [result] = await db.query(
       `INSERT INTO pricing_campaigns (
-        campaign_name, plan_tier, regular_price, campaign_price, trial_days,
+        campaign_name, plan_tier, category, regular_price, campaign_price, trial_days,
         badge_text, headline, subheadline, is_active, start_date, end_date
-      ) VALUES (?, 'growth', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         campaign_name,
+        plan_tier || 'growth',
+        category || 'billing',
         regPrice,
         campPrice,
         trial_days ? parseInt(trial_days, 10) : 3,
@@ -549,6 +587,8 @@ exports.updatePricingCampaign = async (req, res) => {
     const { id } = req.params;
     const {
       campaign_name,
+      plan_tier,
+      category,
       regular_price,
       campaign_price,
       trial_days,
@@ -561,41 +601,37 @@ exports.updatePricingCampaign = async (req, res) => {
     } = req.body;
 
     if (is_active === 1 || is_active === true) {
-      await db.query('UPDATE pricing_campaigns SET is_active = 0 WHERE id != ?', [id]);
+      // Scope deactivation to the same category
+      const [currRows] = await db.query('SELECT category FROM pricing_campaigns WHERE id = ?', [id]);
+      const targetCategory = category || (currRows.length > 0 ? currRows[0].category : 'billing');
+      await db.query('UPDATE pricing_campaigns SET is_active = 0 WHERE category = ? AND id != ?', [targetCategory, id]);
     }
 
-    await db.query(
-      `UPDATE pricing_campaigns SET
-        campaign_name = COALESCE(?, campaign_name),
-        regular_price = COALESCE(?, regular_price),
-        campaign_price = COALESCE(?, campaign_price),
-        trial_days = COALESCE(?, trial_days),
-        badge_text = COALESCE(?, badge_text),
-        headline = COALESCE(?, headline),
-        subheadline = COALESCE(?, subheadline),
-        is_active = COALESCE(?, is_active),
-        start_date = COALESCE(?, start_date),
-        end_date = COALESCE(?, end_date)
-       WHERE id = ?`,
-      [
-        campaign_name,
-        regular_price !== undefined ? parseFloat(regular_price) : null,
-        campaign_price !== undefined ? parseFloat(campaign_price) : null,
-        trial_days !== undefined ? parseInt(trial_days, 10) : null,
-        badge_text,
-        headline,
-        subheadline,
-        is_active !== undefined ? (is_active ? 1 : 0) : null,
-        start_date,
-        end_date,
-        id
-      ]
-    );
+    const updates = [];
+    const values = [];
+
+    if (campaign_name !== undefined) { updates.push('campaign_name = ?'); values.push(campaign_name); }
+    if (plan_tier !== undefined) { updates.push('plan_tier = ?'); values.push(plan_tier); }
+    if (category !== undefined) { updates.push('category = ?'); values.push(category); }
+    if (regular_price !== undefined) { updates.push('regular_price = ?'); values.push(parseFloat(regular_price)); }
+    if (campaign_price !== undefined) { updates.push('campaign_price = ?'); values.push(parseFloat(campaign_price)); }
+    if (trial_days !== undefined) { updates.push('trial_days = ?'); values.push(parseInt(trial_days, 10)); }
+    if (badge_text !== undefined) { updates.push('badge_text = ?'); values.push(badge_text); }
+    if (headline !== undefined) { updates.push('headline = ?'); values.push(headline); }
+    if (subheadline !== undefined) { updates.push('subheadline = ?'); values.push(subheadline); }
+    if (is_active !== undefined) { updates.push('is_active = ?'); values.push(is_active ? 1 : 0); }
+    if (start_date !== undefined) { updates.push('start_date = ?'); values.push(start_date ? start_date : null); }
+    if (end_date !== undefined) { updates.push('end_date = ?'); values.push(end_date ? end_date : null); }
+
+    if (updates.length > 0) {
+      values.push(id);
+      await db.query(`UPDATE pricing_campaigns SET ${updates.join(', ')} WHERE id = ?`, values);
+    }
 
     res.status(200).json({ success: true, message: 'Pricing campaign updated successfully' });
   } catch (error) {
     console.error('Error updating pricing campaign:', error);
-    res.status(500).json({ success: false, error: 'Failed to update pricing campaign' });
+    res.status(500).json({ success: false, error: error.message || 'Failed to update pricing campaign' });
   }
 };
 
@@ -833,5 +869,489 @@ exports.getAdminWhatsAppLogs = async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to fetch WhatsApp logs' });
   }
 };
+
+// ==========================================
+// 15. GMB & GOOGLE REVIEW SAAS MANAGEMENT
+// ==========================================
+
+exports.getAllGmbLocations = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        l.id,
+        l.tenant_id,
+        l.slug,
+        l.title,
+        l.primary_category,
+        l.address,
+        l.phone,
+        l.website_url,
+        l.whatsapp_number,
+        l.place_id,
+        l.google_review_url,
+        l.selected_theme,
+        l.logo_url,
+        l.cover_url,
+        l.funnel_views,
+        l.funnel_positive_redirects,
+        l.funnel_private_feedbacks,
+        l.total_reviews,
+        l.average_rating,
+        l.profile_score,
+        l.is_active,
+        l.created_at,
+        l.updated_at,
+        t.store_name as tenant_store_name,
+        t.store_email as tenant_email,
+        t.store_phone as tenant_phone,
+        t.plan_tier as tenant_plan
+      FROM gmb_locations l
+      LEFT JOIN tenants t ON l.tenant_id = t.id
+      ORDER BY l.id DESC
+    `);
+
+    res.status(200).json({ success: true, data: rows });
+  } catch (error) {
+    console.error('Error fetching GMB locations:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch GMB locations' });
+  }
+};
+
+exports.createGmbLocation = async (req, res) => {
+  try {
+    const {
+      title,
+      slug,
+      tenant_id,
+      place_id,
+      phone,
+      whatsapp_number,
+      website_url,
+      google_review_url,
+      selected_theme = 'pearl-light',
+      address,
+      primary_category = 'Retail Store'
+    } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ success: false, error: 'Location title is required' });
+    }
+
+    const cleanSlug = (slug || title).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    
+    // Check if slug is unique
+    const [existing] = await db.query('SELECT id FROM gmb_locations WHERE slug = ?', [cleanSlug]);
+    if (existing.length > 0) {
+      return res.status(400).json({ success: false, error: `Slug "${cleanSlug}" is already taken` });
+    }
+
+    const [result] = await db.query(
+      `INSERT INTO gmb_locations (
+        tenant_id, slug, title, primary_category, address, phone,
+        website_url, whatsapp_number, place_id, google_review_url, selected_theme, is_active
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+      [
+        tenant_id || null,
+        cleanSlug,
+        title.trim(),
+        primary_category,
+        address || '',
+        phone || '',
+        website_url || '',
+        whatsapp_number || phone || '',
+        place_id || '',
+        google_review_url || '',
+        selected_theme
+      ]
+    );
+
+    // If tenant_id was linked, synchronize tenant record
+    if (tenant_id) {
+      await db.query(
+        `UPDATE tenants SET 
+          google_place_id = COALESCE(NULLIF(?, ''), google_place_id),
+          google_review_url = COALESCE(NULLIF(?, ''), google_review_url),
+          selected_theme = ?
+         WHERE id = ?`,
+        [place_id || '', google_review_url || '', selected_theme, tenant_id]
+      ).catch(() => {});
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'GMB Location created successfully',
+      data: { id: result.insertId, slug: cleanSlug }
+    });
+  } catch (error) {
+    console.error('Error creating GMB location:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+exports.updateGmbLocation = async (req, res) => {
+  try {
+    const locationId = req.params.id;
+    const {
+      title,
+      slug,
+      tenant_id,
+      place_id,
+      phone,
+      whatsapp_number,
+      website_url,
+      google_review_url,
+      selected_theme,
+      address,
+      primary_category,
+      is_active
+    } = req.body;
+
+    const [loc] = await db.query('SELECT id, slug FROM gmb_locations WHERE id = ?', [locationId]);
+    if (loc.length === 0) {
+      return res.status(404).json({ success: false, error: 'Location not found' });
+    }
+
+    let finalSlug = loc[0].slug;
+    if (slug && slug.trim() !== loc[0].slug) {
+      finalSlug = slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const [duplicate] = await db.query('SELECT id FROM gmb_locations WHERE slug = ? AND id != ?', [finalSlug, locationId]);
+      if (duplicate.length > 0) {
+        return res.status(400).json({ success: false, error: `Slug "${finalSlug}" is already taken` });
+      }
+    }
+
+    await db.query(
+      `UPDATE gmb_locations SET
+        title = COALESCE(?, title),
+        slug = ?,
+        tenant_id = ?,
+        place_id = COALESCE(?, place_id),
+        phone = COALESCE(?, phone),
+        whatsapp_number = COALESCE(?, whatsapp_number),
+        website_url = COALESCE(?, website_url),
+        google_review_url = COALESCE(?, google_review_url),
+        selected_theme = COALESCE(?, selected_theme),
+        address = COALESCE(?, address),
+        primary_category = COALESCE(?, primary_category),
+        is_active = COALESCE(?, is_active),
+        updated_at = NOW()
+       WHERE id = ?`,
+      [
+        title ? title.trim() : null,
+        finalSlug,
+        tenant_id !== undefined ? (tenant_id || null) : null,
+        place_id !== undefined ? place_id : null,
+        phone !== undefined ? phone : null,
+        whatsapp_number !== undefined ? whatsapp_number : null,
+        website_url !== undefined ? website_url : null,
+        google_review_url !== undefined ? google_review_url : null,
+        selected_theme || null,
+        address !== undefined ? address : null,
+        primary_category || null,
+        is_active !== undefined ? is_active : null,
+        locationId
+      ]
+    );
+
+    // If linked to tenant, sync tenant record
+    if (tenant_id) {
+      await db.query(
+        `UPDATE tenants SET 
+          google_place_id = COALESCE(NULLIF(?, ''), google_place_id),
+          google_review_url = COALESCE(NULLIF(?, ''), google_review_url),
+          selected_theme = COALESCE(NULLIF(?, ''), selected_theme)
+         WHERE id = ?`,
+        [place_id || '', google_review_url || '', selected_theme || '', tenant_id]
+      ).catch(() => {});
+    }
+
+    res.status(200).json({ success: true, message: 'GMB Location updated successfully' });
+  } catch (error) {
+    console.error('Error updating GMB location:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+exports.deleteGmbLocation = async (req, res) => {
+  try {
+    const locationId = req.params.id;
+    await db.query('DELETE FROM gmb_locations WHERE id = ?', [locationId]);
+    res.status(200).json({ success: true, message: 'GMB Location removed successfully' });
+  } catch (error) {
+    console.error('Error deleting GMB location:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+exports.getGmbReviews = async (req, res) => {
+  try {
+    const { location_id, star_rating, limit = 150 } = req.query;
+    let query = `
+      SELECT 
+        r.id,
+        r.location_id,
+        r.reviewer_name,
+        r.reviewer_photo_url,
+        r.star_rating,
+        r.comment,
+        r.reply_comment,
+        r.reply_updated_at,
+        r.sentiment,
+        r.review_created_at,
+        r.created_at,
+        l.title as location_title,
+        l.slug as location_slug
+      FROM gmb_reviews r
+      LEFT JOIN gmb_locations l ON r.location_id = l.id
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (location_id) {
+      query += ' AND r.location_id = ?';
+      params.push(location_id);
+    }
+    if (star_rating) {
+      query += ' AND r.star_rating = ?';
+      params.push(star_rating);
+    }
+
+    query += ' ORDER BY r.id DESC LIMIT ?';
+    params.push(Number(limit));
+
+    const [rows] = await db.query(query, params);
+    res.status(200).json({ success: true, data: rows });
+  } catch (error) {
+    console.error('Error fetching GMB reviews:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch reviews' });
+  }
+};
+
+exports.replyGmbReview = async (req, res) => {
+  try {
+    const reviewId = req.params.id;
+    const { reply_comment } = req.body;
+    if (!reply_comment) {
+      return res.status(400).json({ success: false, error: 'Reply comment is required' });
+    }
+
+    await db.query(
+      `UPDATE gmb_reviews SET reply_comment = ?, reply_updated_at = NOW() WHERE id = ?`,
+      [reply_comment.trim(), reviewId]
+    );
+
+    res.status(200).json({ success: true, message: 'Review reply saved successfully' });
+  } catch (error) {
+    console.error('Error replying to review:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+exports.getGmbFeedbacks = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        f.id,
+        f.location_id,
+        f.rating,
+        f.feedback,
+        f.customer_name,
+        f.customer_phone,
+        f.is_resolved,
+        f.resolution_notes,
+        f.created_at,
+        l.title as location_title,
+        l.slug as location_slug
+      FROM gmb_feedback f
+      LEFT JOIN gmb_locations l ON f.location_id = l.id
+      ORDER BY f.id DESC
+      LIMIT 150
+    `);
+
+    res.status(200).json({ success: true, data: rows });
+  } catch (error) {
+    console.error('Error fetching GMB feedbacks:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch feedbacks' });
+  }
+};
+
+// ==========================================
+// 16. USERS & STORE ACCESS MANAGEMENT
+// ==========================================
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        u.id,
+        u.tenant_id,
+        u.email,
+        u.phone,
+        u.first_name,
+        u.last_name,
+        u.role,
+        u.created_at,
+        t.store_name,
+        t.plan_tier,
+        l.id as gmb_location_id,
+        l.title as gmb_location_title,
+        l.slug as gmb_slug
+      FROM users u
+      LEFT JOIN tenants t ON u.tenant_id = t.id
+      LEFT JOIN gmb_locations l ON l.tenant_id = t.id
+      ORDER BY u.id DESC
+    `);
+
+    res.status(200).json({ success: true, data: rows });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch users' });
+  }
+};
+
+exports.createUser = async (req, res) => {
+  try {
+    const { email, password, phone, first_name, last_name, role = 'merchant_admin', tenant_id } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ success: false, error: 'Email and password are required' });
+    }
+
+    const [existing] = await db.query('SELECT id FROM users WHERE email = ?', [email.trim().toLowerCase()]);
+    if (existing.length > 0) {
+      return res.status(400).json({ success: false, error: 'A user with this email already exists' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    const [result] = await db.query(
+      `INSERT INTO users (email, password_hash, phone, first_name, last_name, role, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        email.trim().toLowerCase(),
+        passwordHash,
+        phone || null,
+        first_name || null,
+        last_name || null,
+        role,
+        tenant_id || null
+      ]
+    );
+
+    // Dispatch branded RetailNode Welcome Email
+    if (email && email.includes('@')) {
+      (async () => {
+        try {
+          let storeName = 'RetailNode Store';
+          let planName = 'Merchant Access Plan';
+          if (tenant_id) {
+            const [tRows] = await db.query('SELECT store_name, plan_tier FROM tenants WHERE id = ?', [tenant_id]);
+            if (tRows.length > 0) {
+              storeName = tRows[0].store_name || storeName;
+              planName = `${(tRows[0].plan_tier || 'trial').toUpperCase()} Plan`;
+            }
+          }
+
+          const welcomeHtml = generateWelcomeVerificationEmailHtml({
+            storeName,
+            ownerName: `${first_name || ''} ${last_name || ''}`.trim() || 'Store User',
+            userEmail: email.trim().toLowerCase(),
+            loginUrl: 'https://bill.retailnode.in/login',
+            planName,
+            role: role || 'merchant_admin',
+            temporaryPassword: password || null
+          });
+
+          await sendEmail({
+            tenantId: tenant_id || null,
+            to: email.trim().toLowerCase(),
+            subject: `Welcome to RetailNode - ${storeName}`,
+            html: welcomeHtml,
+            emailType: 'welcome'
+          });
+        } catch (mailErr) {
+          console.warn('[Admin] Failed to send user welcome email:', mailErr.message);
+        }
+      })();
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'User created successfully',
+      data: { id: result.insertId }
+    });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { email, phone, first_name, last_name, role, tenant_id, password } = req.body;
+
+    const [user] = await db.query('SELECT id FROM users WHERE id = ?', [userId]);
+    if (user.length === 0) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    let passwordHash = null;
+    if (password && password.trim().length >= 6) {
+      const salt = await bcrypt.genSalt(10);
+      passwordHash = await bcrypt.hash(password.trim(), salt);
+    }
+
+    let updateFields = [
+      'phone = COALESCE(?, phone)',
+      'first_name = COALESCE(?, first_name)',
+      'last_name = COALESCE(?, last_name)',
+      'role = COALESCE(?, role)',
+      'tenant_id = ?'
+    ];
+    let updateParams = [
+      phone !== undefined ? phone : null,
+      first_name !== undefined ? first_name : null,
+      last_name !== undefined ? last_name : null,
+      role || null,
+      tenant_id !== undefined ? (tenant_id || null) : null
+    ];
+
+    if (email) {
+      updateFields.push('email = ?');
+      updateParams.push(email.trim().toLowerCase());
+    }
+
+    if (passwordHash) {
+      updateFields.push('password_hash = ?');
+      updateParams.push(passwordHash);
+    }
+
+    updateParams.push(userId);
+
+    await db.query(`UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`, updateParams);
+
+    res.status(200).json({ success: true, message: 'User updated successfully' });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    if (Number(userId) === 1) {
+      return res.status(400).json({ success: false, error: 'Root SuperAdmin account cannot be deleted' });
+    }
+    await db.query('DELETE FROM users WHERE id = ?', [userId]);
+    res.status(200).json({ success: true, message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 
 

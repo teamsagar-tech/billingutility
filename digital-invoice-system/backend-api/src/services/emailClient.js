@@ -345,12 +345,12 @@ function generateInvoiceEmailHtml({ receiptData, shortId, loyalty, storeName }) 
  * Dispatches an email strictly via Resend API (api.resend.com/emails)
  * Guarantees universal RetailNode HTML branding
  */
-async function sendEmail({ 
-  tenantId, 
-  to, 
-  subject, 
-  html, 
-  text, 
+async function sendEmail({
+  tenantId,
+  to,
+  subject,
+  html,
+  text,
   invoiceId = null,
   fromEmail = null,
   fromName = null,
@@ -385,10 +385,26 @@ async function sendEmail({
         if (c.config_key === 'AUTH_RESEND_FROM_EMAIL' && c.config_value) authEmail = c.config_value;
         if (c.config_key === 'AUTH_RESEND_FROM_NAME' && c.config_value) authName = c.config_value;
       });
-    } catch (e) {}
+    } catch (e) { }
 
     senderEmail = fromEmail || authEmail;
     senderName = fromName || authName;
+  } else if (emailType === 'welcome' || emailType === 'signup' || (subject && /welcome|onboard|sign\s*up/i.test(subject))) {
+    let welcomeEmail = process.env.WELCOME_RESEND_FROM_EMAIL || 'welcome@retailnode.in';
+    let welcomeName = process.env.WELCOME_RESEND_FROM_NAME || 'RetailNode';
+    try {
+      const [configs] = await db.query(
+        'SELECT config_key, config_value FROM global_configs WHERE config_key IN (?, ?)',
+        ['WELCOME_RESEND_FROM_EMAIL', 'WELCOME_RESEND_FROM_NAME']
+      );
+      configs.forEach(c => {
+        if (c.config_key === 'WELCOME_RESEND_FROM_EMAIL' && c.config_value) welcomeEmail = c.config_value;
+        if (c.config_key === 'WELCOME_RESEND_FROM_NAME' && c.config_value) welcomeName = c.config_value;
+      });
+    } catch (e) { }
+
+    senderEmail = fromEmail || welcomeEmail;
+    senderName = fromName || welcomeName;
   }
 
   const fromHeader = `${senderName} <${senderEmail}>`;
@@ -410,7 +426,10 @@ async function sendEmail({
     from: fromHeader,
     to: [cleanRecipient],
     subject: subject || `Digital Invoice from ${credentials.storeName}`,
-    html: finalHtml
+    html: finalHtml,
+    headers: {
+      'X-Entity-Ref-ID': `rn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    }
   };
 
   if (text) {
@@ -475,7 +494,7 @@ async function sendEmail({
           String(errorMsg).slice(0, 500)
         ]
       );
-    } catch (e) {}
+    } catch (e) { }
 
     return { success: false, error: errorMsg };
   }
@@ -580,66 +599,117 @@ async function testResendConnection({ apiKey, fromEmail, fromName = 'RetailNode 
 }
 
 /**
- * 1. Forgot Password / Password Reset Email
+ * 1. Forgot Password / OTP / PIN Email (Optimized for Gmail "Code Requested / Copy code" Header)
  */
-function generateForgotPasswordEmailHtml({ userName = 'Store Admin', otp, resetLink, storeName = 'RetailNode' }) {
-  const bodyHtml = `
-    <div style="font-size: 15px; color: #334155; line-height: 1.6; margin-bottom: 24px;">
-      Hello <strong>${userName}</strong>,
-      <br><br>
-      We received a request to reset your password for your <strong>${storeName}</strong> account on RetailNode. Use the 6-digit verification code below to complete your password reset:
-    </div>
+function generateForgotPasswordEmailHtml({ userName = 'User', otp, resetLink, storeName = 'RetailNode', actionText = 'reset', expiryMinutes = 15 }) {
+  const firstName = (userName || 'User').trim().split(/\s+/)[0] || 'User';
+  const cleanOtp = String(otp || '').trim();
+  const subject = `${firstName}, here's your PIN ${cleanOtp}`;
 
-    <!-- OTP DISPLAY BOX -->
-    <div style="text-align: center; margin: 28px 0;">
-      <div style="display: inline-block; background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border: 2px solid #818cf8; border-radius: 16px; padding: 18px 36px;">
-        <div style="font-size: 11px; font-weight: 800; color: #4338ca; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px;">
-          PASSWORD RESET CODE
-        </div>
-        <div style="font-size: 40px; font-family: 'SF Mono', Consolas, Monaco, monospace; font-weight: 900; letter-spacing: 0.25em; color: #312e81;">
-          ${otp}
-        </div>
-        <div style="font-size: 12px; color: #6366f1; font-weight: 700; margin-top: 4px;">
-          ⏱ Valid for 15 Minutes Only
-        </div>
-      </div>
-    </div>
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f3f2ef; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a;">
+  <div style="display: none; max-height: 0; overflow: hidden; opacity: 0;">
+    Hi ${firstName}, enter this code to complete the ${actionText}: ${cleanOtp}
+  </div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f3f2ef; padding: 32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 520px; background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+          <tr>
+            <td style="padding: 24px 32px 16px; border-bottom: 1px solid #f1f5f9;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td valign="middle" style="padding-right: 10px;">
+                    <img src="https://retailnode.in/logo.svg" alt="RetailNode" width="28" height="28" style="display: block; width: 28px; height: 28px; border: 0; border-radius: 50%;" />
+                  </td>
+                  <td valign="middle">
+                    <span style="font-size: 20px; font-weight: 900; letter-spacing: -0.03em; color: #0f172a;">
+                      Retail<span style="color: #0ea5e9;">Node</span>
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 28px 32px;">
+              <p style="margin: 0 0 14px; font-size: 16px; font-weight: 700; color: #0f172a;">
+                Hi ${firstName},
+              </p>
+              <p style="margin: 0 0 18px; font-size: 15px; color: #334155; line-height: 1.5;">
+                Enter this code to complete the ${actionText}.
+              </p>
+              <div style="font-size: 32px; font-weight: 700; color: #0f172a; margin: 16px 0 24px; letter-spacing: 0;">
+                ${cleanOtp}
+              </div>
+              ${resetLink ? `
+                <div style="margin: 20px 0 24px;">
+                  <a href="${resetLink}" target="_blank" style="display: inline-block; background-color: #0a66c2; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 24px; font-size: 14px; font-weight: 700;">
+                    Reset Password Directly &rarr;
+                  </a>
+                </div>
+              ` : ''}
+              <p style="margin: 0 0 12px; font-size: 14px; color: #475569; line-height: 1.6;">
+                If you didn't request this PIN for your <strong>${storeName}</strong> account, we recommend you change your password or ignore this email. Never share this code with anyone.
+              </p>
+              <p style="margin: 20px 0 0; font-size: 14px; color: #334155;">
+                Thanks,<br>
+                <strong>The RetailNode Security Team</strong>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
 
-    ${resetLink ? `
-      <div style="text-align: center; margin: 24px 0 20px;">
-        <a href="${resetLink}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-size: 15px; font-weight: 800; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);">
-          Reset Password Directly &rarr;
-        </a>
-      </div>
-    ` : ''}
-
-    <div style="background-color: #f8fafc; border-left: 4px solid #94a3b8; padding: 12px 16px; margin: 24px 0 16px; font-size: 12px; color: #64748b; line-height: 1.5;">
-      🔒 <strong>Security Notice:</strong> Never share this OTP with anyone, including RetailNode staff. If you did not request this password reset, please ignore this email or change your password immediately.
-    </div>
-  `;
-
-  return wrapRetailNodeEmail({
-    title: `Reset Your RetailNode Account Password`,
-    preheader: `Your 6-digit password reset verification code is ${otp}. Valid for 15 minutes.`,
-    heroSubtitle: 'SECURITY VERIFICATION',
-    heroTitle: 'Password Reset Request',
-    heroMeta: `Account: <strong style="color: #ffffff;">${storeName}</strong>`,
-    bodyHtml,
-    showVerificationBadge: false
-  });
+function generateOtpPlainText({ userName = 'User', otp, actionText = 'reset', expiryMinutes = 15 }) {
+  const firstName = (userName || 'User').trim().split(/\s+/)[0] || 'User';
+  const cleanOtp = String(otp || '').trim();
+  return [
+    `Hi ${firstName},`,
+    ``,
+    `Enter this code to complete the ${actionText}.`,
+    ``,
+    `${cleanOtp}`,
+    ``,
+    `If you didn't request this PIN, we recommend you change your password or ignore this email. This code expires in ${expiryMinutes} minutes.`,
+    ``,
+    `Thanks,`,
+    `The RetailNode Security Team`
+  ].join('\n');
 }
 
 /**
  * 2. Welcome & Account Email Verification
  */
-function generateWelcomeVerificationEmailHtml({ storeName, ownerName = 'Store Owner', userEmail, verifyOtp, loginUrl, apiToken }) {
+function generateWelcomeVerificationEmailHtml({
+  storeName,
+  ownerName = 'Store Owner',
+  userEmail,
+  verifyOtp,
+  loginUrl,
+  apiToken,
+  planName = '3-Day Free Trial (500 Bills)',
+  role = 'Store Admin',
+  temporaryPassword = null
+}) {
   const targetLoginUrl = loginUrl || 'https://bill.retailnode.in/login';
-  
+
   const bodyHtml = `
     <div style="font-size: 15px; color: #334155; line-height: 1.6; margin-bottom: 20px;">
       Welcome to RetailNode, <strong>${ownerName}</strong>! 🎉
       <br><br>
-      Your store <strong>${storeName}</strong> has been provisioned on our high-throughput Digital Billing &amp; Customer CRM SaaS platform. Your <strong>3-Day Free Trial (500 WhatsApp Bills Included)</strong> is active now!
+      Your store <strong>${storeName}</strong> has been provisioned on our high-throughput Digital Billing &amp; Customer CRM SaaS platform. Your <strong>${planName}</strong> is active now!
     </div>
 
     ${verifyOtp ? `
@@ -670,9 +740,19 @@ function generateWelcomeVerificationEmailHtml({ storeName, ownerName = 'Store Ow
           <td style="padding: 10px 16px; color: #64748b; font-weight: 600;">Admin Login</td>
           <td style="padding: 10px 16px; color: #0f172a; font-weight: 700; font-family: monospace;">${userEmail}</td>
         </tr>
+        ${temporaryPassword ? `
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 10px 16px; color: #64748b; font-weight: 600;">Initial Password</td>
+            <td style="padding: 10px 16px; color: #dc2626; font-weight: 700; font-family: monospace;">${temporaryPassword}</td>
+          </tr>
+        ` : ''}
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 16px; color: #64748b; font-weight: 600;">Account Role</td>
+          <td style="padding: 10px 16px; color: #0f172a; font-weight: 600;">${role}</td>
+        </tr>
         <tr style="border-bottom: 1px solid #f1f5f9;">
           <td style="padding: 10px 16px; color: #64748b; font-weight: 600;">Active Plan</td>
-          <td style="padding: 10px 16px; color: #16a34a; font-weight: 700;">3-Day Free Trial (500 Bills)</td>
+          <td style="padding: 10px 16px; color: #16a34a; font-weight: 700;">${planName}</td>
         </tr>
         ${apiToken ? `
           <tr>
@@ -1053,6 +1133,7 @@ module.exports = {
   wrapRetailNodeEmail,
   generateInvoiceEmailHtml,
   generateForgotPasswordEmailHtml,
+  generateOtpPlainText,
   generateWelcomeVerificationEmailHtml,
   generateDailyReportEmailHtml,
   generatePaymentSuccessEmailHtml,

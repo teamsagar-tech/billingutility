@@ -3,6 +3,7 @@ const axios = require('axios');
 const db = require('../config/database');
 const logger = require('../utils/logger');
 const { sendEmail, generatePaymentSuccessEmailHtml } = require('../services/emailClient');
+const { sendWhatsAppMessage } = require('../services/wabaClient');
 
 const RAZORPAY_API_URL = 'https://api.razorpay.com/v1';
 
@@ -172,7 +173,7 @@ exports.verifyPayment = async (req, res) => {
         logger.warn(`[Payment] Invalid Razorpay signature for order ${razorpay_order_id}`);
         await db.query(
           `UPDATE subscription_payments 
-           SET status = 'failed', error_reason = 'HMAC signature verification failed' 
+           SET status = 'failed', error_message = 'HMAC signature verification failed' 
            WHERE order_id = ?`,
           [razorpay_order_id]
         );
@@ -183,7 +184,7 @@ exports.verifyPayment = async (req, res) => {
     // 1. Update Payment Record to Captured
     await db.query(
       `UPDATE subscription_payments 
-       SET payment_id = ?, signature = ?, status = 'captured', updated_at = NOW() 
+       SET payment_id = ?, signature = ?, status = 'captured', paid_at = NOW(), updated_at = NOW() 
        WHERE order_id = ?`,
       [razorpay_payment_id || `pay_mock_${Date.now()}`, razorpay_signature || 'mock_sig', razorpay_order_id]
     );
@@ -199,9 +200,9 @@ exports.verifyPayment = async (req, res) => {
       [tenantId]
     );
 
-    // 3. Fetch Tenant & User Details to Dispatch Payment Confirmation Email
+    // 3. Fetch Tenant & User Details to Dispatch Payment Confirmation Email & WhatsApp
     const [tenantRows] = await db.query(
-      `SELECT t.store_name, t.plan_valid_until, t.store_email, u.email as admin_email 
+      `SELECT t.store_name, t.plan_valid_until, t.store_email, t.store_phone, u.email as admin_email, u.phone as admin_phone 
        FROM tenants t 
        LEFT JOIN users u ON u.tenant_id = t.id AND u.role = 'merchant_admin'
        WHERE t.id = ? LIMIT 1`,
@@ -210,10 +211,12 @@ exports.verifyPayment = async (req, res) => {
 
     const tenant = tenantRows[0];
     const recipientEmail = tenant?.store_email || tenant?.admin_email;
+    const recipientPhone = tenant?.store_phone || tenant?.admin_phone;
     const validUntilFormatted = tenant?.plan_valid_until 
       ? new Date(tenant.plan_valid_until).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
       : '365 Days from today';
 
+    // A. Send Resend Email Receipt
     if (recipientEmail && recipientEmail.includes('@')) {
       const emailHtml = generatePaymentSuccessEmailHtml({
         storeName: tenant.store_name || 'Retail Store',
@@ -230,6 +233,25 @@ exports.verifyPayment = async (req, res) => {
         subject: `Payment Confirmed & Subscription Activated - ${tenant.store_name}`,
         html: emailHtml
       }).catch(err => logger.warn(`[Payment] Failed to send receipt email: ${err.message}`));
+    }
+
+    // B. Send Instant WhatsApp Confirmation Receipt via WABA
+    if (recipientPhone) {
+      const waReceiptText = 
+        `🎉 *Payment Confirmed & Subscription Activated!*\n\n` +
+        `🏪 *Store:* ${tenant.store_name || 'Retail Store'}\n` +
+        `📦 *Plan:* Growth Annual Plan (₹6,000 / year)\n` +
+        `🆔 *Payment ID:* ${razorpay_payment_id || `pay_${Date.now()}`}\n` +
+        `📅 *Valid Until:* ${validUntilFormatted}\n` +
+        `⚡ *Quota:* +5,000 WhatsApp Bills added\n` +
+        `⭐ *Google Review Hub & Standee:* 100% Active\n\n` +
+        `Thank you for growing with RetailNode! Access your command center anytime at https://bill.retailnode.in`;
+
+      sendWhatsAppMessage({
+        tenantId,
+        to: recipientPhone,
+        text: waReceiptText
+      }).catch(err => logger.warn(`[Payment] Failed to send WhatsApp receipt: ${err.message}`));
     }
 
     res.status(200).json({
@@ -322,3 +344,101 @@ exports.updateRazorpayGateway = async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to update Razorpay credentials' });
   }
 };
+
+/**
+ * POST /api/v1/payments/test-receipt
+ * Triggers test payment confirmation receipt to both Email and WhatsApp
+ */
+exports.testReceiptDispatch = async (req, res) => {
+  try {
+    const tenantId = req.user?.tenantId || req.body?.tenant_id;
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID required' });
+    }
+
+    const [tenantRows] = await db.query(
+      `SELECT t.store_name, t.plan_valid_until, t.store_email, t.store_phone, u.email as admin_email, u.phone as admin_phone 
+       FROM tenants t 
+       LEFT JOIN users u ON u.tenant_id = t.id AND u.role = 'merchant_admin'
+       WHERE t.id = ? LIMIT 1`,
+      [tenantId]
+    );
+
+    if (tenantRows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Store tenant not found' });
+    }
+
+    const tenant = tenantRows[0];
+    const recipientEmail = tenant?.store_email || tenant?.admin_email;
+    const recipientPhone = tenant?.store_phone || tenant?.admin_phone;
+    const validUntilFormatted = tenant?.plan_valid_until 
+      ? new Date(tenant.plan_valid_until).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+      : '365 Days from today';
+
+    const testPaymentId = `pay_test_${Date.now()}`;
+    const testOrderId = `order_test_${Date.now()}`;
+    const dispatchResults = { email: false, whatsapp: false };
+
+    // 1. Dispatch Email Receipt
+    if (recipientEmail && recipientEmail.includes('@')) {
+      const emailHtml = generatePaymentSuccessEmailHtml({
+        storeName: tenant.store_name || 'Retail Store',
+        planName: 'Growth Annual Plan (Verified Active)',
+        amount: '6000.00',
+        paymentId: testPaymentId,
+        orderId: testOrderId,
+        validUntil: validUntilFormatted
+      });
+
+      sendEmail({
+        tenantId,
+        to: recipientEmail,
+        subject: `[Verified Receipt] Payment Confirmed & Subscription Active - ${tenant.store_name}`,
+        html: emailHtml
+      }).then(() => {
+        logger.info(`[Payment-Test] Email receipt sent to ${recipientEmail}`);
+      }).catch(err => {
+        logger.warn(`[Payment-Test] Email receipt failed: ${err.message}`);
+      });
+      dispatchResults.email = true;
+    }
+
+    // 2. Dispatch WhatsApp Receipt via WABA
+    if (recipientPhone) {
+      const waReceiptText = 
+        `🎉 *[Verified Receipt] Payment Confirmed & Subscription Active!*\n\n` +
+        `🏪 *Store:* ${tenant.store_name || 'Retail Store'}\n` +
+        `📦 *Plan:* Growth Annual Plan (₹6,000 / year)\n` +
+        `🆔 *Payment ID:* ${testPaymentId}\n` +
+        `📅 *Valid Until:* ${validUntilFormatted}\n` +
+        `⚡ *Quota:* +5,000 WhatsApp Bills Active\n` +
+        `⭐ *Google Review Hub & Standee:* 100% Active\n\n` +
+        `Thank you for choosing RetailNode. Access your merchant portal anytime at https://bill.retailnode.in`;
+
+      sendWhatsAppMessage({
+        tenantId,
+        to: recipientPhone,
+        text: waReceiptText
+      }).then(() => {
+        logger.info(`[Payment-Test] WhatsApp receipt sent to ${recipientPhone}`);
+      }).catch(err => {
+        logger.warn(`[Payment-Test] WhatsApp receipt failed: ${err.message}`);
+      });
+      dispatchResults.whatsapp = true;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment confirmation test receipt dispatched to Email & WhatsApp!',
+      data: {
+        recipient_email: recipientEmail || 'Not configured',
+        recipient_phone: recipientPhone || 'Not configured',
+        dispatched: dispatchResults
+      }
+    });
+  } catch (error) {
+    logger.error('Error testing receipt dispatch:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+

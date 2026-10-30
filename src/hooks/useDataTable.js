@@ -144,6 +144,7 @@ export function useDataTable(data = [], options = {}) {
 
   return {
     items: paginatedData,
+    paginatedData,
     totalItems,
     totalPages,
     currentPage: validCurrentPage,
@@ -153,6 +154,8 @@ export function useDataTable(data = [], options = {}) {
     searchQuery,
     setSearchQuery,
     sortConfig,
+    sortKey: sortConfig?.key,
+    sortDir: sortConfig?.direction,
     handleSort
   };
 }

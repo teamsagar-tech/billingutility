@@ -15,6 +15,8 @@ import {
 export function SortableTh({
   sortKey,
   currentSort,
+  currentSortKey,
+  currentSortDir,
   onSort,
   children,
   align = 'left',
@@ -22,8 +24,10 @@ export function SortableTh({
   minWidth,
   style = {}
 }) {
-  const isSorted = currentSort && currentSort.key === sortKey;
-  const direction = isSorted ? currentSort.direction : null;
+  const activeKey = currentSort ? currentSort.key : currentSortKey;
+  const activeDir = currentSort ? currentSort.direction : currentSortDir;
+  const isSorted = activeKey === sortKey;
+  const direction = isSorted ? activeDir : null;
 
   return (
     <th

@@ -6,6 +6,7 @@ const {
   generateTrialStatusEmailHtml,
   generateRenewalReminderEmailHtml
 } = require('./emailClient');
+const { sendWhatsAppMessage } = require('./wabaClient');
 
 /**
  * Gathers today's billing and messaging statistics for a given merchant
@@ -137,7 +138,7 @@ async function checkAndDispatchExpiryReminders() {
   try {
     // 1. Trial Pre-Expiry (Days left: 1, 2, or 3)
     const [trialExpiring] = await db.query(
-      `SELECT t.id, t.store_name, t.plan_valid_until, t.store_email, u.email as admin_email,
+      `SELECT t.id, t.store_name, t.plan_valid_until, t.store_email, t.store_phone, u.email as admin_email, u.phone as admin_phone,
               DATEDIFF(t.plan_valid_until, CURRENT_DATE) as days_left
        FROM tenants t
        LEFT JOIN users u ON u.tenant_id = t.id AND u.role = 'merchant_admin'
@@ -148,29 +149,44 @@ async function checkAndDispatchExpiryReminders() {
 
     for (const t of trialExpiring) {
       const email = t.store_email || t.admin_email;
-      if (!email) continue;
+      const phone = t.store_phone || t.admin_phone;
 
-      const html = generateTrialStatusEmailHtml({
-        storeName: t.store_name,
-        stage: 'pre_expiry',
-        expiryDate: new Date(t.plan_valid_until).toLocaleDateString('en-IN'),
-        daysLeft: t.days_left,
-        upgradePrice: '6000',
-        upgradeLink: 'https://bill.retailnode.in/dashboard/settings'
-      });
+      if (email) {
+        const html = generateTrialStatusEmailHtml({
+          storeName: t.store_name,
+          stage: 'pre_expiry',
+          expiryDate: new Date(t.plan_valid_until).toLocaleDateString('en-IN'),
+          daysLeft: t.days_left,
+          upgradePrice: '6000',
+          upgradeLink: 'https://bill.retailnode.in'
+        });
 
-      await sendEmail({
-        tenantId: null, // Platform System Notice (not a customer invoice)
-        to: email,
-        subject: `Action Required: Your 3-Day Trial Ends in ${t.days_left} Day${t.days_left === 1 ? '' : 's'} (${t.store_name})`,
-        html
-      });
+        await sendEmail({
+          tenantId: null,
+          to: email,
+          subject: `Action Required: Your 3-Day Trial Ends in ${t.days_left} Day${t.days_left === 1 ? '' : 's'} (${t.store_name})`,
+          html
+        }).catch(err => logger.warn(`[Expiry-Scheduler] Trial email failed: ${err.message}`));
+      }
+
+      if (phone) {
+        sendWhatsAppMessage({
+          tenantId: null,
+          to: phone,
+          text: `⚠️ *Action Required: Your RetailNode Trial Ends in ${t.days_left} Day${t.days_left === 1 ? '' : 's'}*\n\n` +
+                `🏪 *Store:* ${t.store_name}\n` +
+                `📅 *Expiry Date:* ${new Date(t.plan_valid_until).toLocaleDateString('en-IN')}\n\n` +
+                `Upgrade to the Annual Growth Plan now to keep your automated digital bills, customer loyalty, and Google Review Standee uninterrupted.\n\n` +
+                `👉 Renew online instantly: https://bill.retailnode.in (₹6,000 / year)`
+        }).catch(err => logger.warn(`[Expiry-Scheduler] Trial WA failed: ${err.message}`));
+      }
+
       results.trialPreExpiry++;
     }
 
     // 2. Trial Post-Expiry (Exactly 5 days after trial ended - Win-Back Offer)
     const [trialExpired5Days] = await db.query(
-      `SELECT t.id, t.store_name, t.plan_valid_until, t.store_email, u.email as admin_email
+      `SELECT t.id, t.store_name, t.plan_valid_until, t.store_email, t.store_phone, u.email as admin_email, u.phone as admin_phone
        FROM tenants t
        LEFT JOIN users u ON u.tenant_id = t.id AND u.role = 'merchant_admin'
        WHERE t.plan_tier = 'trial'
@@ -179,29 +195,43 @@ async function checkAndDispatchExpiryReminders() {
 
     for (const t of trialExpired5Days) {
       const email = t.store_email || t.admin_email;
-      if (!email) continue;
+      const phone = t.store_phone || t.admin_phone;
 
-      const html = generateTrialStatusEmailHtml({
-        storeName: t.store_name,
-        stage: 'post_expiry',
-        expiryDate: new Date(t.plan_valid_until).toLocaleDateString('en-IN'),
-        daysExpired: 5,
-        upgradePrice: '6000',
-        upgradeLink: 'https://bill.retailnode.in/dashboard/settings'
-      });
+      if (email) {
+        const html = generateTrialStatusEmailHtml({
+          storeName: t.store_name,
+          stage: 'post_expiry',
+          expiryDate: new Date(t.plan_valid_until).toLocaleDateString('en-IN'),
+          daysExpired: 5,
+          upgradePrice: '6000',
+          upgradeLink: 'https://bill.retailnode.in'
+        });
 
-      await sendEmail({
-        tenantId: null, // Platform System Notice (not a customer invoice)
-        to: email,
-        subject: `Special Offer: Re-activate ${t.store_name} on RetailNode (Save ₹3,000)`,
-        html
-      });
+        await sendEmail({
+          tenantId: null,
+          to: email,
+          subject: `Special Offer: Re-activate ${t.store_name} on RetailNode (Save ₹3,000)`,
+          html
+        }).catch(err => logger.warn(`[Expiry-Scheduler] Winback email failed: ${err.message}`));
+      }
+
+      if (phone) {
+        sendWhatsAppMessage({
+          tenantId: null,
+          to: phone,
+          text: `🎁 *Special Re-activation Offer for ${t.store_name}*\n\n` +
+                `Re-activate your RetailNode Annual Growth Plan today and save ₹3,000 (only ₹3,000/yr)!\n` +
+                `Includes +5,000 WhatsApp bills & Google Review Smart Standee.\n\n` +
+                `👉 Re-activate now: https://bill.retailnode.in`
+        }).catch(err => logger.warn(`[Expiry-Scheduler] Winback WA failed: ${err.message}`));
+      }
+
       results.trialPostExpiry++;
     }
 
     // 3. Growth Plan Renewal Reminders (7 days and 3 days before renewal)
     const [growthExpiring] = await db.query(
-      `SELECT t.id, t.store_name, t.plan_valid_until, t.store_email, u.email as admin_email,
+      `SELECT t.id, t.store_name, t.plan_valid_until, t.store_email, t.store_phone, u.email as admin_email, u.phone as admin_phone,
               DATEDIFF(t.plan_valid_until, CURRENT_DATE) as days_left
        FROM tenants t
        LEFT JOIN users u ON u.tenant_id = t.id AND u.role = 'merchant_admin'
@@ -212,23 +242,39 @@ async function checkAndDispatchExpiryReminders() {
 
     for (const t of growthExpiring) {
       const email = t.store_email || t.admin_email;
-      if (!email) continue;
+      const phone = t.store_phone || t.admin_phone;
 
-      const html = generateRenewalReminderEmailHtml({
-        storeName: t.store_name,
-        planName: 'Growth Annual Plan',
-        expiryDate: new Date(t.plan_valid_until).toLocaleDateString('en-IN'),
-        daysRemaining: t.days_left,
-        renewalPrice: '6000',
-        renewalLink: 'https://bill.retailnode.in/dashboard/settings'
-      });
+      if (email) {
+        const html = generateRenewalReminderEmailHtml({
+          storeName: t.store_name,
+          planName: 'Growth Annual Plan',
+          expiryDate: new Date(t.plan_valid_until).toLocaleDateString('en-IN'),
+          daysRemaining: t.days_left,
+          renewalPrice: '6000',
+          renewalLink: 'https://bill.retailnode.in'
+        });
 
-      await sendEmail({
-        tenantId: null, // Platform System Notice (not a customer invoice)
-        to: email,
-        subject: `Renewal Notice: ${t.days_left} Days Left for ${t.store_name}`,
-        html
-      });
+        await sendEmail({
+          tenantId: null,
+          to: email,
+          subject: `Renewal Notice: ${t.days_left} Days Left for ${t.store_name}`,
+          html
+        }).catch(err => logger.warn(`[Expiry-Scheduler] Renewal email failed: ${err.message}`));
+      }
+
+      if (phone) {
+        sendWhatsAppMessage({
+          tenantId: null,
+          to: phone,
+          text: `🔔 *RetailNode Subscription Renewal Notice: ${t.days_left} Day${t.days_left === 1 ? '' : 's'} Left*\n\n` +
+                `🏪 *Store:* ${t.store_name}\n` +
+                `📦 *Plan:* Growth Annual Plan\n` +
+                `📅 *Expiry Date:* ${new Date(t.plan_valid_until).toLocaleDateString('en-IN')}\n\n` +
+                `To prevent disruption to your digital bills, WhatsApp messaging delivery, and customer CRM loyalty, please renew:\n\n` +
+                `👉 Renew online instantly: https://bill.retailnode.in (₹6,000 / year)`
+        }).catch(err => logger.warn(`[Expiry-Scheduler] Renewal WA failed: ${err.message}`));
+      }
+
       results.growthRenewal++;
     }
 

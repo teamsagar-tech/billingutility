@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { 
   ShieldCheck, 
@@ -29,7 +29,15 @@ import {
   Mail,
   MessageSquare,
   Send,
-  ExternalLink
+  ExternalLink,
+  Printer,
+  QrCode,
+  Key,
+  FileText,
+  Globe,
+  MapPin,
+  Phone,
+  Filter
 } from 'lucide-react';
 import { SortableTh, TablePagination, TableSearchInput } from '../components/DataTable';
 import { useDataTable } from '../hooks/useDataTable';
@@ -44,6 +52,11 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
     'tenants': 'stores',
     'pricing': 'pricing',
     'campaigns': 'pricing',
+    'gmb': 'gmb',
+    'locations': 'gmb',
+    'google-review': 'gmb',
+    'users': 'users',
+    'user-management': 'users',
     'whatsapp-logs': 'whatsapp_logs',
     'whatsapp': 'whatsapp_logs',
     'whatsapp_logs': 'whatsapp_logs',
@@ -57,6 +70,8 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
   const handleTabChange = (tabId) => {
     const routeMap = {
       'stores': '/saas-admin/stores',
+      'gmb': '/saas-admin/gmb',
+      'users': '/saas-admin/users',
       'pricing': '/saas-admin/pricing',
       'whatsapp_logs': '/saas-admin/whatsapp-logs',
       'logs': '/saas-admin/logs',
@@ -121,9 +136,12 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
 
   // Pricing Campaigns state
   const [campaigns, setCampaigns] = useState([]);
+  const [campaignCategoryFilter, setCampaignCategoryFilter] = useState('all'); // 'all' | 'gmb' | 'billing' | 'combo'
   const [showCampaignModal, setShowCampaignModal] = useState(null); // null, 'create', or campaign object
   const [campaignForm, setCampaignForm] = useState({
     campaign_name: 'Retail Launch Offer',
+    category: 'billing', // 'billing' | 'gmb' | 'combo'
+    plan_tier: 'growth',
     regular_price: 9000,
     campaign_price: 6000,
     trial_days: 3,
@@ -134,6 +152,50 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
     start_date: '',
     end_date: ''
   });
+
+  // GMB & Review Hub Management state
+  const [gmbLocations, setGmbLocations] = useState([]);
+  const [platformUsers, setPlatformUsers] = useState([]);
+  const [gmbReviews, setGmbReviews] = useState([]);
+  const [gmbFeedbacks, setGmbFeedbacks] = useState([]);
+  const [gmbSubTab, setGmbSubTab] = useState('locations'); // 'locations' | 'reviews' | 'feedbacks'
+  const [reviewFilterRating, setReviewFilterRating] = useState('all');
+  const [reviewFilterLocation, setReviewFilterLocation] = useState('all');
+
+  // GMB Location Modal state
+  const [showGmbModal, setShowGmbModal] = useState(null); // null, 'create', or location object
+  const [savingGmb, setSavingGmb] = useState(false);
+  const [gmbForm, setGmbForm] = useState({
+    title: '',
+    slug: '',
+    tenant_id: '',
+    place_id: '',
+    google_review_url: '',
+    phone: '',
+    whatsapp_number: '',
+    website_url: '',
+    address: '',
+    selected_theme: 'pearl-light',
+    primary_category: 'Retail Store'
+  });
+
+  // User Management Modal state
+  const [showUserModal, setShowUserModal] = useState(null); // null, 'create', or user object
+  const [savingUser, setSavingUser] = useState(false);
+  const [userForm, setUserForm] = useState({
+    email: '',
+    password: '',
+    phone: '',
+    first_name: '',
+    last_name: '',
+    role: 'merchant_admin',
+    tenant_id: ''
+  });
+
+  // Review Reply State
+  const [activeReplyReview, setActiveReplyReview] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [savingReply, setSavingReply] = useState(false);
 
   const token = localStorage.getItem('token');
   const userRole = localStorage.getItem('userRole');
@@ -242,6 +304,41 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
             key_secret: '',
             key_secret_masked: rpData.data.key_secret_masked || ''
           });
+        }
+      } catch (e) {}
+
+      // 9. GMB Locations
+      try {
+        const gmbRes = await fetch('/api/v1/admin/gmb/locations', { headers });
+        const gmbData = await gmbRes.json();
+        if (gmbData.success) {
+          setGmbLocations(gmbData.data || []);
+        }
+      } catch (e) {}
+
+      // 10. Platform & GMB Users
+      try {
+        const userRes = await fetch('/api/v1/admin/users', { headers });
+        const userData = await userRes.json();
+        if (userData.success) {
+          setPlatformUsers(userData.data || []);
+        }
+      } catch (e) {}
+
+      // 11. GMB Reviews & Feedbacks
+      try {
+        const revRes = await fetch('/api/v1/admin/gmb/reviews', { headers });
+        const revData = await revRes.json();
+        if (revData.success) {
+          setGmbReviews(revData.data || []);
+        }
+      } catch (e) {}
+
+      try {
+        const fbRes = await fetch('/api/v1/admin/gmb/feedbacks', { headers });
+        const fbData = await fbRes.json();
+        if (fbData.success) {
+          setGmbFeedbacks(fbData.data || []);
         }
       } catch (e) {}
     } catch (err) {
@@ -557,6 +654,231 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
     }
   };
 
+  const THEME_OPTIONS = [
+    { id: 'pearl-light', name: 'Pearl Light (Clean White & Slate)', bg: '#ffffff', border: '#e2e8f0', accent: '#0284c7' },
+    { id: 'emerald-glow', name: 'Emerald Glow (Deep Emerald & Mint)', bg: '#064e3b', border: '#10b981', accent: '#34d399' },
+    { id: 'midnight-navy', name: 'Midnight Navy (Deep Sapphire)', bg: '#0f172a', border: '#38bdf8', accent: '#0284c7' },
+    { id: 'royal-amethyst', name: 'Royal Amethyst (Imperial Purple)', bg: '#3b0764', border: '#a855f7', accent: '#c084fc' },
+    { id: 'sunset-amber', name: 'Sunset Amber (Warm Terracotta)', bg: '#451a03', border: '#f59e0b', accent: '#fbbf24' },
+    { id: 'champagne-gold', name: 'Champagne Gold (Luxury Onyx & Gold)', bg: '#1c1917', border: '#eab308', accent: '#fde047' },
+    { id: 'sapphire-depth', name: 'Sapphire Depth (Executive Cobalt)', bg: '#172554', border: '#3b82f6', accent: '#60a5fa' },
+    { id: 'rose-gold', name: 'Rose Gold (Blush & Pink Quartz)', bg: '#fff1f2', border: '#f43f5e', accent: '#fb7185' },
+    { id: 'crimson-luxe', name: 'Crimson Luxe (Ruby & Scarlet)', bg: '#450a0a', border: '#ef4444', accent: '#f87171' },
+    { id: 'neon-cyber', name: 'Neon Cyber (Matrix Dark & Cyan)', bg: '#09090b', border: '#06b6d4', accent: '#22d3ee' }
+  ];
+
+  // GMB Location Handlers
+  const handleOpenGmbModal = (loc = null) => {
+    if (loc) {
+      setGmbForm({
+        title: loc.title || '',
+        slug: loc.slug || '',
+        tenant_id: loc.tenant_id ? String(loc.tenant_id) : '',
+        place_id: loc.place_id || '',
+        google_review_url: loc.google_review_url || '',
+        phone: loc.phone || '',
+        whatsapp_number: loc.whatsapp_number || '',
+        website_url: loc.website_url || '',
+        address: loc.address || '',
+        selected_theme: loc.selected_theme || 'pearl-light',
+        primary_category: loc.primary_category || 'Retail Store'
+      });
+      setShowGmbModal(loc);
+    } else {
+      setGmbForm({
+        title: '',
+        slug: '',
+        tenant_id: '',
+        place_id: '',
+        google_review_url: '',
+        phone: '',
+        whatsapp_number: '',
+        website_url: '',
+        address: '',
+        selected_theme: 'pearl-light',
+        primary_category: 'Retail Store'
+      });
+      setShowGmbModal('create');
+    }
+  };
+
+  const handleSaveGmbLocation = async (e) => {
+    e.preventDefault();
+    setSavingGmb(true);
+    try {
+      const isCreate = showGmbModal === 'create';
+      const endpoint = isCreate ? '/api/v1/admin/gmb/locations' : `/api/v1/admin/gmb/locations/${showGmbModal.id}`;
+      const method = isCreate ? 'POST' : 'PUT';
+
+      const res = await fetch(endpoint, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...gmbForm,
+          tenant_id: gmbForm.tenant_id ? Number(gmbForm.tenant_id) : null
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToastMessage(`GMB Location "${gmbForm.title}" ${isCreate ? 'onboarded' : 'updated'} successfully!`);
+        setShowGmbModal(null);
+        loadPlatformData();
+        setTimeout(() => setToastMessage(''), 4000);
+      } else {
+        alert(data.error || 'Failed to save GMB location');
+      }
+    } catch (err) {
+      alert('Network error saving GMB location');
+    } finally {
+      setSavingGmb(false);
+    }
+  };
+
+  const handleDeleteGmbLocation = async (id, title) => {
+    if (!confirm(`Are you sure you want to remove GMB location "${title}"?`)) return;
+    try {
+      const res = await fetch(`/api/v1/admin/gmb/locations/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToastMessage(`Location "${title}" removed.`);
+        loadPlatformData();
+        setTimeout(() => setToastMessage(''), 4000);
+      } else {
+        alert(data.error || 'Failed to delete GMB location');
+      }
+    } catch (err) {
+      alert('Network error deleting GMB location');
+    }
+  };
+
+  // User Management Handlers
+  const handleOpenUserModal = (u = null) => {
+    if (u) {
+      setUserForm({
+        email: u.email || '',
+        password: '',
+        phone: u.phone || '',
+        first_name: u.first_name || '',
+        last_name: u.last_name || '',
+        role: u.role || 'merchant_admin',
+        tenant_id: u.tenant_id ? String(u.tenant_id) : ''
+      });
+      setShowUserModal(u);
+    } else {
+      setUserForm({
+        email: '',
+        password: '',
+        phone: '',
+        first_name: '',
+        last_name: '',
+        role: 'merchant_admin',
+        tenant_id: ''
+      });
+      setShowUserModal('create');
+    }
+  };
+
+  const handleSaveUser = async (e) => {
+    e.preventDefault();
+    setSavingUser(true);
+    try {
+      const isCreate = showUserModal === 'create';
+      const endpoint = isCreate ? '/api/v1/admin/users' : `/api/v1/admin/users/${showUserModal.id}`;
+      const method = isCreate ? 'POST' : 'PUT';
+
+      const payload = {
+        email: userForm.email,
+        phone: userForm.phone,
+        first_name: userForm.first_name,
+        last_name: userForm.last_name,
+        role: userForm.role,
+        tenant_id: userForm.tenant_id ? Number(userForm.tenant_id) : null
+      };
+      if (userForm.password) {
+        payload.password = userForm.password;
+      }
+
+      const res = await fetch(endpoint, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToastMessage(`User account for ${userForm.email} ${isCreate ? 'created' : 'updated'} successfully!`);
+        setShowUserModal(null);
+        loadPlatformData();
+        setTimeout(() => setToastMessage(''), 4000);
+      } else {
+        alert(data.error || 'Failed to save user account');
+      }
+    } catch (err) {
+      alert('Network error saving user account');
+    } finally {
+      setSavingUser(false);
+    }
+  };
+
+  const handleDeleteUser = async (id, email) => {
+    if (!confirm(`Are you sure you want to delete user "${email}"?`)) return;
+    try {
+      const res = await fetch(`/api/v1/admin/users/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToastMessage(`User "${email}" deleted.`);
+        loadPlatformData();
+        setTimeout(() => setToastMessage(''), 4000);
+      } else {
+        alert(data.error || 'Failed to delete user');
+      }
+    } catch (err) {
+      alert('Network error deleting user');
+    }
+  };
+
+  const handleSaveReviewReply = async (e) => {
+    e.preventDefault();
+    if (!activeReplyReview || !replyText.trim()) return;
+    setSavingReply(true);
+    try {
+      const res = await fetch(`/api/v1/admin/gmb/reviews/${activeReplyReview.id}/reply`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ reply_comment: replyText.trim() })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToastMessage('Review reply published successfully!');
+        setActiveReplyReview(null);
+        setReplyText('');
+        loadPlatformData();
+        setTimeout(() => setToastMessage(''), 4000);
+      } else {
+        alert(data.error || 'Failed to save review reply');
+      }
+    } catch (err) {
+      alert('Network error saving reply');
+    } finally {
+      setSavingReply(false);
+    }
+  };
+
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
@@ -642,8 +964,13 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
   });
 
   // 4. Pricing Campaigns DataTable Hook
-  const campaignsTable = useDataTable(campaigns, {
-    searchFields: ['campaign_name', 'badge_text'],
+  const filteredCampaigns = useMemo(() => {
+    if (!campaignCategoryFilter || campaignCategoryFilter === 'all') return campaigns;
+    return campaigns.filter(c => (c.category || 'billing') === campaignCategoryFilter);
+  }, [campaigns, campaignCategoryFilter]);
+
+  const campaignsTable = useDataTable(filteredCampaigns, {
+    searchFields: ['campaign_name', 'badge_text', 'category', 'plan_tier', 'headline'],
     defaultSortKey: 'id',
     defaultSortDir: 'desc',
     defaultPageSize: 10,
@@ -653,6 +980,54 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
       if (key === 'trial_days') return Number(c.trial_days || 0);
       return c[key];
     }
+  });
+
+  // 5. GMB Locations DataTable Hook
+  const gmbTable = useDataTable(gmbLocations, {
+    searchFields: ['title', 'slug', 'primary_category', 'place_id', 'address', 'store_name'],
+    defaultSortKey: 'id',
+    defaultSortDir: 'asc',
+    defaultPageSize: 10,
+    customSortAccessor: (l, key) => {
+      if (key === 'average_rating') return Number(l.average_rating || 0);
+      if (key === 'total_reviews') return Number(l.total_reviews || 0);
+      if (key === 'funnel_views') return Number(l.funnel_views || 0);
+      if (key === 'funnel_positive_redirects') return Number(l.funnel_positive_redirects || 0);
+      if (key === 'funnel_private_feedbacks') return Number(l.funnel_private_feedbacks || 0);
+      return l[key];
+    }
+  });
+
+  // 6. Platform & Merchant Users DataTable Hook
+  const usersTable = useDataTable(platformUsers, {
+    searchFields: ['first_name', 'last_name', 'email', 'phone', 'role', 'store_name', 'gmb_title'],
+    defaultSortKey: 'id',
+    defaultSortDir: 'desc',
+    defaultPageSize: 10
+  });
+
+  // 7. GMB Reviews DataTable Hook with filters
+  const filteredReviews = useMemo(() => {
+    return gmbReviews.filter(r => {
+      const matchRating = reviewFilterRating === 'all' || Number(r.star_rating) === Number(reviewFilterRating);
+      const matchLoc = reviewFilterLocation === 'all' || String(r.location_id) === String(reviewFilterLocation);
+      return matchRating && matchLoc;
+    });
+  }, [gmbReviews, reviewFilterRating, reviewFilterLocation]);
+
+  const reviewsTable = useDataTable(filteredReviews, {
+    searchFields: ['reviewer_name', 'comment', 'location_title', 'location_slug'],
+    defaultSortKey: 'review_created_at',
+    defaultSortDir: 'desc',
+    defaultPageSize: 10
+  });
+
+  // 8. GMB Negative Feedbacks DataTable Hook
+  const feedbacksTable = useDataTable(gmbFeedbacks, {
+    searchFields: ['customer_name', 'customer_phone', 'feedback', 'location_title'],
+    defaultSortKey: 'created_at',
+    defaultSortDir: 'desc',
+    defaultPageSize: 10
   });
 
   return (
@@ -800,6 +1175,8 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
         <div style={{ display: 'flex', gap: '1.5rem' }}>
           {[
             { id: 'stores', label: 'Tenants Directory', icon: Store, count: tenants.length },
+            { id: 'gmb', label: 'Google Review & GMB Management', icon: Star, count: gmbLocations.length },
+            { id: 'users', label: 'Users & Store Access', icon: Users, count: platformUsers.length },
             { id: 'pricing', label: 'Pricing Campaigns & Offers', icon: Tag, count: campaigns.length },
             { id: 'whatsapp_logs', label: 'WhatsApp Message Logs', icon: MessageSquare, count: adminWhatsAppLogs.length },
             { id: 'logs', label: 'Live Action Logs', icon: Activity, count: actionLogs.length },
@@ -898,18 +1275,39 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
                           </td>
                           <td style={{ padding: '12px 16px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span style={{
-                                textTransform: 'uppercase',
-                                fontSize: '0.7rem',
-                                fontWeight: '800',
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                                backgroundColor: t.plan_tier === 'growth' ? '#eff6ff' : '#fff7ed',
-                                color: t.plan_tier === 'growth' ? '#1d4ed8' : '#c2410c',
-                                border: '1px solid currentColor'
-                              }}>
-                                {t.plan_tier === 'growth' ? 'Growth Plan' : (t.plan_tier === 'trial' ? 'Trial (3d)' : (t.plan_tier || 'trial'))}
-                              </span>
+                              {(() => {
+                                const tier = t.plan_tier || 'trial';
+                                let bg = '#fff7ed';
+                                let textCol = '#c2410c';
+                                let label = 'Trial (3d)';
+                                if (tier === 'growth') {
+                                  bg = '#eff6ff'; textCol = '#1d4ed8'; label = 'Growth Plan';
+                                } else if (tier === 'promotion') {
+                                  bg = '#ecfdf5'; textCol = '#047857'; label = '🎁 1-Yr Promo';
+                                } else if (tier === 'gmb_pro') {
+                                  bg = '#fef3c7'; textCol = '#b45309'; label = '⭐ GMB Pro';
+                                } else if (tier === 'retail_combo') {
+                                  bg = '#faf5ff'; textCol = '#7e22ce'; label = '🚀 Retail Combo';
+                                } else if (tier === 'gmb_starter') {
+                                  bg = '#f0fdf4'; textCol = '#15803d'; label = '🏷️ Standee Starter';
+                                } else if (tier === 'enterprise') {
+                                  bg = '#f1f5f9'; textCol = '#334155'; label = '🏢 Enterprise';
+                                }
+                                return (
+                                  <span style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '0.7rem',
+                                    fontWeight: '800',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                    backgroundColor: bg,
+                                    color: textCol,
+                                    border: '1px solid currentColor'
+                                  }}>
+                                    {label}
+                                  </span>
+                                );
+                              })()}
                               <span style={{
                                 fontSize: '0.7rem',
                                 fontWeight: '700',
@@ -1878,68 +2276,167 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
                       Pricing Campaigns &amp; Dynamic Live Offers
                     </h2>
                     <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
-                      Control live prices on /pricing in real time. Create promotional campaigns, alter discount prices, and configure trial periods.
+                      Control live prices on /pricing in real time. Manage Google Reviews, Digital Billing POS, and Retail Combo plans.
                     </p>
                   </div>
-                  <button
-                    onClick={() => {
-                      setCampaignForm({
-                        campaign_name: 'Retail Promotional Sale',
-                        regular_price: 9000,
-                        campaign_price: 6000,
-                        trial_days: 3,
-                        badge_text: 'SAVE ₹3,000 TODAY (33% OFF)',
-                        headline: 'One Simple Price. All Features Included.',
-                        subheadline: 'Complete Digital Billing & Smart CRM Utility for Indian Retailers',
-                        is_active: 1,
-                        start_date: '',
-                        end_date: ''
-                      });
-                      setShowCampaignModal('create');
-                    }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '8px 16px',
-                      backgroundColor: '#4f46e5',
-                      color: '#ffffff',
-                      borderRadius: '8px',
-                      border: 'none',
-                      fontSize: '0.85rem',
-                      fontWeight: '700',
-                      cursor: 'pointer',
-                      boxShadow: '0 1px 3px rgba(79, 70, 229, 0.3)'
-                    }}
-                  >
-                    <Plus style={{ width: '16px', height: '16px' }} />
-                    <span>Create New Pricing Campaign</span>
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => {
+                        setCampaignForm({
+                          campaign_name: 'Google Review & Local SEO Booster Pro',
+                          category: 'gmb',
+                          plan_tier: 'gmb_pro',
+                          regular_price: 5000,
+                          campaign_price: 2999,
+                          trial_days: 7,
+                          badge_text: 'SAVE ₹2,001 (40% OFF)',
+                          headline: 'Rank #1 on Google Maps. Automate 5-Star Reviews.',
+                          subheadline: 'Acrylic QR Standee + AI Auto-Responder + Negative Review Shield for Retail Stores',
+                          is_active: 1,
+                          start_date: '',
+                          end_date: ''
+                        });
+                        setShowCampaignModal('create');
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 14px',
+                        backgroundColor: '#2563eb',
+                        color: '#ffffff',
+                        borderRadius: '8px',
+                        border: 'none',
+                        fontSize: '0.82rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        boxShadow: '0 1px 3px rgba(37, 99, 235, 0.3)'
+                      }}
+                    >
+                      <Star style={{ width: '15px', height: '15px' }} />
+                      <span>+ GMB Plan</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setCampaignForm({
+                          campaign_name: 'Retail Growth Combo (Billing + GMB Suite)',
+                          category: 'combo',
+                          plan_tier: 'retail_combo',
+                          regular_price: 14000,
+                          campaign_price: 7999,
+                          trial_days: 14,
+                          badge_text: 'BEST VALUE (43% OFF)',
+                          headline: 'Everything Retail: Digital Bills + 5-Star Google Reviews',
+                          subheadline: 'Complete Retail OS: WhatsApp Receipts + GMB Smart QR Standee + Customer Retention CRM',
+                          is_active: 1,
+                          start_date: '',
+                          end_date: ''
+                        });
+                        setShowCampaignModal('create');
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 14px',
+                        backgroundColor: '#7c3aed',
+                        color: '#ffffff',
+                        borderRadius: '8px',
+                        border: 'none',
+                        fontSize: '0.82rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        boxShadow: '0 1px 3px rgba(124, 58, 237, 0.3)'
+                      }}
+                    >
+                      <Sparkles style={{ width: '15px', height: '15px' }} />
+                      <span>+ Combo Suite</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setCampaignForm({
+                          campaign_name: 'Retail Launch Offer',
+                          category: 'billing',
+                          plan_tier: 'growth',
+                          regular_price: 9000,
+                          campaign_price: 6000,
+                          trial_days: 3,
+                          badge_text: 'SAVE ₹3,000 TODAY (33% OFF)',
+                          headline: 'One Simple Price. All Features Included.',
+                          subheadline: 'Complete Digital Billing & Smart CRM Utility for Indian Retailers',
+                          is_active: 1,
+                          start_date: '',
+                          end_date: ''
+                        });
+                        setShowCampaignModal('create');
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 14px',
+                        backgroundColor: '#059669',
+                        color: '#ffffff',
+                        borderRadius: '8px',
+                        border: 'none',
+                        fontSize: '0.82rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        boxShadow: '0 1px 3px rgba(5, 150, 105, 0.3)'
+                      }}
+                    >
+                      <Plus style={{ width: '15px', height: '15px' }} />
+                      <span>+ Custom Campaign</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Live Active Campaign Spotlight Card */}
                 {(() => {
-                  const activeCamp = campaigns.find(c => c.is_active) || campaigns[0];
+                  const activeCamp = campaigns.find(c => c.is_active && (campaignCategoryFilter === 'all' || (c.category || 'billing') === campaignCategoryFilter))
+                    || campaigns.find(c => campaignCategoryFilter === 'all' || (c.category || 'billing') === campaignCategoryFilter)
+                    || campaigns.find(c => c.is_active)
+                    || campaigns[0];
                   if (!activeCamp) return null;
                   const reg = Number(activeCamp.regular_price || 9000);
                   const camp = Number(activeCamp.campaign_price || 6000);
                   const sav = Math.max(0, reg - camp);
                   const pct = reg > 0 ? Math.round((sav / reg) * 100) : 33;
+                  const cat = activeCamp.category || 'billing';
                   return (
                     <div style={{
                       backgroundColor: '#ffffff',
                       borderRadius: '16px',
-                      border: '2px solid #3b82f6',
+                      border: cat === 'gmb' ? '2px solid #2563eb' : (cat === 'combo' ? '2px solid #7c3aed' : '2px solid #059669'),
                       padding: '1.75rem',
-                      boxShadow: '0 4px 20px rgba(59, 130, 246, 0.1)',
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
                       position: 'relative',
                       overflow: 'hidden'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                         <div>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '9999px', backgroundColor: '#dcfce7', color: '#166534', fontSize: '0.75rem', fontWeight: '800', marginBottom: '8px' }}>
-                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#16a34a', display: 'inline-block' }}></span>
-                            <span>CURRENTLY LIVE ON /pricing</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '9999px', backgroundColor: activeCamp.is_active ? '#dcfce7' : '#f1f5f9', color: activeCamp.is_active ? '#166534' : '#64748b', fontSize: '0.75rem', fontWeight: '800' }}>
+                              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: activeCamp.is_active ? '#16a34a' : '#94a3b8', display: 'inline-block' }}></span>
+                              <span>{activeCamp.is_active ? 'CURRENTLY LIVE ON /pricing' : 'INACTIVE / DRAFT OFFER'}</span>
+                            </div>
+                            {cat === 'gmb' && (
+                              <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '3px 8px', borderRadius: '6px', backgroundColor: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
+                                ⭐ GOOGLE REVIEW &amp; STANDEE PLAN
+                              </span>
+                            )}
+                            {cat === 'combo' && (
+                              <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '3px 8px', borderRadius: '6px', backgroundColor: '#faf5ff', color: '#7e22ce', border: '1px solid #e9d5ff' }}>
+                                🚀 ALL-IN-ONE RETAIL COMBO
+                              </span>
+                            )}
+                            {cat === 'billing' && (
+                              <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '3px 8px', borderRadius: '6px', backgroundColor: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0' }}>
+                                🧾 DIGITAL BILLING POS
+                              </span>
+                            )}
                           </div>
                           <h3 style={{ fontSize: '1.4rem', fontWeight: '800', margin: '0 0 4px', color: '#0f172a' }}>
                             {activeCamp.campaign_name}
@@ -1954,6 +2451,8 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
                             onClick={() => {
                               setCampaignForm({
                                 campaign_name: activeCamp.campaign_name,
+                                category: activeCamp.category || 'billing',
+                                plan_tier: activeCamp.plan_tier || 'growth',
                                 regular_price: activeCamp.regular_price,
                                 campaign_price: activeCamp.campaign_price,
                                 trial_days: activeCamp.trial_days || 3,
@@ -1981,7 +2480,7 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
                             }}
                           >
                             <Edit3 style={{ width: '14px', height: '14px' }} />
-                            <span>Quick Edit Price &amp; Campaign</span>
+                            <span>Quick Edit Price &amp; Plan</span>
                           </button>
                           <a
                             href="/pricing"
@@ -2009,12 +2508,16 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
                       {/* Numbers Grid */}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginTop: '1.5rem', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                         <div>
-                          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Plan Name</div>
-                          <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>Growth Plan</div>
+                          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Plan Category &amp; Tier</div>
+                          <div style={{ fontSize: '1rem', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>
+                            {activeCamp.plan_tier ? activeCamp.plan_tier.replace('_', ' ').toUpperCase() : 'STANDARD'}
+                          </div>
                         </div>
                         <div>
                           <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Live Offer Price</div>
-                          <div style={{ fontSize: '1.35rem', fontWeight: '900', color: '#16a34a', marginTop: '2px' }}>₹{camp.toLocaleString('en-IN')} <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#64748b' }}>/ yr</span></div>
+                          <div style={{ fontSize: '1.35rem', fontWeight: '900', color: '#16a34a', marginTop: '2px' }}>
+                            {camp === 0 ? 'FREE' : `₹${camp.toLocaleString('en-IN')}`} <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#64748b' }}>/ yr</span>
+                          </div>
                         </div>
                         <div>
                           <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Regular Base Price</div>
@@ -2033,118 +2536,174 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
                   );
                 })()}
 
-                {/* Campaigns Table */}
+                {/* Campaigns Table Card */}
                 <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                  <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>
-                      All Platform Pricing Campaigns ({campaigns.length})
-                    </h3>
+                  <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: '800', color: '#0f172a', marginRight: '6px' }}>Filter Category:</span>
+                      {[
+                        { id: 'all', label: `All Plans (${campaigns.length})` },
+                        { id: 'gmb', label: `⭐ Google Review & Standee (${campaigns.filter(c => c.category === 'gmb').length})` },
+                        { id: 'billing', label: `🧾 Digital Billing POS (${campaigns.filter(c => c.category === 'billing' || !c.category).length})` },
+                        { id: 'combo', label: `🚀 All-in-One Combos (${campaigns.filter(c => c.category === 'combo').length})` }
+                      ].map(cat => (
+                        <button
+                          key={cat.id}
+                          onClick={() => {
+                            setCampaignCategoryFilter(cat.id);
+                            campaignsTable.setCurrentPage(1);
+                          }}
+                          style={{
+                            padding: '5px 12px',
+                            borderRadius: '9999px',
+                            fontSize: '0.75rem',
+                            fontWeight: campaignCategoryFilter === cat.id ? '800' : '600',
+                            border: '1px solid',
+                            borderColor: campaignCategoryFilter === cat.id ? '#2563eb' : '#e2e8f0',
+                            backgroundColor: campaignCategoryFilter === cat.id ? '#eff6ff' : '#ffffff',
+                            color: campaignCategoryFilter === cat.id ? '#1d4ed8' : '#64748b',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
                     <TableSearchInput
                       value={campaignsTable.searchQuery}
                       onChange={campaignsTable.setSearchQuery}
-                      placeholder="Search campaign, badge..."
-                      width="240px"
+                      placeholder="Search campaign, badge, category..."
+                      width="260px"
                     />
                   </div>
 
-                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-                    <thead>
-                      <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#4b5563', fontSize: '0.72rem', textTransform: 'uppercase' }}>
-                        <th style={{ padding: '12px 16px' }}>#</th>
-                        <SortableTh sortKey="campaign_name" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Campaign Name</SortableTh>
-                        <SortableTh sortKey="campaign_price" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Offer Price</SortableTh>
-                        <SortableTh sortKey="regular_price" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Regular Price</SortableTh>
-                        <SortableTh sortKey="trial_days" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Trial</SortableTh>
-                        <SortableTh sortKey="badge_text" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Ribbon Badge</SortableTh>
-                        <SortableTh sortKey="is_active" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Status</SortableTh>
-                        <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {campaignsTable.items.length === 0 ? (
-                        <tr>
-                          <td colSpan="8" style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
-                            {campaignsTable.searchQuery ? 'No campaigns match your search.' : 'No pricing campaigns found.'}
-                          </td>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#4b5563', fontSize: '0.72rem', textTransform: 'uppercase' }}>
+                          <th style={{ padding: '12px 16px' }}>#</th>
+                          <SortableTh sortKey="campaign_name" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Campaign / Plan Name</SortableTh>
+                          <SortableTh sortKey="category" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Category &amp; Tier</SortableTh>
+                          <SortableTh sortKey="campaign_price" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Offer Price</SortableTh>
+                          <SortableTh sortKey="regular_price" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Regular Price</SortableTh>
+                          <SortableTh sortKey="trial_days" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Trial</SortableTh>
+                          <SortableTh sortKey="badge_text" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Ribbon Badge</SortableTh>
+                          <SortableTh sortKey="is_active" currentSort={campaignsTable.sortConfig} onSort={campaignsTable.handleSort}>Status</SortableTh>
+                          <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
                         </tr>
-                      ) : (
-                        campaignsTable.items.map((camp, idx) => (
-                          <tr key={camp.id} style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: camp.is_active ? '#f0fdf4' : '#ffffff' }}>
-                            <td style={{ padding: '12px 16px', color: '#94a3b8' }}>{(campaignsTable.currentPage - 1) * campaignsTable.pageSize + idx + 1}</td>
-                            <td style={{ padding: '12px 16px', fontWeight: '700', color: '#0f172a' }}>
-                              {camp.campaign_name}
-                              {camp.is_active ? (
-                                <span style={{ marginLeft: '8px', fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', backgroundColor: '#16a34a', color: '#ffffff', fontWeight: '800' }}>
-                                  ACTIVE OFFER
-                                </span>
-                              ) : null}
-                            </td>
-                            <td style={{ padding: '12px 16px', fontWeight: '800', color: '#16a34a', fontSize: '0.95rem' }}>
-                              ₹{Number(camp.campaign_price).toLocaleString('en-IN')}
-                            </td>
-                            <td style={{ padding: '12px 16px', color: '#94a3b8', textDecoration: 'line-through' }}>
-                              ₹{Number(camp.regular_price).toLocaleString('en-IN')}
-                            </td>
-                            <td style={{ padding: '12px 16px', fontWeight: '600', color: '#ea580c' }}>
-                              {camp.trial_days || 3} Days
-                            </td>
-                            <td style={{ padding: '12px 16px', fontSize: '0.75rem', color: '#475569' }}>
-                              {camp.badge_text || '—'}
-                            </td>
-                            <td style={{ padding: '12px 16px' }}>
-                              <button
-                                onClick={() => handleToggleActiveCampaign(camp)}
-                                style={{
-                                  padding: '4px 10px',
-                                  borderRadius: '6px',
-                                  fontSize: '0.72rem',
-                                  fontWeight: '700',
-                                  cursor: 'pointer',
-                                  border: 'none',
-                                  backgroundColor: camp.is_active ? '#dcfce7' : '#f1f5f9',
-                                  color: camp.is_active ? '#166534' : '#64748b'
-                                }}
-                              >
-                                {camp.is_active ? '✓ Published (Active)' : 'Draft (Inactive)'}
-                              </button>
-                            </td>
-                            <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
-                                <button
-                                  onClick={() => {
-                                    setCampaignForm({
-                                      campaign_name: camp.campaign_name,
-                                      regular_price: camp.regular_price,
-                                      campaign_price: camp.campaign_price,
-                                      trial_days: camp.trial_days || 3,
-                                      badge_text: camp.badge_text,
-                                      headline: camp.headline,
-                                      subheadline: camp.subheadline,
-                                      is_active: camp.is_active ? 1 : 0,
-                                      start_date: camp.start_date ? camp.start_date.split('T')[0] : '',
-                                      end_date: camp.end_date ? camp.end_date.split('T')[0] : ''
-                                    });
-                                    setShowCampaignModal(camp);
-                                  }}
-                                  style={{ padding: '5px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.75rem', fontWeight: '600', cursor: 'pointer' }}
-                                >
-                                  Edit
-                                </button>
-                                {campaigns.length > 1 && (
-                                  <button
-                                    onClick={() => handleDeleteCampaign(camp.id)}
-                                    style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #fee2e2', backgroundColor: '#fff1f2', color: '#e11d48', fontSize: '0.75rem', cursor: 'pointer' }}
-                                  >
-                                    <Trash2 style={{ width: '13px', height: '13px' }} />
-                                  </button>
-                                )}
-                              </div>
+                      </thead>
+                      <tbody>
+                        {(campaignsTable.items || []).length === 0 ? (
+                          <tr>
+                            <td colSpan="9" style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+                              {campaignsTable.searchQuery ? 'No campaigns match your search.' : 'No pricing campaigns found in this category.'}
                             </td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                        ) : (
+                          (campaignsTable.items || []).map((camp, idx) => {
+                            const cCat = camp.category || 'billing';
+                            return (
+                              <tr key={camp.id} style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: camp.is_active ? '#f0fdf4' : '#ffffff' }}>
+                                <td style={{ padding: '12px 16px', color: '#94a3b8' }}>{(campaignsTable.currentPage - 1) * campaignsTable.pageSize + idx + 1}</td>
+                                <td style={{ padding: '12px 16px' }}>
+                                  <div style={{ fontWeight: '700', color: '#0f172a' }}>{camp.campaign_name}</div>
+                                  <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>{camp.headline}</div>
+                                </td>
+                                <td style={{ padding: '12px 16px' }}>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                    {cCat === 'gmb' && (
+                                      <span style={{ fontSize: '0.68rem', fontWeight: '800', padding: '2px 8px', borderRadius: '4px', backgroundColor: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', width: 'fit-content' }}>
+                                        ⭐ GMB REVIEW
+                                      </span>
+                                    )}
+                                    {cCat === 'combo' && (
+                                      <span style={{ fontSize: '0.68rem', fontWeight: '800', padding: '2px 8px', borderRadius: '4px', backgroundColor: '#faf5ff', color: '#7e22ce', border: '1px solid #e9d5ff', width: 'fit-content' }}>
+                                        🚀 RETAIL COMBO
+                                      </span>
+                                    )}
+                                    {cCat === 'billing' && (
+                                      <span style={{ fontSize: '0.68rem', fontWeight: '800', padding: '2px 8px', borderRadius: '4px', backgroundColor: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', width: 'fit-content' }}>
+                                        🧾 BILLING POS
+                                      </span>
+                                    )}
+                                    <span style={{ fontSize: '0.7rem', color: '#64748b', fontFamily: 'monospace' }}>
+                                      {camp.plan_tier || 'standard'}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td style={{ padding: '12px 16px', fontWeight: '800', color: '#16a34a', fontSize: '0.95rem' }}>
+                                  {Number(camp.campaign_price) === 0 ? 'FREE' : `₹${Number(camp.campaign_price).toLocaleString('en-IN')}`}
+                                </td>
+                                <td style={{ padding: '12px 16px', color: '#94a3b8', textDecoration: 'line-through' }}>
+                                  ₹{Number(camp.regular_price).toLocaleString('en-IN')}
+                                </td>
+                                <td style={{ padding: '12px 16px', fontWeight: '600', color: '#ea580c' }}>
+                                  {camp.trial_days || 3} Days
+                                </td>
+                                <td style={{ padding: '12px 16px', fontSize: '0.75rem', color: '#475569' }}>
+                                  <span style={{ padding: '2px 6px', backgroundColor: '#f1f5f9', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                                    {camp.badge_text || '—'}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '12px 16px' }}>
+                                  <button
+                                    onClick={() => handleToggleActiveCampaign(camp)}
+                                    style={{
+                                      padding: '4px 10px',
+                                      borderRadius: '6px',
+                                      fontSize: '0.72rem',
+                                      fontWeight: '700',
+                                      cursor: 'pointer',
+                                      border: 'none',
+                                      backgroundColor: camp.is_active ? '#dcfce7' : '#f1f5f9',
+                                      color: camp.is_active ? '#166534' : '#64748b'
+                                    }}
+                                  >
+                                    {camp.is_active ? '✓ Published (Active)' : 'Draft (Inactive)'}
+                                  </button>
+                                </td>
+                                <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
+                                    <button
+                                      onClick={() => {
+                                        setCampaignForm({
+                                          campaign_name: camp.campaign_name,
+                                          category: camp.category || 'billing',
+                                          plan_tier: camp.plan_tier || 'growth',
+                                          regular_price: camp.regular_price,
+                                          campaign_price: camp.campaign_price,
+                                          trial_days: camp.trial_days || 3,
+                                          badge_text: camp.badge_text,
+                                          headline: camp.headline,
+                                          subheadline: camp.subheadline,
+                                          is_active: camp.is_active ? 1 : 0,
+                                          start_date: camp.start_date ? camp.start_date.split('T')[0] : '',
+                                          end_date: camp.end_date ? camp.end_date.split('T')[0] : ''
+                                        });
+                                        setShowCampaignModal(camp);
+                                      }}
+                                      style={{ padding: '5px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.75rem', fontWeight: '600', cursor: 'pointer' }}
+                                    >
+                                      Edit
+                                    </button>
+                                    {campaigns.length > 1 && (
+                                      <button
+                                        onClick={() => handleDeleteCampaign(camp.id)}
+                                        style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #fee2e2', backgroundColor: '#fff1f2', color: '#e11d48', fontSize: '0.75rem', cursor: 'pointer' }}
+                                      >
+                                        <Trash2 style={{ width: '13px', height: '13px' }} />
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
 
                   {/* Campaigns Table Pagination */}
                   <TablePagination
@@ -2153,6 +2712,637 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
                     pageSize={campaignsTable.pageSize}
                     onPageChange={campaignsTable.setCurrentPage}
                     onPageSizeChange={campaignsTable.setPageSize}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* TAB: GOOGLE REVIEW & GMB MANAGEMENT HUB */}
+            {activeTab === 'gmb' && (
+              <div>
+                {/* Header & Sub-Tab Bar */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: '800', margin: '0 0 4px', color: '#0f172a' }}>
+                      Google Business Profile &amp; Review Hubs
+                    </h2>
+                    <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>
+                      Manage public review hubs, tabletop acrylic standees, and review streams across all tenant stores.
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      onClick={() => handleOpenGmbModal()}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 14px',
+                        backgroundColor: '#0284c7',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '0.8rem',
+                        fontWeight: '700',
+                        color: '#ffffff',
+                        cursor: 'pointer',
+                        boxShadow: '0 1px 3px rgba(2, 132, 199, 0.3)'
+                      }}
+                    >
+                      <Plus style={{ width: '16px', height: '16px' }} />
+                      <span>Onboard GMB Location</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sub-tab Navigation */}
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', flexWrap: 'wrap' }}>
+                  {[
+                    { id: 'locations', label: 'Locations & Standees', count: gmbLocations.length, icon: MapPin },
+                    { id: 'reviews', label: 'Live Reviews Stream', count: gmbReviews.length, icon: Star },
+                    { id: 'feedbacks', label: 'Private Negative Feedback Funnel', count: gmbFeedbacks.length, icon: AlertTriangle }
+                  ].map(st => {
+                    const StIcon = st.icon;
+                    const isSelected = gmbSubTab === st.id;
+                    return (
+                      <button
+                        key={st.id}
+                        type="button"
+                        onClick={() => setGmbSubTab(st.id)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '6px 14px',
+                          borderRadius: '8px',
+                          border: isSelected ? '1px solid #0284c7' : '1px solid #e2e8f0',
+                          backgroundColor: isSelected ? '#f0f9ff' : '#ffffff',
+                          color: isSelected ? '#0369a1' : '#64748b',
+                          fontSize: '0.8rem',
+                          fontWeight: '700',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <StIcon style={{ width: '14px', height: '14px' }} />
+                        <span>{st.label}</span>
+                        <span style={{
+                          padding: '1px 6px',
+                          borderRadius: '9999px',
+                          fontSize: '0.7rem',
+                          backgroundColor: isSelected ? '#bae6fd' : '#f1f5f9',
+                          color: isSelected ? '#0369a1' : '#64748b'
+                        }}>
+                          {st.count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* SUBTAB 1: LOCATIONS */}
+                {gmbSubTab === 'locations' && (
+                  <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '10px' }}>
+                      <TableSearchInput
+                        value={gmbTable.searchQuery}
+                        onChange={gmbTable.setSearchQuery}
+                        placeholder="Search locations by title, slug, Place ID, category..."
+                      />
+                    </div>
+
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569' }}>
+                            <SortableTh sortKey="id" currentSort={gmbTable.sortConfig} onSort={gmbTable.handleSort}>#</SortableTh>
+                            <SortableTh sortKey="title" currentSort={gmbTable.sortConfig} onSort={gmbTable.handleSort}>Store &amp; GMB Location</SortableTh>
+                            <SortableTh sortKey="slug" currentSort={gmbTable.sortConfig} onSort={gmbTable.handleSort}>Public Hub</SortableTh>
+                            <th style={{ padding: '10px 12px', fontWeight: '700' }}>Place ID</th>
+                            <SortableTh sortKey="average_rating" currentSort={gmbTable.sortConfig} onSort={gmbTable.handleSort}>Rating &amp; Reviews</SortableTh>
+                            <th style={{ padding: '10px 12px', fontWeight: '700' }}>Theme</th>
+                            <SortableTh sortKey="funnel_views" currentSort={gmbTable.sortConfig} onSort={gmbTable.handleSort}>Funnel Stats</SortableTh>
+                            <th style={{ padding: '10px 12px', fontWeight: '700', textAlign: 'right' }}>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(gmbTable.items || []).length === 0 ? (
+                            <tr>
+                              <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+                                No GMB locations found. Click "+ Onboard GMB Location" to add one.
+                              </td>
+                            </tr>
+                          ) : (
+                            (gmbTable.items || []).map((loc, idx) => {
+                              const themeObj = THEME_OPTIONS.find(t => t.id === loc.selected_theme) || THEME_OPTIONS[0];
+                              return (
+                                <tr key={loc.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                  <td style={{ padding: '12px', color: '#94a3b8' }}>
+                                    {(gmbTable.currentPage - 1) * gmbTable.pageSize + idx + 1}
+                                  </td>
+                                  <td style={{ padding: '12px' }}>
+                                    <div style={{ fontWeight: '800', color: '#0f172a' }}>{loc.title}</div>
+                                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{loc.primary_category || 'Retail Store'}</div>
+                                    {loc.store_name && (
+                                      <span style={{ display: 'inline-block', marginTop: '4px', fontSize: '0.7rem', padding: '1px 6px', borderRadius: '4px', backgroundColor: '#eef2ff', color: '#4338ca', fontWeight: '700' }}>
+                                        Store: {loc.store_name}
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td style={{ padding: '12px' }}>
+                                    <a
+                                      href={`https://gmbreviews.retailnode.in/${loc.slug}`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#0284c7', fontWeight: '700', textDecoration: 'none' }}
+                                    >
+                                      <span>/{loc.slug}</span>
+                                      <ExternalLink style={{ width: '12px', height: '12px' }} />
+                                    </a>
+                                  </td>
+                                  <td style={{ padding: '12px', fontFamily: 'monospace', fontSize: '0.72rem', color: '#475569' }}>
+                                    {loc.place_id ? (
+                                      <span title={loc.place_id} style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>
+                                        {loc.place_id.substring(0, 14)}...
+                                      </span>
+                                    ) : (
+                                      <span style={{ color: '#cbd5e1' }}>Not set</span>
+                                    )}
+                                  </td>
+                                  <td style={{ padding: '12px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800', color: '#0f172a' }}>
+                                      <Star style={{ width: '14px', height: '14px', fill: '#f59e0b', color: '#f59e0b' }} />
+                                      <span>{Number(loc.average_rating || 0).toFixed(1)}</span>
+                                      <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 'normal' }}>
+                                        ({loc.total_reviews || 0})
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td style={{ padding: '12px' }}>
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 8px', borderRadius: '6px', border: `1px solid ${themeObj.border}`, backgroundColor: '#ffffff' }}>
+                                      <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: themeObj.accent }} />
+                                      <span style={{ fontSize: '0.72rem', fontWeight: '700', color: '#334155' }}>{themeObj.name.split(' ')[0]}</span>
+                                    </div>
+                                  </td>
+                                  <td style={{ padding: '12px' }}>
+                                    <div style={{ fontSize: '0.75rem' }}>
+                                      <span style={{ fontWeight: '700', color: '#0f172a' }}>{loc.funnel_views || 0}</span> <span style={{ color: '#94a3b8' }}>views</span>
+                                    </div>
+                                    <div style={{ fontSize: '0.7rem', color: '#16a34a' }}>
+                                      {loc.funnel_positive_redirects || 0} redirected &bull; {loc.funnel_private_feedbacks || 0} feedback
+                                    </div>
+                                  </td>
+                                  <td style={{ padding: '12px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                                    <a
+                                      href={`https://gmbreviews.retailnode.in/standee/${loc.slug}`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      title="Print Acrylic Standee"
+                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.75rem', fontWeight: '700', textDecoration: 'none', marginRight: '6px' }}
+                                    >
+                                      <Printer style={{ width: '13px', height: '13px', color: '#4f46e5' }} />
+                                      <span>Standee</span>
+                                    </a>
+                                    <a
+                                      href={`https://gmbreviews.retailnode.in/monthly-report/${loc.slug}`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      title="Monthly Audit Report PDF"
+                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.75rem', fontWeight: '700', textDecoration: 'none', marginRight: '6px' }}
+                                    >
+                                      <FileText style={{ width: '13px', height: '13px', color: '#0284c7' }} />
+                                      <span>Report</span>
+                                    </a>
+                                    <button
+                                      onClick={() => handleOpenGmbModal(loc)}
+                                      style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer', marginRight: '6px' }}
+                                    >
+                                      Edit
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteGmbLocation(loc.id, loc.title)}
+                                      style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #fee2e2', backgroundColor: '#fff1f2', color: '#e11d48', fontSize: '0.75rem', cursor: 'pointer' }}
+                                    >
+                                      <Trash2 style={{ width: '13px', height: '13px' }} />
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <TablePagination
+                      currentPage={gmbTable.currentPage}
+                      totalItems={gmbTable.totalItems}
+                      pageSize={gmbTable.pageSize}
+                      onPageChange={gmbTable.setCurrentPage}
+                      onPageSizeChange={gmbTable.setPageSize}
+                    />
+                  </div>
+                )}
+
+                {/* SUBTAB 2: LIVE REVIEWS STREAM */}
+                {gmbSubTab === 'reviews' && (
+                  <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    {/* Filters Bar */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '10px' }}>
+                      <TableSearchInput
+                        value={reviewsTable.searchQuery}
+                        onChange={reviewsTable.setSearchQuery}
+                        placeholder="Search reviews by customer name, comment, location..."
+                      />
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {/* Rating Filter */}
+                        <select
+                          value={reviewFilterRating}
+                          onChange={(e) => setReviewFilterRating(e.target.value)}
+                          style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.8rem', fontWeight: '600' }}
+                        >
+                          <option value="all">All Star Ratings</option>
+                          <option value="5">⭐⭐⭐⭐⭐ 5 Stars Only</option>
+                          <option value="4">⭐⭐⭐⭐ 4 Stars Only</option>
+                          <option value="3">⭐⭐⭐ 3 Stars Only</option>
+                          <option value="2">⭐⭐ 2 Stars Only</option>
+                          <option value="1">⭐ 1 Star Only</option>
+                        </select>
+
+                        {/* Location Filter */}
+                        <select
+                          value={reviewFilterLocation}
+                          onChange={(e) => setReviewFilterLocation(e.target.value)}
+                          style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.8rem', fontWeight: '600' }}
+                        >
+                          <option value="all">All Locations ({gmbLocations.length})</option>
+                          {gmbLocations.map(l => (
+                            <option key={l.id} value={l.id}>{l.title}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569' }}>
+                            <SortableTh sortKey="id" currentSort={reviewsTable.sortConfig} onSort={reviewsTable.handleSort}>#</SortableTh>
+                            <SortableTh sortKey="reviewer_name" currentSort={reviewsTable.sortConfig} onSort={reviewsTable.handleSort}>Reviewer</SortableTh>
+                            <SortableTh sortKey="star_rating" currentSort={reviewsTable.sortConfig} onSort={reviewsTable.handleSort}>Rating</SortableTh>
+                            <th style={{ padding: '10px 12px', fontWeight: '700' }}>Review &amp; Feedback</th>
+                            <th style={{ padding: '10px 12px', fontWeight: '700' }}>Location</th>
+                            <th style={{ padding: '10px 12px', fontWeight: '700' }}>Store Reply</th>
+                            <SortableTh sortKey="review_created_at" currentSort={reviewsTable.sortConfig} onSort={reviewsTable.handleSort}>Date</SortableTh>
+                            <th style={{ padding: '10px 12px', fontWeight: '700', textAlign: 'right' }}>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(reviewsTable.items || []).length === 0 ? (
+                            <tr>
+                              <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+                                No reviews matching current filters.
+                              </td>
+                            </tr>
+                          ) : (
+                            (reviewsTable.items || []).map((rev, idx) => (
+                              <tr key={rev.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '12px', color: '#94a3b8' }}>
+                                  {(reviewsTable.currentPage - 1) * reviewsTable.pageSize + idx + 1}
+                                </td>
+                                <td style={{ padding: '12px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    {rev.reviewer_photo_url ? (
+                                      <img src={rev.reviewer_photo_url} alt="" style={{ width: '28px', height: '28px', borderRadius: '50%' }} />
+                                    ) : (
+                                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '0.75rem', color: '#475569' }}>
+                                        {rev.reviewer_name?.charAt(0) || 'U'}
+                                      </div>
+                                    )}
+                                    <div style={{ fontWeight: '700', color: '#0f172a' }}>{rev.reviewer_name || 'Anonymous'}</div>
+                                  </div>
+                                </td>
+                                <td style={{ padding: '12px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                    {[1, 2, 3, 4, 5].map(st => (
+                                      <Star
+                                        key={st}
+                                        style={{
+                                          width: '13px',
+                                          height: '13px',
+                                          fill: st <= (rev.star_rating || 5) ? '#f59e0b' : '#e2e8f0',
+                                          color: st <= (rev.star_rating || 5) ? '#f59e0b' : '#e2e8f0'
+                                        }}
+                                      />
+                                    ))}
+                                  </div>
+                                </td>
+                                <td style={{ padding: '12px', maxWidth: '320px' }}>
+                                  <div style={{ color: '#334155', fontSize: '0.8rem', lineHeight: '1.4' }}>
+                                    {rev.comment ? rev.comment : <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Rating given without comment</span>}
+                                  </div>
+                                </td>
+                                <td style={{ padding: '12px' }}>
+                                  <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#4338ca', backgroundColor: '#eef2ff', padding: '2px 8px', borderRadius: '4px' }}>
+                                    {rev.location_title || `Location #${rev.location_id}`}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '12px', maxWidth: '240px' }}>
+                                  {rev.reply_comment ? (
+                                    <div style={{ fontSize: '0.75rem', color: '#0369a1', backgroundColor: '#f0f9ff', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e0f2fe' }}>
+                                      {rev.reply_comment}
+                                    </div>
+                                  ) : (
+                                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontStyle: 'italic' }}>No reply yet</span>
+                                  )}
+                                </td>
+                                <td style={{ padding: '12px', color: '#64748b', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                                  {rev.review_created_at ? new Date(rev.review_created_at).toLocaleDateString('en-IN') : 'Recent'}
+                                </td>
+                                <td style={{ padding: '12px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                                  <button
+                                    onClick={() => {
+                                      setActiveReplyReview(rev);
+                                      setReplyText(rev.reply_comment || '');
+                                    }}
+                                    style={{
+                                      padding: '5px 10px',
+                                      borderRadius: '6px',
+                                      border: '1px solid #cbd5e1',
+                                      backgroundColor: rev.reply_comment ? '#f8fafc' : '#0284c7',
+                                      color: rev.reply_comment ? '#0f172a' : '#ffffff',
+                                      fontSize: '0.75rem',
+                                      fontWeight: '700',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    {rev.reply_comment ? 'Edit Reply' : 'Reply'}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <TablePagination
+                      currentPage={reviewsTable.currentPage}
+                      totalItems={reviewsTable.totalItems}
+                      pageSize={reviewsTable.pageSize}
+                      onPageChange={reviewsTable.setCurrentPage}
+                      onPageSizeChange={reviewsTable.setPageSize}
+                    />
+                  </div>
+                )}
+
+                {/* SUBTAB 3: PRIVATE NEGATIVE FEEDBACK FUNNEL */}
+                {gmbSubTab === 'feedbacks' && (
+                  <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#991b1b', backgroundColor: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '8px', padding: '10px 14px' }}>
+                        🛡️ Protected Funnel: These 1-3 star grievances were intercepted on tabletop standees and prevented from being posted publicly to Google Maps. Use customer contact to resolve grievances.
+                      </div>
+                    </div>
+
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569' }}>
+                            <SortableTh sortKey="id" currentSort={feedbacksTable.sortConfig} onSort={feedbacksTable.handleSort}>#</SortableTh>
+                            <SortableTh sortKey="customer_name" currentSort={feedbacksTable.sortConfig} onSort={feedbacksTable.handleSort}>Customer &amp; Contact</SortableTh>
+                            <th style={{ padding: '10px 12px', fontWeight: '700' }}>Location</th>
+                            <SortableTh sortKey="rating" currentSort={feedbacksTable.sortConfig} onSort={feedbacksTable.handleSort}>Rating</SortableTh>
+                            <th style={{ padding: '10px 12px', fontWeight: '700' }}>Private Feedback Details</th>
+                            <SortableTh sortKey="is_resolved" currentSort={feedbacksTable.sortConfig} onSort={feedbacksTable.handleSort}>Resolution Status</SortableTh>
+                            <SortableTh sortKey="created_at" currentSort={feedbacksTable.sortConfig} onSort={feedbacksTable.handleSort}>Date</SortableTh>
+                            <th style={{ padding: '10px 12px', fontWeight: '700', textAlign: 'right' }}>WhatsApp Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(feedbacksTable.items || []).length === 0 ? (
+                            <tr>
+                              <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+                                No negative feedbacks submitted yet. 100% positive customer satisfaction.
+                              </td>
+                            </tr>
+                          ) : (
+                            (feedbacksTable.items || []).map((fb, idx) => (
+                              <tr key={fb.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '12px', color: '#94a3b8' }}>
+                                  {(feedbacksTable.currentPage - 1) * feedbacksTable.pageSize + idx + 1}
+                                </td>
+                                <td style={{ padding: '12px' }}>
+                                  <div style={{ fontWeight: '700', color: '#0f172a' }}>{fb.customer_name || 'Customer'}</div>
+                                  <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{fb.customer_phone || 'No phone'}</div>
+                                </td>
+                                <td style={{ padding: '12px' }}>
+                                  <span style={{ fontSize: '0.72rem', fontWeight: '700', color: '#4338ca', backgroundColor: '#eef2ff', padding: '2px 8px', borderRadius: '4px' }}>
+                                    {fb.location_title || `Location #${fb.location_id}`}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '12px' }}>
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', padding: '2px 8px', borderRadius: '9999px', backgroundColor: '#fef2f2', color: '#b91c1c', fontWeight: '800' }}>
+                                    <Star style={{ width: '12px', height: '12px', fill: '#ef4444', color: '#ef4444' }} />
+                                    <span>{fb.rating} ★</span>
+                                  </span>
+                                </td>
+                                <td style={{ padding: '12px', maxWidth: '300px' }}>
+                                  <div style={{ color: '#334155', fontSize: '0.8rem', lineHeight: '1.4' }}>
+                                    {fb.feedback}
+                                  </div>
+                                </td>
+                                <td style={{ padding: '12px' }}>
+                                  <span style={{
+                                    padding: '3px 8px',
+                                    borderRadius: '9999px',
+                                    fontSize: '0.72rem',
+                                    fontWeight: '700',
+                                    backgroundColor: fb.is_resolved ? '#dcfce7' : '#fef3c7',
+                                    color: fb.is_resolved ? '#166534' : '#b45309'
+                                  }}>
+                                    {fb.is_resolved ? 'Resolved' : 'Pending Resolution'}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '12px', color: '#64748b', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                                  {fb.created_at ? new Date(fb.created_at).toLocaleDateString('en-IN') : 'Recent'}
+                                </td>
+                                <td style={{ padding: '12px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                                  {fb.customer_phone && (
+                                    <a
+                                      href={`https://wa.me/91${fb.customer_phone.replace(/\D/g, '')}?text=Dear%20${encodeURIComponent(fb.customer_name || 'Customer')},%20we%20received%20your%20feedback%20regarding%20your%20visit%20and%20would%20love%20to%20help.`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '6px', border: '1px solid #86efac', backgroundColor: '#f0fdf4', color: '#166534', fontSize: '0.75rem', fontWeight: '700', textDecoration: 'none' }}
+                                    >
+                                      <Smartphone style={{ width: '12px', height: '12px' }} />
+                                      <span>WhatsApp</span>
+                                    </a>
+                                  )}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <TablePagination
+                      currentPage={feedbacksTable.currentPage}
+                      totalItems={feedbacksTable.totalItems}
+                      pageSize={feedbacksTable.pageSize}
+                      onPageChange={feedbacksTable.setCurrentPage}
+                      onPageSizeChange={feedbacksTable.setPageSize}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB: USERS & STORE ACCESS DIRECTORY */}
+            {activeTab === 'users' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: '800', margin: '0 0 4px', color: '#0f172a' }}>
+                      Users &amp; Store Access Directory
+                    </h2>
+                    <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>
+                      Manage SuperAdmin and Merchant user credentials mapped across all tenant stores and review hubs.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => handleOpenUserModal()}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 14px',
+                      backgroundColor: '#4f46e5',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '0.8rem',
+                      fontWeight: '700',
+                      color: '#ffffff',
+                      cursor: 'pointer',
+                      boxShadow: '0 1px 3px rgba(79, 70, 229, 0.3)'
+                    }}
+                  >
+                    <Plus style={{ width: '16px', height: '16px' }} />
+                    <span>Add User Account</span>
+                  </button>
+                </div>
+
+                <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '10px' }}>
+                    <TableSearchInput
+                      value={usersTable.searchQuery}
+                      onChange={usersTable.setSearchQuery}
+                      placeholder="Search users by name, email, phone, role, store..."
+                    />
+                  </div>
+
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569' }}>
+                          <SortableTh sortKey="id" currentSort={usersTable.sortConfig} onSort={usersTable.handleSort}>#</SortableTh>
+                          <SortableTh sortKey="first_name" currentSort={usersTable.sortConfig} onSort={usersTable.handleSort}>User Name &amp; Contact</SortableTh>
+                          <SortableTh sortKey="role" currentSort={usersTable.sortConfig} onSort={usersTable.handleSort}>Role</SortableTh>
+                          <SortableTh sortKey="store_name" currentSort={usersTable.sortConfig} onSort={usersTable.handleSort}>Assigned Store</SortableTh>
+                          <th style={{ padding: '10px 12px', fontWeight: '700' }}>Linked GMB Hub</th>
+                          <SortableTh sortKey="created_at" currentSort={usersTable.sortConfig} onSort={usersTable.handleSort}>Joined Date</SortableTh>
+                          <th style={{ padding: '10px 12px', fontWeight: '700', textAlign: 'right' }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(usersTable.items || []).length === 0 ? (
+                          <tr>
+                            <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+                              No users found.
+                            </td>
+                          </tr>
+                        ) : (
+                          (usersTable.items || []).map((u, idx) => {
+                            const isSuper = u.role === 'superadmin';
+                            return (
+                              <tr key={u.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '12px', color: '#94a3b8' }}>
+                                  {(usersTable.currentPage - 1) * usersTable.pageSize + idx + 1}
+                                </td>
+                                <td style={{ padding: '12px' }}>
+                                  <div style={{ fontWeight: '800', color: '#0f172a' }}>
+                                    {[u.first_name, u.last_name].filter(Boolean).join(' ') || u.email.split('@')[0]}
+                                  </div>
+                                  <div style={{ fontSize: '0.75rem', color: '#475569' }}>{u.email}</div>
+                                  {u.phone && <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{u.phone}</div>}
+                                </td>
+                                <td style={{ padding: '12px' }}>
+                                  <span style={{
+                                    padding: '3px 8px',
+                                    borderRadius: '9999px',
+                                    fontSize: '0.72rem',
+                                    fontWeight: '800',
+                                    textTransform: 'uppercase',
+                                    backgroundColor: isSuper ? '#f3e8ff' : u.role === 'merchant_admin' ? '#e0e7ff' : '#f1f5f9',
+                                    color: isSuper ? '#7e22ce' : u.role === 'merchant_admin' ? '#3730a3' : '#475569'
+                                  }}>
+                                    {u.role}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '12px' }}>
+                                  {u.store_name ? (
+                                    <div>
+                                      <div style={{ fontWeight: '700', color: '#0f172a' }}>{u.store_name}</div>
+                                      <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>ID: {u.tenant_id}</div>
+                                    </div>
+                                  ) : (
+                                    <span style={{ color: isSuper ? '#7e22ce' : '#94a3b8', fontStyle: 'italic', fontWeight: isSuper ? '700' : 'normal' }}>
+                                      {isSuper ? 'All Stores (Platform SuperAdmin)' : 'Unassigned'}
+                                    </span>
+                                  )}
+                                </td>
+                                <td style={{ padding: '12px' }}>
+                                  {u.gmb_title ? (
+                                    <span style={{ fontSize: '0.72rem', fontWeight: '700', color: '#0369a1', backgroundColor: '#f0f9ff', padding: '2px 8px', borderRadius: '4px' }}>
+                                      {u.gmb_title}
+                                    </span>
+                                  ) : (
+                                    <span style={{ color: '#cbd5e1', fontSize: '0.72rem' }}>—</span>
+                                  )}
+                                </td>
+                                <td style={{ padding: '12px', color: '#64748b', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                                  {u.created_at ? new Date(u.created_at).toLocaleDateString('en-IN') : 'Recent'}
+                                </td>
+                                <td style={{ padding: '12px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                                  <button
+                                    onClick={() => handleOpenUserModal(u)}
+                                    style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer', marginRight: '6px' }}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteUser(u.id, u.email)}
+                                    style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #fee2e2', backgroundColor: '#fff1f2', color: '#e11d48', fontSize: '0.75rem', cursor: 'pointer' }}
+                                  >
+                                    <Trash2 style={{ width: '13px', height: '13px' }} />
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <TablePagination
+                    currentPage={usersTable.currentPage}
+                    totalItems={usersTable.totalItems}
+                    pageSize={usersTable.pageSize}
+                    onPageChange={usersTable.setCurrentPage}
+                    onPageSizeChange={usersTable.setPageSize}
                   />
                 </div>
               </div>
@@ -2237,14 +3427,18 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
                     value={newStoreForm.plan_tier}
                     onChange={(e) => {
                       const tier = e.target.value;
-                      const days = tier === 'trial' ? 3 : 365;
+                      const days = tier === 'trial' ? 3 : (tier === 'gmb_starter' ? 365 : 365);
                       const exp = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
                       setNewStoreForm({ ...newStoreForm, plan_tier: tier, plan_valid_until: exp });
                     }}
                     style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
                   >
-                    <option value="trial">Trial (3 Days Free)</option>
-                    <option value="growth">Growth Plan (₹6,000 / Year &bull; Reg. ₹9,000)</option>
+                    <option value="trial">⏳ Trial (3 Days Free Evaluation)</option>
+                    <option value="promotion">🎁 1-Year Free Promotional Grant</option>
+                    <option value="growth">🧾 Growth Plan (₹6,000 / Year &bull; Reg. ₹9,000)</option>
+                    <option value="gmb_pro">⭐ Google Review &amp; Local SEO Booster Pro (₹2,999 / Year)</option>
+                    <option value="retail_combo">🚀 Retail Growth Combo (Billing + GMB • ₹7,999 / Year)</option>
+                    <option value="gmb_starter">🏷️ GMB Standee Starter Kit (₹1,499)</option>
                   </select>
                 </div>
                 <div>
@@ -2359,17 +3553,78 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
             </div>
 
             <form onSubmit={handleSavePlan} style={{ display: 'grid', gap: '1.25rem' }}>
+              {/* Quick Promotional Grant Banner */}
+              <div style={{ backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '10px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                <div>
+                  <div style={{ fontSize: '0.8rem', fontWeight: '800', color: '#065f46' }}>
+                    🎁 1-Year Free Promotional Subscription Grant
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#047857' }}>
+                    Instantly grant 365 days of 100% free cloud billing &amp; smart CRM access.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const d = new Date();
+                    d.setDate(d.getDate() + 365);
+                    setPlanForm({
+                      ...planForm,
+                      plan_tier: 'promotion',
+                      plan_valid_until: d.toISOString().split('T')[0],
+                      is_active: 1
+                    });
+                  }}
+                  style={{
+                    whiteSpace: 'nowrap',
+                    padding: '7px 12px',
+                    backgroundColor: '#059669',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    boxShadow: '0 1px 2px rgba(5, 150, 105, 0.2)'
+                  }}
+                >
+                  Apply 1-Year Free
+                </button>
+              </div>
+
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
                   Plan Subscription Tier
                 </label>
                 <select
                   value={planForm.plan_tier}
-                  onChange={(e) => setPlanForm({ ...planForm, plan_tier: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    let newDate = planForm.plan_valid_until;
+                    if (val === 'promotion' || val === 'growth' || val === 'gmb_pro' || val === 'retail_combo') {
+                      const d = new Date();
+                      d.setDate(d.getDate() + 365);
+                      newDate = d.toISOString().split('T')[0];
+                    } else if (val === 'trial') {
+                      const d = new Date();
+                      d.setDate(d.getDate() + 3);
+                      newDate = d.toISOString().split('T')[0];
+                    } else if (val === 'gmb_starter') {
+                      const d = new Date();
+                      d.setDate(d.getDate() + 365);
+                      newDate = d.toISOString().split('T')[0];
+                    }
+                    setPlanForm({ ...planForm, plan_tier: val, plan_valid_until: newDate });
+                  }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem', fontWeight: '600' }}
                 >
-                  <option value="trial">Trial (3 Days Free)</option>
-                  <option value="growth">Growth Plan (₹6,000 / Year &bull; Reg. ₹9,000)</option>
+                  <option value="gmb_pro">⭐ Google Review &amp; Local SEO Booster Pro (₹2,999 / Year)</option>
+                  <option value="retail_combo">🚀 Retail Growth Combo (Digital Billing + GMB Suite • ₹7,999 / Year)</option>
+                  <option value="gmb_starter">🏷️ GMB Smart Standee Starter Kit (₹1,499)</option>
+                  <option value="promotion">🎁 1-Year Free Promotional Subscription (365 Days Free • Special Grant)</option>
+                  <option value="growth">🧾 Growth Plan (₹6,000 / Year &bull; Reg. ₹9,000)</option>
+                  <option value="trial">⏳ Trial (3 Days Free Evaluation)</option>
+                  <option value="enterprise">🏢 Enterprise Custom Unlimited</option>
                 </select>
               </div>
 
@@ -2389,28 +3644,28 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
               {/* Quick Extension Buttons */}
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#64748b', marginBottom: '6px', textTransform: 'uppercase' }}>
-                  Quick Extend Validity
+                  Quick 1-Click Plan Application &amp; Extension
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '6px' }}>
                   <button
                     type="button"
                     onClick={() => {
-                      handleExtendDays(3);
-                      setPlanForm(prev => ({ ...prev, plan_tier: 'trial' }));
+                      handleExtendDays(365);
+                      setPlanForm(prev => ({ ...prev, plan_tier: 'gmb_pro' }));
                     }}
-                    style={{ padding: '8px 10px', borderRadius: '6px', border: '1px solid #fed7aa', backgroundColor: '#fff7ed', color: '#c2410c', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer' }}
+                    style={{ padding: '8px 6px', borderRadius: '6px', border: '1px solid #bfdbfe', backgroundColor: '#eff6ff', color: '#1d4ed8', fontSize: '0.72rem', fontWeight: '700', cursor: 'pointer' }}
                   >
-                    +3d (Trial)
+                    ⭐ +365d GMB Pro
                   </button>
                   <button
                     type="button"
                     onClick={() => {
-                      handleExtendDays(90);
-                      setPlanForm(prev => ({ ...prev, plan_tier: 'growth' }));
+                      handleExtendDays(365);
+                      setPlanForm(prev => ({ ...prev, plan_tier: 'retail_combo' }));
                     }}
-                    style={{ padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#f8fafc', color: '#334155', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer' }}
+                    style={{ padding: '8px 6px', borderRadius: '6px', border: '1px solid #e9d5ff', backgroundColor: '#faf5ff', color: '#7e22ce', fontSize: '0.72rem', fontWeight: '700', cursor: 'pointer' }}
                   >
-                    +90 Days
+                    🚀 +365d Combo
                   </button>
                   <button
                     type="button"
@@ -2418,9 +3673,38 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
                       handleExtendDays(365);
                       setPlanForm(prev => ({ ...prev, plan_tier: 'growth' }));
                     }}
-                    style={{ padding: '8px 10px', borderRadius: '6px', border: '1px solid #c7d2fe', backgroundColor: '#eef2ff', color: '#4338ca', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer' }}
+                    style={{ padding: '8px 6px', borderRadius: '6px', border: '1px solid #c7d2fe', backgroundColor: '#eef2ff', color: '#4338ca', fontSize: '0.72rem', fontWeight: '700', cursor: 'pointer' }}
                   >
-                    +1 Year (Growth)
+                    🧾 +365d Growth
+                  </button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleExtendDays(365);
+                      setPlanForm(prev => ({ ...prev, plan_tier: 'promotion' }));
+                    }}
+                    style={{ padding: '8px 6px', borderRadius: '6px', border: '1px solid #a7f3d0', backgroundColor: '#ecfdf5', color: '#065f46', fontSize: '0.72rem', fontWeight: '700', cursor: 'pointer' }}
+                  >
+                    🎁 +365d Promo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleExtendDays(90)}
+                    style={{ padding: '8px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#f8fafc', color: '#334155', fontSize: '0.72rem', fontWeight: '700', cursor: 'pointer' }}
+                  >
+                    +90 Days
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleExtendDays(3);
+                      setPlanForm(prev => ({ ...prev, plan_tier: 'trial' }));
+                    }}
+                    style={{ padding: '8px 6px', borderRadius: '6px', border: '1px solid #fed7aa', backgroundColor: '#fff7ed', color: '#c2410c', fontSize: '0.72rem', fontWeight: '700', cursor: 'pointer' }}
+                  >
+                    +3d Trial
                   </button>
                 </div>
               </div>
@@ -2477,7 +3761,132 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
               </button>
             </div>
 
+            {/* 1-Click Quick Preset Buttons */}
+            <div style={{ marginBottom: '1.25rem', padding: '10px 12px', backgroundColor: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '8px' }}>
+                1-Click Quick Fill Presets:
+              </div>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => setCampaignForm({
+                    campaign_name: 'Google Review & Local SEO Booster Pro',
+                    category: 'gmb',
+                    plan_tier: 'gmb_pro',
+                    regular_price: 5000,
+                    campaign_price: 2999,
+                    trial_days: 7,
+                    badge_text: 'SAVE ₹2,001 (40% OFF)',
+                    headline: 'Rank #1 on Google Maps. Automate 5-Star Reviews.',
+                    subheadline: 'Acrylic QR Standee + AI Auto-Responder + Negative Review Shield for Retail Stores',
+                    is_active: 1
+                  })}
+                  style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #bfdbfe', backgroundColor: '#eff6ff', color: '#1d4ed8', fontSize: '0.72rem', fontWeight: '700', cursor: 'pointer' }}
+                >
+                  ⭐ GMB Pro (₹2,999)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCampaignForm({
+                    campaign_name: 'Retail Growth Combo (Billing + GMB Suite)',
+                    category: 'combo',
+                    plan_tier: 'retail_combo',
+                    regular_price: 14000,
+                    campaign_price: 7999,
+                    trial_days: 14,
+                    badge_text: 'BEST VALUE (43% OFF)',
+                    headline: 'Everything Retail: Digital Bills + 5-Star Google Reviews',
+                    subheadline: 'Complete Retail OS: WhatsApp Receipts + GMB Smart QR Standee + Customer Retention CRM',
+                    is_active: 1
+                  })}
+                  style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #e9d5ff', backgroundColor: '#faf5ff', color: '#7e22ce', fontSize: '0.72rem', fontWeight: '700', cursor: 'pointer' }}
+                >
+                  🚀 Retail Combo (₹7,999)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCampaignForm({
+                    campaign_name: 'Retail Launch Offer',
+                    category: 'billing',
+                    plan_tier: 'growth',
+                    regular_price: 9000,
+                    campaign_price: 6000,
+                    trial_days: 3,
+                    badge_text: 'SAVE ₹3,000 TODAY (33% OFF)',
+                    headline: 'One Simple Price. All Features Included.',
+                    subheadline: 'Complete Digital Billing & Smart CRM Utility for Indian Retailers',
+                    is_active: 1
+                  })}
+                  style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #bbf7d0', backgroundColor: '#f0fdf4', color: '#166534', fontSize: '0.72rem', fontWeight: '700', cursor: 'pointer' }}
+                >
+                  🧾 Billing Growth (₹6,000)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCampaignForm({
+                    campaign_name: '1-Year Free Promotional Subscription',
+                    category: 'billing',
+                    plan_tier: 'promotion',
+                    regular_price: 9000,
+                    campaign_price: 0,
+                    trial_days: 365,
+                    badge_text: '100% FREE SPECIAL LAUNCH GRANT',
+                    headline: '1-Year Free Digital Billing for Indian Retailers',
+                    subheadline: 'Complimentary grant for early adopter merchant partners across India',
+                    is_active: 1
+                  })}
+                  style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.72rem', fontWeight: '700', cursor: 'pointer' }}
+                >
+                  🎁 1-Yr Free Promo (₹0)
+                </button>
+              </div>
+            </div>
+
             <form onSubmit={handleSaveCampaign} style={{ display: 'grid', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    Plan Category *
+                  </label>
+                  <select
+                    value={campaignForm.category || 'billing'}
+                    onChange={(e) => {
+                      const newCat = e.target.value;
+                      let defaultTier = 'growth';
+                      if (newCat === 'gmb') defaultTier = 'gmb_pro';
+                      if (newCat === 'combo') defaultTier = 'retail_combo';
+                      setCampaignForm({ ...campaignForm, category: newCat, plan_tier: defaultTier });
+                    }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem', fontWeight: '600' }}
+                  >
+                    <option value="gmb">⭐ Google Review &amp; Standee</option>
+                    <option value="billing">🧾 Digital Billing POS</option>
+                    <option value="combo">🚀 All-in-One Retail Combo</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    Plan Tier ID *
+                  </label>
+                  <select
+                    value={campaignForm.plan_tier || 'growth'}
+                    onChange={(e) => setCampaignForm({ ...campaignForm, plan_tier: e.target.value })}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem', fontWeight: '600' }}
+                  >
+                    <option value="gmb_pro">gmb_pro (Google Review Booster Pro)</option>
+                    <option value="gmb_starter">gmb_starter (GMB Standee Starter Kit)</option>
+                    <option value="retail_combo">retail_combo (Retail Growth Combo Suite)</option>
+                    <option value="growth">growth (Digital Billing Growth Plan)</option>
+                    <option value="promotion">promotion (1-Year Free Launch Promo)</option>
+                    <option value="enterprise">enterprise (Custom Unlimited)</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
                   Campaign Name *
@@ -2485,7 +3894,7 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Retail Launch Offer, Festive Dhamaka Offer"
+                  placeholder="e.g. Google Review & Local SEO Booster Pro"
                   value={campaignForm.campaign_name}
                   onChange={(e) => setCampaignForm({ ...campaignForm, campaign_name: e.target.value })}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
@@ -2613,6 +4022,448 @@ export default function SaaSAdminPanel({ defaultTab = 'stores' }) {
                 >
                   <Save style={{ width: '16px', height: '16px' }} />
                   <span>{showCampaignModal === 'create' ? 'Create & Publish Campaign' : 'Update Campaign'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ONBOARD / EDIT GMB LOCATION */}
+      {showGmbModal && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', width: '100%', maxWidth: '680px', maxHeight: '92vh', overflowY: 'auto', padding: '1.75rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800', color: '#0f172a' }}>
+                  {showGmbModal === 'create' ? 'Onboard GMB Location & Standee Hub' : 'Edit GMB Location'}
+                </h3>
+                <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+                  Public Hub URL: gmbreviews.retailnode.in/{gmbForm.slug || '[slug]'}
+                </p>
+              </div>
+              <button onClick={() => setShowGmbModal(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                <X style={{ width: '20px', height: '20px' }} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveGmbLocation} style={{ display: 'grid', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    Business / Store Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Technfest IT Solutions"
+                    value={gmbForm.title}
+                    onChange={(e) => setGmbForm({ ...gmbForm, title: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    Hub Slug (Unique URL Path) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. technfest"
+                    value={gmbForm.slug}
+                    onChange={(e) => setGmbForm({ ...gmbForm, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    Linked Retail Store / Tenant
+                  </label>
+                  <select
+                    value={gmbForm.tenant_id}
+                    onChange={(e) => setGmbForm({ ...gmbForm, tenant_id: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                  >
+                    <option value="">-- Standalone / Not Linked to Store --</option>
+                    {tenants.map(t => (
+                      <option key={t.id} value={t.id}>{t.store_name} (ID: {t.id})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    Primary Business Category
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Software Company, Apparel Store"
+                    value={gmbForm.primary_category}
+                    onChange={(e) => setGmbForm({ ...gmbForm, primary_category: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    Google Place ID
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. ChIJ..."
+                    value={gmbForm.place_id}
+                    onChange={(e) => setGmbForm({ ...gmbForm, place_id: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem', fontFamily: 'monospace' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    Direct Google Review URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://g.page/r/.../review"
+                    value={gmbForm.google_review_url}
+                    onChange={(e) => setGmbForm({ ...gmbForm, google_review_url: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    Phone Number
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="+91 9876543210"
+                    value={gmbForm.phone}
+                    onChange={(e) => setGmbForm({ ...gmbForm, phone: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    WhatsApp Number
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="919876543210"
+                    value={gmbForm.whatsapp_number}
+                    onChange={(e) => setGmbForm({ ...gmbForm, whatsapp_number: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                  Full Physical Address
+                </label>
+                <input
+                  type="text"
+                  placeholder="Shop No. 4, Main Road, Market Yard..."
+                  value={gmbForm.address}
+                  onChange={(e) => setGmbForm({ ...gmbForm, address: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                  Selected Theme Design (Choose from 10 Curated Palettes)
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px' }}>
+                  {THEME_OPTIONS.map(th => {
+                    const isSelected = gmbForm.selected_theme === th.id;
+                    return (
+                      <div
+                        key={th.id}
+                        onClick={() => setGmbForm({ ...gmbForm, selected_theme: th.id })}
+                        style={{
+                          border: isSelected ? '2px solid #0284c7' : '1px solid #e2e8f0',
+                          borderRadius: '8px',
+                          padding: '8px',
+                          backgroundColor: isSelected ? '#f0f9ff' : '#ffffff',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          transition: 'all 0.15s'
+                        }}
+                      >
+                        <span style={{ width: '14px', height: '14px', borderRadius: '50%', backgroundColor: th.bg, border: `1px solid ${th.border}` }} />
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: th.accent }} />
+                        <span style={{ fontSize: '0.7rem', fontWeight: isSelected ? '800' : '600', color: isSelected ? '#0369a1' : '#334155' }}>
+                          {th.name.split(' ')[0]}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowGmbModal(null)}
+                  style={{ padding: '9px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#f1f5f9', color: '#475569', cursor: 'pointer', fontWeight: '600' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingGmb}
+                  style={{ padding: '9px 18px', borderRadius: '8px', border: 'none', backgroundColor: '#0284c7', color: '#ffffff', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Save style={{ width: '16px', height: '16px' }} />
+                  <span>{savingGmb ? 'Saving...' : showGmbModal === 'create' ? 'Onboard Location' : 'Save Changes'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ONBOARD / EDIT USER ACCOUNT */}
+      {showUserModal && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', width: '100%', maxWidth: '520px', padding: '1.75rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800', color: '#0f172a' }}>
+                {showUserModal === 'create' ? 'Create Platform & Store User' : 'Edit User Account'}
+              </h3>
+              <button onClick={() => setShowUserModal(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                <X style={{ width: '20px', height: '20px' }} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveUser} style={{ display: 'grid', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Sagar"
+                    value={userForm.first_name}
+                    onChange={(e) => setUserForm({ ...userForm, first_name: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Mohite"
+                    value={userForm.last_name}
+                    onChange={(e) => setUserForm({ ...userForm, last_name: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="merchant@example.com"
+                  value={userForm.email}
+                  onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    Phone Number
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="9876543210"
+                    value={userForm.phone}
+                    onChange={(e) => setUserForm({ ...userForm, phone: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    {showUserModal === 'create' ? 'Password *' : 'New Password (Optional)'}
+                  </label>
+                  <input
+                    type="password"
+                    required={showUserModal === 'create'}
+                    placeholder={showUserModal === 'create' ? '••••••••' : 'Leave empty to keep'}
+                    value={userForm.password}
+                    onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    Role &amp; Privilege
+                  </label>
+                  <select
+                    value={userForm.role}
+                    onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                  >
+                    <option value="merchant_admin">Merchant Admin (Store Manager)</option>
+                    <option value="cashier">Cashier (Billing POS Only)</option>
+                    <option value="superadmin">Platform SuperAdmin</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                    Assigned Retail Store
+                  </label>
+                  <select
+                    value={userForm.tenant_id}
+                    onChange={(e) => setUserForm({ ...userForm, tenant_id: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                  >
+                    <option value="">-- All Stores / None --</option>
+                    {tenants.map(t => (
+                      <option key={t.id} value={t.id}>{t.store_name} (ID: {t.id})</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowUserModal(null)}
+                  style={{ padding: '9px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#f1f5f9', color: '#475569', cursor: 'pointer', fontWeight: '600' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingUser}
+                  style={{ padding: '9px 18px', borderRadius: '8px', border: 'none', backgroundColor: '#4f46e5', color: '#ffffff', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Save style={{ width: '16px', height: '16px' }} />
+                  <span>{savingUser ? 'Saving...' : showUserModal === 'create' ? 'Create User' : 'Update User'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: REPLY TO GOOGLE REVIEW */}
+      {activeReplyReview && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', width: '100%', maxWidth: '540px', padding: '1.75rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: '800', color: '#0f172a' }}>
+                  Reply to Google Review
+                </h3>
+                <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+                  Reviewer: {activeReplyReview.reviewer_name} &bull; {activeReplyReview.star_rating} Stars
+                </p>
+              </div>
+              <button onClick={() => setActiveReplyReview(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                <X style={{ width: '20px', height: '20px' }} />
+              </button>
+            </div>
+
+            <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 14px', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '2px', marginBottom: '4px' }}>
+                {[1, 2, 3, 4, 5].map(st => (
+                  <Star
+                    key={st}
+                    style={{
+                      width: '12px',
+                      height: '12px',
+                      fill: st <= (activeReplyReview.star_rating || 5) ? '#f59e0b' : '#e2e8f0',
+                      color: st <= (activeReplyReview.star_rating || 5) ? '#f59e0b' : '#e2e8f0'
+                    }}
+                  />
+                ))}
+              </div>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: '#334155', fontStyle: activeReplyReview.comment ? 'normal' : 'italic' }}>
+                "{activeReplyReview.comment || 'No written comment provided'}"
+              </p>
+            </div>
+
+            <form onSubmit={handleSaveReviewReply} style={{ display: 'grid', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
+                  Your Official Response
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="Thank you for visiting us! We are thrilled to hear you had a great experience..."
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#0f172a', fontSize: '0.85rem' }}
+                />
+              </div>
+
+              {/* Quick Template Presets */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: '700', color: '#64748b', marginBottom: '4px', textTransform: 'uppercase' }}>
+                  Quick Response Templates
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setReplyText('Thank you so much for your kind words and 5-star rating! We look forward to serving you again soon.')}
+                    style={{ textAlign: 'left', padding: '6px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#334155', fontSize: '0.72rem', cursor: 'pointer' }}
+                  >
+                    ⭐ Friendly Gratitude: "Thank you so much for your kind words and 5-star rating!..."
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReplyText('Thank you for choosing us! We truly appreciate your feedback and hope to see you again soon.')}
+                    style={{ textAlign: 'left', padding: '6px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#334155', fontSize: '0.72rem', cursor: 'pointer' }}
+                  >
+                    🤝 Professional Appreciation: "Thank you for choosing us! We truly appreciate..."
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setActiveReplyReview(null)}
+                  style={{ padding: '9px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#f1f5f9', color: '#475569', cursor: 'pointer', fontWeight: '600' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingReply}
+                  style={{ padding: '9px 18px', borderRadius: '8px', border: 'none', backgroundColor: '#0284c7', color: '#ffffff', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Send style={{ width: '15px', height: '15px' }} />
+                  <span>{savingReply ? 'Publishing...' : 'Publish Reply'}</span>
                 </button>
               </div>
             </form>

@@ -1,4 +1,5 @@
 User-agent: *
+Allow: /
 Disallow: /i/
 Disallow: /t/
 Disallow: /api/
@@ -8,9 +9,14 @@ Disallow: /saas-admin
 
 # Disallow Googlebot, Bingbot, and all search crawlers from archiving receipts
 User-agent: Googlebot
+Allow: /
 Disallow: /i/
 Disallow: /t/
 
 User-agent: Bingbot
+Allow: /
 Disallow: /i/
 Disallow: /t/
+
+Sitemap: https://bill.retailnode.in/sitemap.xml
+

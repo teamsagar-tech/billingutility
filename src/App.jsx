@@ -155,6 +155,11 @@ export default function App() {
         <Route path="/saas-admin" element={<Navigate to="/saas-admin/stores" replace />} />
         <Route path="/saas-admin/stores" element={<SaaSAdminPanel defaultTab="stores" />} />
         <Route path="/saas-admin/tenants" element={<Navigate to="/saas-admin/stores" replace />} />
+        <Route path="/saas-admin/gmb" element={<SaaSAdminPanel defaultTab="gmb" />} />
+        <Route path="/saas-admin/google-review" element={<Navigate to="/saas-admin/gmb" replace />} />
+        <Route path="/saas-admin/locations" element={<Navigate to="/saas-admin/gmb" replace />} />
+        <Route path="/saas-admin/users" element={<SaaSAdminPanel defaultTab="users" />} />
+        <Route path="/saas-admin/user-management" element={<Navigate to="/saas-admin/users" replace />} />
         <Route path="/saas-admin/pricing" element={<SaaSAdminPanel defaultTab="pricing" />} />
         <Route path="/saas-admin/campaigns" element={<Navigate to="/saas-admin/pricing" replace />} />
         <Route path="/saas-admin/whatsapp-logs" element={<SaaSAdminPanel defaultTab="whatsapp_logs" />} />
